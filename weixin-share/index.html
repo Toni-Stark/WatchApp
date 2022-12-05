@@ -1,0 +1,137 @@
+<!--http://app.icst-edu.com:50188/weixin-share/index.html-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>正在跳转</title>
+  <style>
+    *{
+        margin: 0;padding: 0;
+    }
+    body{
+        width: 100%;
+        height: 100%;
+        /* background-image: url('./image.png');
+        background-repeat: no-repeat;
+        background-size: 100% 200vw; */
+    }
+    .image{
+        position: absolute;
+        left: 50%;
+        top: 15%;
+        margin-left: -25%;
+        width: 50%;
+        text-align: center;
+    }
+    .image-logo{
+        width: 70px;
+        height: 70px;
+    }
+    .image-h2{
+        text-align: center;
+        font-size: 22px;
+    }
+    .image-p{
+        margin-top: 10px;
+        text-align: center;
+        font-size: 15px;
+        color: #999999;
+    }
+    .image-div{
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: space-around;
+        margin-top: 30px;
+    }
+    .image-div-btn{
+      width: 100px;
+      height: 30px;
+      font-size: 12px;
+      outline: none;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      background-color: ghostwhite;
+      color: black;
+      padding: 0;
+    }
+    #btn1 {
+      margin-left: 15px;
+    }
+  </style>
+</head>
+<body onload="onload()">
+  <div class="image">
+    <img class="image-logo" src="logo.png" />
+    <h2 class="image-h2">云海学悦</h2>
+    <p class="image-p">正在前往云海学悦...</p>
+    <div class="image-div">
+      <p></p>
+      <button class="image-div-btn" onClick="download()">现在安装</button>
+      <button id="btn1" class="image-div-btn" onClick="jump()">立即打开</button>
+    </div>
+  </div>
+</body>
+<script>
+
+  // let versionUpdateUrl = 'http://app.icst-edu.com:50189/xueyue/sys/app/query-latest-version-info'
+  let versionUpdateUrl = 'http://app.icst-edu.com:50188/api/v2/auth/public/app/query-update-android'
+  let iosDownloadUrl = `https://itunes.apple.com/cn/lookup?id=1507515965`;
+  var XAjax = {
+    get: function(url){
+        var xhr=new XMLHttpRequest();
+        xhr.open('GET',url,false);
+        xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded")
+        xhr.onreadystatechange=function(){
+            if(xhr.readyState===4){
+                if(xhr.status===200 || xhr.status===304){
+                  window.location = JSON.parse(xhr.responseText).result.download_url;
+                }
+            }
+        }
+        xhr.send();
+    },
+    getIos: async function(url){
+      let result = await fetch(url);
+      let resParams = await result.json();
+      window.location = resParams.results[0].trackViewUrl;
+    }
+  }
+
+  let time = true;
+  let isDownload = false;
+  // LessonDetail/lesson/:id=/lesson/:id=1327217637956018177
+  let urls = window.location.search.split('=')[1];
+  
+  function onload(){
+    window.location = "xueyue://lesson-detail/"+ urls;// 尝试打开app
+    let timer1 = window.setInterval(()=>{
+      window.location = "xueyue://lesson-detail/"+ urls;
+      this.isDownload = true;
+      if(time){
+        window.location = "xueyue://lesson-detail/"+ urls;
+        this.isDownload = false;
+        clearInterval(timer1);
+      }
+      if(isDownload){
+        time = true;
+      }
+    }, 3000)
+
+  }
+  function download() {
+    let u = navigator.userAgent, app = navigator.appVersion
+    var isAndroid = u.indexOf('Android') > -1 || u.indexOf('Linux') > -1; //g
+    var isIOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+    if(isAndroid){
+      XAjax.get(versionUpdateUrl)
+    }else if(isIOS){
+      XAjax.getIos(iosDownloadUrl).then()
+    }
+  }
+  function jump() {
+    window.location.href = 'http://app.icst-edu.com:50188/weixin-share/next.html?id='+ urls;
+  }
+</script>
+</html>

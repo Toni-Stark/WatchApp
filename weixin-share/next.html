@@ -1,0 +1,47 @@
+<!--http://app.icst-edu.com:50188/weixin-share/next.html-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>正在跳转</title>
+  <style>
+    *{
+        margin: 0;padding: 0;
+    }
+    body{
+        width: 100%;
+        height: 100%;
+        background-image: url('./image.png');
+        background-repeat: no-repeat;
+        background-size: 100% 200vw;
+    }
+  </style>
+</head>
+<body onload="onload()">
+</body>
+<script>
+  let versionUpdateUrl = 'http://app.icst-edu.com:50188/api/v2/auth/public/app/query-update-android'
+  let time = true;
+  let isDownload = false;
+  function onload(){
+    let urls = window.location.search.split('=')[1];
+    window.location = `xueyue://lesson-detail/:${urls}`;// 尝试打开app
+    let timer1 = window.setInterval(()=>{
+      window.location = `xueyue://lesson-detail/:${urls}`;
+      this.isDownload = true;
+      if(time){
+        window.location = `xueyue://lesson-detail/:${urls}`;
+        this.isDownload = false;
+        clearInterval(timer1);
+      }
+      if(isDownload){
+        time = true;
+      }
+    }, 3000)
+  }
+ 
+</script>
+</html>

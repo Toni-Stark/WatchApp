@@ -1,0 +1,7 @@
+WatchV2.0签名
+================
+keytool -genkeypair -v -keystore watch-release-key.keystore -alias watch-key -keyalg RSA -keysize 2048 -validity 10000
+================
+Key Password: watch@2020
+================
+Information: CN=WATCH, OU=WATCH, O=WATCH, L=CQ, ST=CQ, C=86
