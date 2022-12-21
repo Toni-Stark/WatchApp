@@ -47,12 +47,14 @@ export const BlueCharacteristics: ScreenComponent = observer(
       // setSpinner(true);
       let list = getChartStatus(item);
       console.log('log-----------');
-      console.log(list);
+      console.log(list[0].id);
       console.log('log-----------');
       switch (list[0].id) {
         case 1:
-          let result = await blueToothStore.manager.monitorCharacteristicForDevice(item.deviceID, item.serviceUUID, item.uuid);
-          console.log(result);
+          props.navigation.navigate('BlueListener', { item: item, type: 1 });
+          break;
+        case 2:
+          props.navigation.navigate('BlueListener', { item: item });
           break;
         case 3:
           item.read().then((result) => {
@@ -71,6 +73,8 @@ export const BlueCharacteristics: ScreenComponent = observer(
               });
           });
           break;
+        case 4:
+          props.navigation.navigate('BlueToothWhite', { item: item });
       }
     };
 
@@ -91,14 +95,6 @@ export const BlueCharacteristics: ScreenComponent = observer(
         </TouchableOpacity>
       );
     };
-
-    // const FooterBtn = () => {
-    //   return (
-    //     <TouchableOpacity style={styles.footerBtn} onPress={getInServers}>
-    //       <Text style={styles.footerText}>查看设备通信</Text>
-    //     </TouchableOpacity>
-    //   );
-    // };
 
     return (
       <BaseView ref={baseView}>

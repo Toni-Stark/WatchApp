@@ -6,6 +6,7 @@ import { APP_COLOR_MODE, APP_LANGUAGE } from '../common/constants';
 import { t } from '../common/tools';
 import { darkTheme, theme } from '../common/theme';
 import { BleManager } from 'react-native-ble-plx';
+import { Buffer } from 'buffer';
 
 export type AppColorModeType = 'light' | 'dark' | 'system';
 export type AppLanguageType = 'zh' | 'en' | 'system';
@@ -24,6 +25,8 @@ export class BlueToothStore {
   @observable blueToothListener: any;
   @observable blueListenerList: any[] = [];
 
+  @observable blueRootList: any[] = [];
+
   constructor() {
     makeAutoObservable(this);
   }
@@ -31,6 +34,23 @@ export class BlueToothStore {
   @action
   async setManagerInit() {
     this.manager = new BleManager();
+  }
+
+  @action
+  async sendActiveMessage(params) {
+    const { value, data } = params;
+    let buffer = Buffer.from(value).toString('base64');
+    console.log(buffer, 'log', data.serviceUUID, data.uuid);
+    const result = await this.devicesInfo.writeCharacteristicWithResponseForService(data.serviceUUID, data.uuid, buffer);
+    console.log(result);
+  }
+
+  @action
+  async listenActiveMessage(params) {
+    const { data } = params;
+    this.devicesInfo.monitorCharacteristicForService(data.serviceUUID, data.uuid, (error, characteristic) => {
+      this.blueRootList = [...this.blueRootList, characteristic.value];
+    });
   }
 
   @action

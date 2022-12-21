@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Linking, View, StyleSheet, Text, TouchableOpacity, Modal, Alert, PermissionsAndroid } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import BaseView from '../component/BaseView';
 import { useStore } from '../store';
 import { ScreenComponent } from './index';
@@ -8,94 +8,50 @@ import { observer } from 'mobx-react-lite';
 import { HeaderBar } from '../component/home/HeaderBar';
 import FastImage from 'react-native-fast-image';
 import BluetoothStateManager from 'react-native-bluetooth-state-manager';
+import { hasAndroidPermission } from '../common/tools';
+import { Button, Dialog, Paragraph, Portal } from 'react-native-paper';
 
 export const Home: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
-    const { settingStore, userStore, blueToothStore } = useStore();
+    const { blueToothStore } = useStore();
     const baseView = useRef<any>(undefined);
-
-    const onReceiveURL = useCallback(async () => {
-      settingStore.canJump = true;
-      await Linking.getInitialURL().then((res) => {
-        if (res) {
-          settingStore.initURL = res;
-          baseView.current.showLoading({ text: '正在加载', delay: 2 });
-          setTimeout(() => {
-            let msg = res?.split(':', settingStore.initURL?.length);
-            if (settingStore.canJump && msg) {
-              switch (msg[1]) {
-                case '//lesson-detail/':
-                  baseView.current.hideLoading();
-                  settingStore.initURL = '';
-                  settingStore.canJump = false;
-                  navigation.navigate('Main', { screen: 'LessonDetail', params: { lessonId: msg[2] } });
-                  break;
-              }
-              return;
-            }
-          }, 1000);
-        }
-      });
-    }, [navigation, settingStore]);
-
-    const hasAndroidPermission = async () => {
-      const permissions = [PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION, PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION];
-      const granteds = await PermissionsAndroid.requestMultiple(permissions);
-      if (granteds['android.permission.ACCESS_FINE_LOCATION'] === 'granted' && granteds['android.permission.ACCESS_COARSE_LOCATION'] === 'granted') {
-        return true;
-      } else {
-        Modal.alert('请开启定位权限', '请开启获取手机位置服务，否则系统部分功能将无法使用', [
-          {
-            text: '开启',
-            onPress: () => {
-              console.log('点击开启按钮');
-              if (
-                granteds['android.permission.ACCESS_FINE_LOCATION'] === 'never_ask_again' &&
-                granteds['android.permission.ACCESS_COARSE_LOCATION'] === 'never_ask_again'
-              ) {
-                Alert.alert(
-                  '警告',
-                  '您将应用获取手机定位的权限设为拒绝且不再询问，功能无法使用!' +
-                    '想要重新打开权限，请到手机-设置-权限管理中允许[你的应用名称]app对该权限的获取'
-                );
-                return false;
-              } else {
-                //短时间第二次可以唤醒再次请求权限框，但是选项会从拒绝变为拒绝且不再询，如果选择该项则无法再唤起请求权限框
-                // getPositionInit();
-              }
-            }
-          },
-          {
-            text: '拒绝授权',
-            onPress: () => {
-              return false;
-            }
-          }
-        ]);
-      }
-    };
+    const [visible, setVisible] = useState(false);
 
     useEffect(() => {
-      if (userStore.login) {
-        (async () => {
-          await onReceiveURL();
-        })();
-        Linking.addEventListener('url', onReceiveURL);
-        return Linking.removeEventListener('url', onReceiveURL);
+      if (blueToothStore?.devicesInfo) {
+        setVisible(true);
       }
-      (async () => {
-        await hasAndroidPermission();
-      })();
-    }, [onReceiveURL, userStore.login]);
-
-    useEffect(() => {}, []);
+    }, [blueToothStore.devicesInfo]);
 
     const updateMenuState = () => {
-      console.log(123345);
+      console.log('打开分享链接');
     };
 
     const openBlueTooth = () => {
       navigation.navigate('BlueToothDetail', {});
+    };
+
+    const hideDialog = () => {
+      setVisible(false);
+    };
+
+    const successDialog = async () => {
+      let responseParams = {
+        data: {
+          serviceUUID: 'F0080001-0451-4000-B000-000000000000',
+          uuid: 'f0080002-0451-4000-B000-000000000000'
+        }
+      };
+      await blueToothStore.listenActiveMessage(responseParams);
+      let params = {
+        value: '0000',
+        data: {
+          serviceUUID: 'f0080001-0451-4000-b000-000000000000',
+          uuid: 'f0080003-0451-4000-b000-000000000000'
+        }
+      };
+      await blueToothStore.sendActiveMessage(params);
+      setVisible(false);
     };
 
     const blueToothDetail = async () => {
@@ -143,6 +99,17 @@ export const Home: ScreenComponent = observer(
       }
     }, [blueToothStore.devicesInfo]);
 
+    const currentResult = useMemo(() => {
+      console.log(blueToothStore.blueRootList);
+      return (
+        <View style={styles.resultView}>
+          {blueToothStore.blueRootList.map((item, index) => (
+            <Text key={index.toString()}>响应值：{item}</Text>
+          ))}
+        </View>
+      );
+    }, [blueToothStore.blueRootList]);
+
     const renderHeader = useMemo(() => {
       return (
         <View style={[tw.flex1, [{ backgroundColor: '#ffffff' }]]}>
@@ -160,13 +127,31 @@ export const Home: ScreenComponent = observer(
             </View>
           </View>
           {currentDevice}
+          {currentResult}
         </View>
       );
-    }, [currentDevice, blueToothStore.devicesInfo]);
+    }, [currentDevice, blueToothStore.devicesInfo, blueToothStore.blueRootList]);
+    const dialogModal = useMemo(() => {
+      return (
+        <Portal>
+          <Dialog visible={visible} onDismiss={hideDialog}>
+            <Dialog.Title>提示</Dialog.Title>
+            <Dialog.Content>
+              <Paragraph>初始化蓝牙手表？</Paragraph>
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button onPress={hideDialog}>关闭</Button>
+              <Button onPress={successDialog}>确认</Button>
+            </Dialog.Actions>
+          </Dialog>
+        </Portal>
+      );
+    }, [visible]);
     return (
       <BaseView ref={baseView} style={[tw.flex1]}>
         <HeaderBar openLayout={() => updateMenuState()} />
         {renderHeader}
+        {dialogModal}
       </BaseView>
     );
   }
@@ -211,5 +196,8 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 30,
     textAlign: 'center'
+  },
+  resultView: {
+    padding: 10
   }
 });

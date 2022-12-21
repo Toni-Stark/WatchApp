@@ -33,7 +33,6 @@ export const BlueToothDetail: ScreenComponent = observer(
     const getAllDeviceInfo = () => {
       let deviceId = blueToothStore.devicesInfo.id;
       blueToothStore.manager.servicesForDevice(deviceId).then((res) => {
-        console.log('all', res);
         if (res.length > 0) {
           blueToothStore.servicesDevices = res;
           // if (serviceUUID) {

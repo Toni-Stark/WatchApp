@@ -1,7 +1,7 @@
 import _, { memoize } from 'lodash';
 import i18n from 'i18n-js';
 import { check, PERMISSIONS, request } from 'react-native-permissions';
-import { Dimensions, Platform, StatusBar } from 'react-native';
+import { Alert, Dimensions, Modal, PermissionsAndroid, Platform, StatusBar } from 'react-native';
 import { SERVER_URL } from './app.config';
 import AsyncStorage from '@react-native-community/async-storage';
 import { LESSON_TYPE_DEMAND, LESSON_TYPE_LIVE } from './status-module';
@@ -29,41 +29,25 @@ export const delay = (func: Function, delayTime: number = 500) => {
 export const isBlank = (str: string) => {
   return str === null || str === undefined || str.trim() === '';
 };
-export const getClassType = (lessonType: string | number): string => {
-  switch (lessonType) {
-    case 9:
-      return t('lesson.onDemand');
-    case 2:
-      return '小班课';
-    case 1:
-      return t('lesson.live');
-    default:
-      return '大班课';
-  }
-};
 
-export const getClassNowTime = (lessonType: string | number): string => {
-  switch (lessonType) {
-    case 9:
-      return t('lesson.onDemand');
-    case 2:
-      return '小班课';
-    case 1:
-      return t('lesson.live');
-    default:
-      return '大班课';
-  }
-};
 export type ChartStatus = {
   text: string;
   id: number;
 };
 export const getChartStatus = (item): ChartStatus[] => {
   let list: ChartStatus[] = [];
+  // 如果特征可以监控值的变化为true
   if (item.isNotifiable) list.push({ text: '可通知的', id: 1 });
+  // 如果监控值随ACK变化为true
   if (item.isIndicatable) list.push({ text: '可通知的', id: 2 });
+  // 如果监控值在没有ACK的情况下变化为true
+  if (item.isNotifying) list.push({ text: '可通知的', id: 5 });
+  // 如果可以读取特征值为true
   if (item.isReadable) list.push({ text: '可读的', id: 3 });
-  if (item.isWritableWithResponse) list.push({ text: '可写的', id: 4 });
+  // 如果写入特征值有响应就为true
+  if (item.isWritableWithResponse) list.push({ text: '有响应写入', id: 4 });
+  // 如果可以无响应写入特征值就为true
+  if (item.isWritableWithoutResponse) list.push({ text: '无响应写入', id: 6 });
   return list;
 };
 
@@ -82,69 +66,6 @@ export const getSafeAvatar = (changeAvatar: string | undefined | null) => {
     return { uri: SERVER_URL + '/xueyue/' + changeAvatar };
   } else {
     return { uri: '' };
-  }
-};
-
-export const getEnLen = (num: number, size): number => {
-  if (num === 0) {
-    return 1;
-  } else if (num !== 1 && num % size === 0) {
-    return num / size + 1;
-  } else if (num !== 1 && num % size > 0) {
-    return Math.floor(num / size) + 2;
-  } else return 1;
-};
-
-// export const getSize = (_): Promise<{ width: number; height: number }> => {
-//   // resolve the source and use it instead
-//   const src = Image.resolveAssetSource(_);
-//
-//   return new Promise((resolve, reject) => {
-//     if (!src) {
-//       reject(new Error('must pass in a valid source'));
-//     } else if (src.uri) {
-//       Image.getSize(src.uri, (width, height) => resolve({ width, height }), reject);
-//     } else {
-//       resolve({ width: src.width, height: src.height });
-//     }
-//   });
-// };
-
-export const getSafeCover = (changeAvatar: string | undefined) => {
-  if (changeAvatar && changeAvatar?.length > 0) {
-    return { uri: SERVER_URL + '/xueyue/' + changeAvatar };
-  } else {
-    return { uri: SERVER_URL + '/xueyue/' + 'files/202011/VCG211139532667_1605065186659.jpg' };
-  }
-};
-
-export const getStr = (str: string | undefined) => {
-  if (str) {
-    return str;
-  } else {
-    return '';
-  }
-};
-
-export const getUserGender = (check) => {
-  switch (check) {
-    case 1:
-      return t('myProfile.man');
-    case 2:
-      return t('myProfile.women');
-    default:
-      return t('myProfile.notSet');
-  }
-};
-
-export const getLessonType = (msg) => {
-  switch (msg) {
-    case 'live':
-      return LESSON_TYPE_LIVE;
-    case 'vod':
-      return LESSON_TYPE_DEMAND;
-    default:
-      return LESSON_TYPE_LIVE;
   }
 };
 
@@ -217,26 +138,6 @@ export const genRandomString = (len: number) => {
   return rdmString;
 };
 
-// export const requestWeiChatPay = async () => {
-//   if (Platform.OS === 'ios') {
-//     // fake for temporary
-//     // WeChat.registerApp(AppConfig.WX_APP_ID, 'https://www.icst-edu.com/')
-//     //   .then()
-//     //   .catch((e) => util.log(e));
-//     return false;
-//   } else {
-//     WeChat.registerApp(appConfig.WX_APP_ID, 'https://www.icst-edu.com/')
-//       .then((res) => {
-//         console.log(res);
-//         return res;
-//       })
-//       .catch((err) => {
-//         console.log(err);
-//         return false;
-//       });
-//   }
-// };
-
 export const requestCameraPermission = async (): Promise<boolean> => {
   if (Platform.OS === 'android') {
     if ((await check(PERMISSIONS.ANDROID.CAMERA)) !== 'granted') {
@@ -289,4 +190,40 @@ export const requestAudioAndVideoPermission = async (): Promise<boolean> => {
 export const getStorage = async (name): Promise<string | null> => {
   console.log(await AsyncStorage.getItem(name));
   return Promise.resolve(await AsyncStorage.getItem(name));
+};
+
+export const hasAndroidPermission = async () => {
+  const permissions = [PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION, PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION];
+  const granteds = await PermissionsAndroid.requestMultiple(permissions);
+  if (granteds['android.permission.ACCESS_FINE_LOCATION'] === 'granted' && granteds['android.permission.ACCESS_COARSE_LOCATION'] === 'granted') {
+    return true;
+  } else {
+    Alert.alert('请开启定位权限', '请开启获取手机位置服务，否则系统部分功能将无法使用', [
+      {
+        text: '开启',
+        onPress: () => {
+          console.log('点击开启按钮');
+          if (
+            granteds['android.permission.ACCESS_FINE_LOCATION'] === 'never_ask_again' &&
+            granteds['android.permission.ACCESS_COARSE_LOCATION'] === 'never_ask_again'
+          ) {
+            Alert.alert(
+              '警告',
+              '您将应用获取手机定位的权限设为拒绝且不再询问，功能无法使用!' + '想要重新打开权限，请到手机-设置-权限管理中允许[你的应用名称]app对该权限的获取'
+            );
+            return false;
+          } else {
+            //短时间第二次可以唤醒再次请求权限框，但是选项会从拒绝变为拒绝且不再询，如果选择该项则无法再唤起请求权限框
+            // getPositionInit();
+          }
+        }
+      },
+      {
+        text: '拒绝授权',
+        onPress: () => {
+          return false;
+        }
+      }
+    ]);
+  }
 };
