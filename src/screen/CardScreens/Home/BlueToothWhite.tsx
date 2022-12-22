@@ -26,14 +26,15 @@ export const BlueToothWhite: ScreenComponent = observer(
 
     const sendValue = async () => {
       let buffer = Buffer.from(value).toString('base64');
-      console.log(buffer, 'log', data.serviceUUID, data.uuid);
-      const result = await blueToothStore.devicesInfo.writeCharacteristicWithResponseForService(data.serviceUUID, data.uuid, buffer);
+      // const result = await blueToothStore.devicesInfo.writeCharacteristicWithResponseForService(data.serviceUUID, data.uuid, value);
+      const result = await blueToothStore.manager.writeCharacteristicWithoutResponseForDevice(data.deviceID, data.serviceUUID, data.uuid, value);
       console.log(result);
     };
 
     useEffect(() => {
       let params: any = props.route.params;
       if (params?.item) {
+        console.log(params.item);
         setData(params.item);
       }
     }, []);

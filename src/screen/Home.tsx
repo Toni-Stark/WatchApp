@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import BaseView from '../component/BaseView';
 import { useStore } from '../store';
@@ -9,52 +9,47 @@ import { HeaderBar } from '../component/home/HeaderBar';
 import FastImage from 'react-native-fast-image';
 import BluetoothStateManager from 'react-native-bluetooth-state-manager';
 import { hasAndroidPermission } from '../common/tools';
-import { Button, Dialog, Paragraph, Portal } from 'react-native-paper';
 
 export const Home: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
     const { blueToothStore } = useStore();
     const baseView = useRef<any>(undefined);
-    const [visible, setVisible] = useState(false);
 
     useEffect(() => {
       if (blueToothStore?.devicesInfo) {
-        setVisible(true);
+        (async () => await successDialog())();
       }
-    }, [blueToothStore.devicesInfo]);
+    }, [blueToothStore?.devicesInfo]);
 
     const updateMenuState = () => {
       console.log('打开分享链接');
     };
 
-    const openBlueTooth = () => {
+    const openBlueTooth = useCallback(() => {
       navigation.navigate('BlueToothDetail', {});
-    };
+    }, [navigation]);
 
-    const hideDialog = () => {
-      setVisible(false);
-    };
-
-    const successDialog = async () => {
+    const successDialog = useCallback(async () => {
       let responseParams = {
         data: {
-          serviceUUID: 'F0080001-0451-4000-B000-000000000000',
+          deviceID: 'EF:39:16:32:92:F7',
+          serviceUUID: 'f0080001-0451-4000-B000-000000000000',
           uuid: 'f0080002-0451-4000-B000-000000000000'
         }
       };
       await blueToothStore.listenActiveMessage(responseParams);
       let params = {
-        value: '0000',
+        value: 'A1 00 00 00 07 E6 0C 14 0E 37 1D 01 01',
         data: {
-          serviceUUID: 'f0080001-0451-4000-b000-000000000000',
-          uuid: 'f0080003-0451-4000-b000-000000000000'
+          deviceID: 'EF:39:16:32:92:F7',
+          serviceUUID: 'f0080001-0451-4000-B000-000000000000',
+          uuid: 'f0080003-0451-4000-B000-000000000000'
         }
       };
       await blueToothStore.sendActiveMessage(params);
-      setVisible(false);
-    };
+    }, [blueToothStore]);
 
-    const blueToothDetail = async () => {
+    const blueToothDetail = useCallback(async () => {
       await hasAndroidPermission();
       const Powered = await BluetoothStateManager.getState();
       if (Powered === 'PoweredOn') {
@@ -65,7 +60,7 @@ export const Home: ScreenComponent = observer(
           navigation.navigate('BlueTooth', {});
         }, 300);
       }
-    };
+    }, []);
     const currentDevice = useMemo(() => {
       if (blueToothStore.devicesInfo) {
         return (
@@ -97,18 +92,18 @@ export const Home: ScreenComponent = observer(
           </TouchableOpacity>
         );
       }
-    }, [blueToothStore.devicesInfo]);
+    }, [blueToothDetail, blueToothStore.devicesInfo, openBlueTooth]);
 
-    const currentResult = useMemo(() => {
-      console.log(blueToothStore.blueRootList);
-      return (
-        <View style={styles.resultView}>
-          {blueToothStore.blueRootList.map((item, index) => (
-            <Text key={index.toString()}>响应值：{item}</Text>
-          ))}
-        </View>
-      );
-    }, [blueToothStore.blueRootList]);
+    // const currentResult = useMemo(() => {
+    //   console.log(blueToothStore.blueRootList);
+    //   return (
+    //     <View style={styles.resultView}>
+    //       {blueToothStore.blueRootList.map((item, index) => (
+    //         <Text key={index.toString()}>响应值：{item}</Text>
+    //       ))}
+    //     </View>
+    //   );
+    // }, [blueToothStore.blueRootList]);
 
     const renderHeader = useMemo(() => {
       return (
@@ -127,31 +122,15 @@ export const Home: ScreenComponent = observer(
             </View>
           </View>
           {currentDevice}
-          {currentResult}
+          {/*{currentResult}*/}
         </View>
       );
     }, [currentDevice, blueToothStore.devicesInfo, blueToothStore.blueRootList]);
-    const dialogModal = useMemo(() => {
-      return (
-        <Portal>
-          <Dialog visible={visible} onDismiss={hideDialog}>
-            <Dialog.Title>提示</Dialog.Title>
-            <Dialog.Content>
-              <Paragraph>初始化蓝牙手表？</Paragraph>
-            </Dialog.Content>
-            <Dialog.Actions>
-              <Button onPress={hideDialog}>关闭</Button>
-              <Button onPress={successDialog}>确认</Button>
-            </Dialog.Actions>
-          </Dialog>
-        </Portal>
-      );
-    }, [visible]);
+
     return (
       <BaseView ref={baseView} style={[tw.flex1]}>
         <HeaderBar openLayout={() => updateMenuState()} />
         {renderHeader}
-        {dialogModal}
       </BaseView>
     );
   }

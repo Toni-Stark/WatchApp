@@ -6,6 +6,7 @@ import { SERVER_URL } from './app.config';
 import AsyncStorage from '@react-native-community/async-storage';
 import { LESSON_TYPE_DEMAND, LESSON_TYPE_LIVE } from './status-module';
 import DeviceInfo from 'react-native-device-info';
+import { Buffer } from 'buffer';
 
 export const t = memoize(
   (key, config) => i18n.t(key, config),
@@ -39,9 +40,9 @@ export const getChartStatus = (item): ChartStatus[] => {
   // 如果特征可以监控值的变化为true
   if (item.isNotifiable) list.push({ text: '可通知的', id: 1 });
   // 如果监控值随ACK变化为true
-  if (item.isIndicatable) list.push({ text: '可通知的', id: 2 });
+  if (item.isIndicatable) list.push({ text: '随ACK变化通知', id: 2 });
   // 如果监控值在没有ACK的情况下变化为true
-  if (item.isNotifying) list.push({ text: '可通知的', id: 5 });
+  if (item.isNotifying) list.push({ text: '不随ACK变化通知', id: 5 });
   // 如果可以读取特征值为true
   if (item.isReadable) list.push({ text: '可读的', id: 3 });
   // 如果写入特征值有响应就为true
@@ -49,6 +50,54 @@ export const getChartStatus = (item): ChartStatus[] => {
   // 如果可以无响应写入特征值就为true
   if (item.isWritableWithoutResponse) list.push({ text: '无响应写入', id: 6 });
   return list;
+};
+
+export const byteToString = (arr) => {
+  if (typeof arr === 'string') {
+    return arr;
+  }
+  var str = '',
+    _arr = arr;
+  for (var i = 0; i < _arr.length; i++) {
+    var one = _arr[i].toString(2),
+      v = one.match(/^1+?(?=0)/);
+    if (v && one.length == 8) {
+      var bytesLength = v[0].length;
+      var store = _arr[i].toString(2).slice(7 - bytesLength);
+      for (var st = 1; st < bytesLength; st++) {
+        store += _arr[st + i].toString(2).slice(2);
+      }
+      str += String.fromCharCode(parseInt(store, 2));
+      i += bytesLength - 1;
+    } else {
+      str += String.fromCharCode(_arr[i]);
+    }
+  }
+  console.log('2', str);
+  // return str;
+};
+
+export const stringToByte = (value): Array<any> => {
+  let str = value.replace(/\s*/g, '').split('');
+  let index = 0;
+  let val = '';
+  let list: string[] = [];
+  for (let i = 0; i < str.length; i++) {
+    val += str[i];
+    index++;
+    if (index >= 2) {
+      list.push('0x' + val);
+      val = '';
+      index = 0;
+    }
+  }
+  return list;
+};
+
+export const baseToHex = (str): any => {
+  let buffer = Buffer.from(str, 'base64');
+  let hex = buffer.toString('hex');
+  return hex;
 };
 
 export const getFileSize = (size?: string): string => {

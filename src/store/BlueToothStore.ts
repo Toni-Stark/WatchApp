@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import i18n from 'i18n-js';
 import { Appearance, Platform, StatusBar } from 'react-native';
 import { APP_COLOR_MODE, APP_LANGUAGE } from '../common/constants';
-import { t } from '../common/tools';
+import { baseToHex, stringToByte, t } from '../common/tools';
 import { darkTheme, theme } from '../common/theme';
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
@@ -26,6 +26,7 @@ export class BlueToothStore {
   @observable blueListenerList: any[] = [];
 
   @observable blueRootList: any[] = [];
+  @observable blueRootInfo: any = {};
 
   constructor() {
     makeAutoObservable(this);
@@ -39,18 +40,41 @@ export class BlueToothStore {
   @action
   async sendActiveMessage(params) {
     const { value, data } = params;
-    let buffer = Buffer.from(value).toString('base64');
-    console.log(buffer, 'log', data.serviceUUID, data.uuid);
-    const result = await this.devicesInfo.writeCharacteristicWithResponseForService(data.serviceUUID, data.uuid, buffer);
-    console.log(result);
+    // let buffer = Buffer.from(value).toString('base64');
+    // let buffer = Buffer.from(value).toString('hex');
+    let buffer = Buffer.from(stringToByte(value)).toString('base64');
+    await this.devicesInfo.writeCharacteristicWithResponseForService(data.serviceUUID, data.uuid, buffer);
+    // const result = await this.devicesInfo.writeCharacteristicWithoutResponseForService(data.serviceUUID, data.uuid, buffer);
+    // const result = await this.devicesInfo.writeCharacteristicWithResponseForService(data.serviceUUID, data.uuid, buffer);
+    // const result = await this.manager.writeDescriptorForDevice(data.deviceID, data.serviceUUID, data.characteristicUUID, data.uuid, buffer);
+    // console.log(result, value);
   }
 
   @action
   async listenActiveMessage(params) {
     const { data } = params;
+    console.log(data);
     this.devicesInfo.monitorCharacteristicForService(data.serviceUUID, data.uuid, (error, characteristic) => {
-      this.blueRootList = [...this.blueRootList, characteristic.value];
+      console.log(error);
+      console.log('log------------');
+      let value = baseToHex(characteristic.value);
+      console.log(value);
+      this.blueRootList = [...this.blueRootList, value];
+      console.log(error, this.blueRootList);
     });
+  }
+
+  @action
+  async getDescriptorsForDeviceInfo(params) {
+    const { data } = params;
+    const result = await this.manager.descriptorsForDevice(data.deviceID, data.serviceUUID, data.uuid);
+    console.log(result);
+    this.blueRootInfo = {
+      deviceID: 'EF:39:16:32:92:F7',
+      serviceUUID: 'F0080001-0451-4000-B000-000000000000',
+      characteristicUUID: 'f0080002-0451-4000-b000-000000000000',
+      uuid: '00002902-0000-1000-8000-00805f9b34fb'
+    };
   }
 
   @action
