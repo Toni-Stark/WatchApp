@@ -15,7 +15,7 @@ export const Home: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
     const { blueToothStore } = useStore();
     const baseView = useRef<any>(undefined);
-    const [dasharray, setDasharray] = useState([(Math.PI * 220) / 2]);
+    const [dasharray, setDasharray] = useState([Math.PI * 2 * 102]);
 
     useEffect(() => {
       if (blueToothStore?.devicesInfo) {
@@ -98,7 +98,6 @@ export const Home: ScreenComponent = observer(
     }, [blueToothDetail, blueToothStore.devicesInfo, openBlueTooth]);
 
     const currentResult = useMemo(() => {
-      console.log(blueToothStore.blueRootList);
       return (
         <View style={styles.resultView}>
           {blueToothStore.blueRootList.map((item, index) => (
@@ -120,24 +119,24 @@ export const Home: ScreenComponent = observer(
                   cx="119"
                   cy="120"
                   r="102"
-                  origin="50,50"
-                  rotate="90"
+                  // origin="50,50"
                   stroke="#ffffff"
                   strokeWidth="8"
                   strokeLinecap="round"
                   fill="transparent"
                   strokeDasharray={dasharray}
-                  strokeDashoffset={200}
+                  strokeDashoffset={Math.PI * 2 * 32}
+                  transform={`rotate(-90, 119, 120)`}
                 />
               </Svg>
             </View>
             <View style={{ position: 'absolute' }}>
               <View>
-                <Text style={styles.mainTitle}>0</Text>
+                <Text style={styles.mainTitle}>788</Text>
                 <Text style={styles.evalTitle}>步</Text>
               </View>
               <View style={styles.footerText}>
-                <Text style={styles.mainTitle}>0.0</Text>
+                <Text style={styles.mainTitle}>0.3</Text>
                 <Text style={styles.evalTitle}>小时</Text>
               </View>
             </View>
