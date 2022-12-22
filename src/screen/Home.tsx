@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import BaseView from '../component/BaseView';
 import { useStore } from '../store';
@@ -9,11 +9,13 @@ import { HeaderBar } from '../component/home/HeaderBar';
 import FastImage from 'react-native-fast-image';
 import BluetoothStateManager from 'react-native-bluetooth-state-manager';
 import { hasAndroidPermission } from '../common/tools';
+import { Svg, Circle } from 'react-native-svg';
 
 export const Home: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
     const { blueToothStore } = useStore();
     const baseView = useRef<any>(undefined);
+    const [dasharray, setDasharray] = useState([(Math.PI * 220) / 2]);
 
     useEffect(() => {
       if (blueToothStore?.devicesInfo) {
@@ -61,6 +63,7 @@ export const Home: ScreenComponent = observer(
         }, 300);
       }
     }, []);
+
     const currentDevice = useMemo(() => {
       if (blueToothStore.devicesInfo) {
         return (
@@ -94,28 +97,46 @@ export const Home: ScreenComponent = observer(
       }
     }, [blueToothDetail, blueToothStore.devicesInfo, openBlueTooth]);
 
-    // const currentResult = useMemo(() => {
-    //   console.log(blueToothStore.blueRootList);
-    //   return (
-    //     <View style={styles.resultView}>
-    //       {blueToothStore.blueRootList.map((item, index) => (
-    //         <Text key={index.toString()}>响应值：{item}</Text>
-    //       ))}
-    //     </View>
-    //   );
-    // }, [blueToothStore.blueRootList]);
+    const currentResult = useMemo(() => {
+      console.log(blueToothStore.blueRootList);
+      return (
+        <View style={styles.resultView}>
+          {blueToothStore.blueRootList.map((item, index) => (
+            <Text key={index.toString()}>响应值：{item}</Text>
+          ))}
+        </View>
+      );
+    }, [blueToothStore.blueRootList]);
 
     const renderHeader = useMemo(() => {
       return (
         <View style={[tw.flex1, [{ backgroundColor: '#ffffff' }]]}>
-          <View style={[tw.flexRow, tw.itemsCenter, tw.justifyCenter, [{ height: 260, width: '100%', backgroundColor: '#00D1DE', position: 'relative' }]]}>
-            <FastImage style={{ width: 240, height: 240 }} source={require('../assets/home/watch-banner.jpg')} />
+          <View style={styles.header}>
+            <View class={styles.headerBorder}>
+              <FastImage style={styles.headerImage} source={require('../assets/home/watch-banner.jpg')} />
+              <Svg height="240" width="240">
+                {/*<Circle cx="119" cy="120" r="102" stroke="#ffffff" strokeWidth="9" fill="transparent" />*/}
+                <Circle
+                  cx="119"
+                  cy="120"
+                  r="102"
+                  origin="50,50"
+                  rotate="90"
+                  stroke="#ffffff"
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                  fill="transparent"
+                  strokeDasharray={dasharray}
+                  strokeDashoffset={200}
+                />
+              </Svg>
+            </View>
             <View style={{ position: 'absolute' }}>
               <View>
                 <Text style={styles.mainTitle}>0</Text>
                 <Text style={styles.evalTitle}>步</Text>
               </View>
-              <View>
+              <View style={styles.footerText}>
                 <Text style={styles.mainTitle}>0.0</Text>
                 <Text style={styles.evalTitle}>小时</Text>
               </View>
@@ -139,7 +160,32 @@ export const Home: ScreenComponent = observer(
 const styles = StyleSheet.create({
   evalTitle: {
     color: '#ffffff',
+    marginTop: 2,
     textAlign: 'center'
+  },
+  footerText: {
+    marginTop: 3
+  },
+  header: {
+    backgroundColor: '#74f4ff',
+    backgroundColor: '#00D1DE',
+    height: 260,
+    position: 'relative',
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  headerBorder: {
+    backgroundColor: '#ff0000',
+    width: '100%',
+    height: 240
+  },
+  headerImage: {
+    height: 240,
+    left: 0,
+    position: 'absolute',
+    top: 0,
+    width: 240
   },
   imageIcon: {
     height: 26,
@@ -173,7 +219,8 @@ const styles = StyleSheet.create({
   },
   mainTitle: {
     color: '#ffffff',
-    fontSize: 30,
+    fontFamily: 'SimpleLineIcons',
+    fontSize: 35,
     textAlign: 'center'
   },
   resultView: {
