@@ -166,18 +166,17 @@ const styles = StyleSheet.create({
     marginTop: 3
   },
   header: {
-    backgroundColor: '#74f4ff',
+    alignItems: 'center',
     backgroundColor: '#00D1DE',
     height: 260,
+    justifyContent: 'center',
     position: 'relative',
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center'
+    width: '100%'
   },
   headerBorder: {
     backgroundColor: '#ff0000',
-    width: '100%',
-    height: 240
+    height: 240,
+    width: '100%'
   },
   headerImage: {
     height: 240,
