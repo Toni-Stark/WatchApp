@@ -55,10 +55,7 @@ export class BlueToothStore {
     const { data } = params;
     console.log(data);
     this.devicesInfo.monitorCharacteristicForService(data.serviceUUID, data.uuid, (error, characteristic) => {
-      console.log(error);
-      console.log('log------------');
       let value = baseToHex(characteristic.value);
-      console.log(value);
       this.blueRootList = [...this.blueRootList, value];
       console.log(error, this.blueRootList);
     });

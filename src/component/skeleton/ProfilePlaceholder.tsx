@@ -25,10 +25,11 @@ export const ProfilePlaceholder = (): JSX.Element => {
   return (
     <View style={[tw.m4]}>
       <Placeholder Animation={Fade}>
-        <Placeholder Animation={Fade} Left={renderAvatar} style={{ marginBottom: 20 }}>
-          <View style={{ marginTop: 20 }}>
-            <PlaceholderLine width={50} />
-            <PlaceholderLine width={70} />
+        <Placeholder Animation={Fade} Left={renderAvatar} style={{ marginBottom: 20, marginLeft: 120 }}>
+          <View style={{ marginTop: 100 }}>
+            {/*<PlaceholderLine width={50} />*/}
+            {/*<PlaceholderLine width={70} />*/}
+            <PlaceholderMedia size={80} isRound style={{ marginRight: 10 }} />
           </View>
         </Placeholder>
       </Placeholder>

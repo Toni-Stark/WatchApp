@@ -10,6 +10,7 @@ import FastImage from 'react-native-fast-image';
 import BluetoothStateManager from 'react-native-bluetooth-state-manager';
 import { hasAndroidPermission } from '../common/tools';
 import { Svg, Circle } from 'react-native-svg';
+import { CommonUtil, createSigning } from '../common/signing';
 
 export const Home: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -18,6 +19,8 @@ export const Home: ScreenComponent = observer(
     const [dasharray, setDasharray] = useState([Math.PI * 2 * 102]);
 
     useEffect(() => {
+      let res = CommonUtil.getUtilHex();
+      console.log(res);
       if (blueToothStore?.devicesInfo) {
         (async () => await successDialog())();
       }

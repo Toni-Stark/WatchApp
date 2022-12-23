@@ -36,20 +36,20 @@ export const Profile: ScreenComponent = observer(
     ]);
 
     const [studentList] = useState<SettingViewItemType[]>([
-      // {
-      //   icon: 'cloud-circle',
-      //   title: '网盘资源',
-      //   description: '进入详情',
-      //   notification: false,
-      //   iconColor: colors.primary,
-      //   onPress: async () => {
-      //     if (userStore.login) {
-      //       navigation.navigate('CloudSeaDisk');
-      //     } else {
-      //       await handleLogin();
-      //     }
-      //   }
-      // },
+      {
+        icon: 'cloud-circle',
+        title: '网盘资源',
+        description: '进入详情',
+        notification: false,
+        iconColor: colors.primary,
+        onPress: async () => {
+          if (userStore.login) {
+            navigation.navigate('CloudSeaDisk');
+          } else {
+            await handleLogin();
+          }
+        }
+      },
       // {
       //   icon: 'qr-code-2',
       //   title: t('profile.QRCode'),
@@ -158,30 +158,12 @@ export const Profile: ScreenComponent = observer(
     const [menuList] = useState<SettingViewItemType[]>([]);
 
     useEffect(() => {
-      // try {
-      //   let setting: SettingViewItemType[] = [];
-      //   setting.splice(0, 0, ...menuList);
-      //   if (userStore.userInfoDetail.userType === USER_MODE_CLASS_STUDENT) {
-      //     setting.splice(3, 0, ...studentList);
-      //   } else if (userStore.userInfoDetail.userType === USER_MODE_CLASS_TEACHER) {
-      //     setting.splice(3, 0, ...teachersList);
-      //   }
-      //   settingStore.updateSettings(setting);
-      // } catch (err) {}
       try {
         let setting: SettingViewItemType[] = [];
         setting = studentList;
         settingStore.updateSettings(setting);
       } catch (err) {}
-    }, [menuList, settingStore, studentList, teachersList, userStore.login, userStore.userInfoDetail.userType]);
-
-    // const useHeader = () => {
-    //   if (userStore.userInfo.avatar) {
-    //     return <Avatar.Image size={60} source={getSafeAvatar(userStore.userInfo.avatar)} />;
-    //   } else {
-    //     return <Icon name="account-circle" size={60} color={colors.primary} onPress={throttle(handleLogin)} />;
-    //   }
-    // };
+    }, [menuList, settingStore, studentList, teachersList, userStore.login]);
 
     const navigateTo = () => {
       if (userStore.login) {
@@ -191,75 +173,19 @@ export const Profile: ScreenComponent = observer(
       }
     };
 
-    const renderBeforeLoginHeader = () => {
-      if (userStore.login) {
-        return (
-          <TouchableOpacity onPress={throttle(navigateTo)} style={[tw.pT10, tw.pB8, tw.pX5, { borderBottomWidth: 0.5, borderColor: colors.surface }]}>
-            <View style={[tw.flexRow, tw.justifyBetween]}>
-              <View style={[tw.flexRow]}>
-                {userStore.userInfoDetail.avatar ? (
-                  // <Avatar.Image size={70} source={getSafeAvatar(userStore.userInfoDetail.avatar)} />
-                  <Avatar.Image size={70} source={{ uri: userStore.userInfoDetail.avatar.url }} />
-                ) : (
-                  <Icon name="face" size={70} color={colors.primary} onPress={throttle(navigateTo)} />
-                )}
-                <View style={[tw.pL3, tw.justifyBetween]}>
-                  <Text style={[{ color: colors.text, fontSize: 16, fontWeight: 'bold' }]}>
-                    {userStore.userInfoDetail.nickName ||
-                      userStore.userInfoDetail.realName ||
-                      userStore.userInfoDetail.phone ||
-                      userStore.userInfoDetail.username}
-                  </Text>
-                  <View style={[tw.itemsCenter, tw.selfStart, tw.justifyCenter, tw.borderPink400, tw.pX1, { height: 16, borderWidth: 1.25, borderRadius: 3 }]}>
-                    <Text style={[tw.textPink400, { fontSize: 10, fontWeight: 'bold' }]}>{userStore.userInfoDetail.business?.name}</Text>
-                  </View>
-
-                  <View>
-                    <Text style={[{ fontSize: 11, color: colors.placeholder }]}>身份：{userStore.getUserTypeName}</Text>
-                  </View>
-                </View>
-              </View>
-              <View style={[tw.flexRow, tw.itemsCenter]}>
-                <Text style={[{ fontSize: 12, color: colors.disabled }]}>详细信息</Text>
-                <Icon name="chevron-right" size={20} color={colors.disabled} />
-              </View>
-            </View>
-          </TouchableOpacity>
-        );
-      } else {
-        return (
-          <TouchableOpacity onPress={throttle(navigateTo)} style={[tw.pT10, tw.pB8, tw.pX5, tw.borderGray300, { borderBottomWidth: 0.5 }]}>
-            <View style={[tw.flexRow]}>
-              {userStore.userInfoDetail.avatar ? (
-                // <Avatar.Image size={70} source={getSafeAvatar(userStore.userInfoDetail.avatar)} />
-                <Avatar.Image size={70} source={{ uri: userStore.userInfoDetail.avatar.url }} />
-              ) : (
-                <Icon name="face" size={70} color={colors.primary} onPress={throttle(navigateTo)} />
-              )}
-
-              <View style={[tw.mL3, tw.flexRow, tw.itemsCenter]}>
-                <Text style={[{ fontSize: 18, color: colors.accent }]}>请登录</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-        );
-      }
-    };
-
     const renderContent = () => {
-      if (settingStore.loading) {
+      if (!settingStore.loading) {
         return <ProfilePlaceholder />;
-      } else {
-        return (
-          <ScrollView
-            style={[
-              { paddingTop: Platform.OS === 'ios' ? getStatusBarHeight(false) : 0, marginBottom: 55 + (Platform.OS === 'ios' ? 0 : getStatusBarHeight(false)) }
-            ]}
-          >
-            <Text>微信登录开发中，切换分支即可见</Text>
-          </ScrollView>
-        );
       }
+      return (
+        <ScrollView
+          style={[
+            { paddingTop: Platform.OS === 'ios' ? getStatusBarHeight(false) : 0, marginBottom: 55 + (Platform.OS === 'ios' ? 0 : getStatusBarHeight(false)) }
+          ]}
+        >
+          <Text>微信登录开发中，切换分支即可见</Text>
+        </ScrollView>
+      );
     };
 
     return (

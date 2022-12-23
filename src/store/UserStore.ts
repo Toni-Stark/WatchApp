@@ -11,12 +11,6 @@ import {
   USER_MODE_STUDENT,
   USER_MODE_TEACHER
 } from '../common/status-module';
-import { useRef, useState } from 'react';
-
-export interface VerifyCode {
-  code: string;
-  key: string;
-}
 
 export interface LoginInfo {
   token: string; // "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1NzczNDcwNDIsInVzZXJuYW1lIjoiTWFjcm93In0.idA_cLA-mxWegNddotiDhy_oZxIvjJlYcNb1CwSUj2A"
@@ -26,30 +20,30 @@ export interface LoginInfo {
 }
 
 export interface UserInfoType {
-  avatar?: string; // "files/201911/M2_1573109560983.jpg",
-  balance?: number; // 0
-  birthday?: string; // "1979-09-29",
-  cashStatus?: number; // 1,
-  createBy?: string; // "test",
-  createTime?: number; // 1573020167000,
-  departs?: Array<UserDepart>;
-  email?: string; // "Macrow_wh@163.com",
-  frozenBalance?: number; // 0
-  id?: string; // "1191959091972632578",
-  lessonCount?: number;
-  phone?: string; // "13212332984",
-  post?: string; // "cto",
-  realname?: string; // "Macrow",
-  referrer?: string; // 推荐人的推荐码
-  sex?: number; // 1,
-  status?: number; // 1,
-  studentCount?: number;
-  telephone?: string; // "023-66555511",
-  updateBy?: string; // "Macrow",
-  updateTime?: number; // 1575859988000,
-  userType?: number; // 用户类型
-  username?: string; // "Macrow",
-  workNo?: string; // "0001"
+  avatar: string; // "files/201911/M2_1573109560983.jpg",
+  balance: number; // 0
+  birthday: string; // "1979-09-29",
+  cashStatus: number; // 1,
+  createBy: string; // "test",
+  createTime: number; // 1573020167000,
+  departs: Array<UserDepart>;
+  email: string; // "Macrow_wh@163.com",
+  frozenBalance: number; // 0
+  id: string; // "1191959091972632578",
+  lessonCount: number;
+  phone: string; // "13212332984",
+  post: string; // "cto",
+  realname: string; // "Macrow",
+  referrer: string; // 推荐人的推荐码
+  sex: number; // 1,
+  status: number; // 1,
+  studentCount: number;
+  telephone: string; // "023-66555511",
+  updateBy: string; // "Macrow",
+  updateTime: number; // 1575859988000,
+  userType: number; // 用户类型
+  username: string; // "Macrow",
+  workNo: string; // "0001"
 }
 
 export type userInfoDetailType = {
@@ -207,190 +201,12 @@ export class UserStore {
   @observable JMessageLogin: boolean = false;
   @observable login: boolean = false;
 
-  // 一键登录变量
-  @observable onePassKey: string | undefined;
-  @observable onePassRoles: Array<number> | undefined;
-  @observable selectRoleToLogin: (() => Promise<void>) | undefined;
-  @observable registerToLogin: (() => Promise<void>) | undefined;
-
-  // 登录、注册变量
-  @observable loginName: string | undefined;
-  @observable loginPassword: string | undefined;
-  @observable loginPasswordRepeat: string | undefined;
-  @observable loginVerifyImage: string | undefined;
-  @observable loginVerifyLoading: boolean = false;
-  @observable loginVerifyKey: string | undefined;
-  @observable loginVerifyCodeByUser: string | undefined;
-  @observable loginVerifyCodeCounter: string | undefined;
-  @observable loginPhone: string | undefined;
-  @observable loginSmsCode: string | undefined;
-  @observable loginRealName: string | undefined;
-  @observable loginReferrerCode: string | undefined;
-
-  @observable roleSelectionModal: boolean = false;
-  @observable currentRole: string = this.getLabel(1);
-
-  // 登录注册共用变量
-  @observable loginErrorPhone: string | undefined;
-  @observable loginErrorPassword: string | undefined;
-  @observable loginErrorPasswordRepeat: string | undefined;
-  @observable loginErrorRecaptcha: string | undefined;
-  @observable loginUserType: number | undefined;
-  @observable loginSendSmsCounter: number | undefined;
-  @observable loginCounterMax: number = 60;
-
-  @observable parentsStudents: UserInfoType[] = [];
-
-  @observable msg = 0;
-
-  @observable userInfo: UserInfoType = {};
-  @observable userInfoDetail: userInfoDetailType = {};
-  @observable userBindingInfo?: UserBindingInfoType;
-
-  @observable canRegisterBind: boolean = false;
-  @observable canLoginBind: boolean = false;
-
-  @observable sysCode: boolean = false;
-  @observable email: string | undefined = '';
-  @observable realName: string = '';
-
-  @observable isOnClassRoom: boolean = false;
-
-  @computed get isVerifyCodeByUserValid(): boolean {
-    if (this.loginVerifyImage && this.loginVerifyCodeByUser) {
-      return this.loginVerifyImage.toString().toLowerCase() === this.loginVerifyCodeByUser.toString().toLowerCase();
-    } else {
-      return false;
-    }
-  }
-  @computed get getUserInfoEmail(): string | undefined {
-    if (this.userInfoDetail.email) {
-      return this.userInfoDetail.email;
-    }
-  }
-  @computed get getUserInfoRealName(): string | undefined {
-    if (this.userInfo.realname) {
-      return this.userInfo.realname;
-    }
-  }
-
-  @computed get getUserTypeName(): string {
-    switch (this.userInfoDetail.userType) {
-      case USER_MODE_CLASS_TEACHER:
-        return '教师';
-      case USER_MODE_CLASS_TOUR:
-        return '巡课';
-      case USER_MODE_CLASS_STUDENT:
-        return t('profile.student');
-      default:
-        return '';
-    }
-  }
-
-  @computed get isTeacher(): boolean {
-    return this.userInfo.userType === USER_MODE_TEACHER;
-  }
-
-  @computed get isStudent(): boolean {
-    return this.userInfo.userType === USER_MODE_STUDENT;
-  }
-
-  @computed get isParent(): boolean {
-    return this.userInfo.userType === USER_MODE_PARENT;
-  }
-
-  @action
-  getLabelReverse(role: string): number {
-    switch (role) {
-      case t('profile.teacher'):
-        return USER_MODE_TEACHER;
-      case t('profile.patrol'):
-        return USER_MODE_PARENT;
-      case t('profile.student'):
-        return USER_MODE_STUDENT;
-      default:
-        return 1;
-    }
-  }
-
-  @observable timer: any;
-  @action
-  async downRegisterTime() {
-    if (this.canRegisterBind) {
-      return;
-    }
-    this.timer = setTimeout(() => {
-      this.canRegisterBind = false;
-    }, 60000);
-    this.canRegisterBind = true;
-  }
-
-  @observable timerLogin: any;
-  @action
-  async downLoginTime() {
-    if (this.canLoginBind) {
-      return;
-    }
-    this.timerLogin = setTimeout(() => {
-      this.canLoginBind = false;
-    }, 60000);
-    this.canLoginBind = true;
-  }
-
-  @action
-  async editSex(sex: number): Promise<string | boolean> {
-    const params: EditMyDetailInfoType = {
-      sex: sex
-    };
-    const res: boolean | string = await this.editMyDetailInfo(params);
-    if (typeof res === 'boolean') {
-      this.userInfoDetail.sex = sex;
-      return Promise.resolve(true);
-    } else {
-      return Promise.resolve(res);
-    }
-  }
-
-  @action
-  getLabel(role: number): string {
-    switch (role) {
-      case USER_MODE_TEACHER:
-        return t('profile.teacher');
-      case USER_MODE_PARENT:
-        return t('profile.patrol');
-      case USER_MODE_STUDENT:
-        return t('profile.student');
-      default:
-        return '';
-    }
-  }
-
-  @action
-  clearProfile(): void {
-    this.userInfoDetail = {};
-  }
-  @action
-  setProfile(userInfo: userInfoDetailType): void {
-    this.userInfoDetail = userInfo;
-  }
-
-  @action
-  async getUserInfo(): Promise<void> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        this.loginName = 'Macrow';
-        return resolve();
-      }, 3000);
-    });
-  }
-
   @action
   async loginBySelectRoleAfterOnePass(key: string, role: number): Promise<boolean> {
     const res: ApiResult = await Api.getInstance.post({ url: '/xueyue/sys/login_by_select_role_after_one_pass', params: { key, role }, withToken: false });
     if (res.success) {
       const loginInfoResult: LoginInfo = res.result;
       await UserStore.setToken(loginInfoResult.token);
-      this.setProfile(loginInfoResult.userInfoDetail);
       this.login = true;
       return Promise.resolve(res.success);
     } else {
@@ -406,20 +222,19 @@ export class UserStore {
       if (loginInfoResult.key === undefined) {
         // 正常登陆
         await UserStore.setToken(loginInfoResult.token);
-        this.userInfoDetail = loginInfoResult.userInfoDetail;
         this.login = true;
       } else {
-        this.onePassKey = loginInfoResult.key;
-        if (loginInfoResult.roles === undefined) {
-          // 未注册，填入推荐码、选择角色注册
-          if (typeof this.registerToLogin !== 'undefined') {
-            await this.registerToLogin();
-          }
-        } else {
-          // 已注册，选择角色登录
-          this.onePassRoles = loginInfoResult.roles;
-          this.roleSelectionModal = true;
-        }
+        // this.onePassKey = loginInfoResult.key;
+        // if (loginInfoResult.roles === undefined) {
+        //   // 未注册，填入推荐码、选择角色注册
+        //   if (typeof this.registerToLogin !== 'undefined') {
+        //     await this.registerToLogin();
+        //   }
+        // } else {
+        //   // 已注册，选择角色登录
+        //   this.onePassRoles = loginInfoResult.roles;
+        //   this.roleSelectionModal = true;
+        // }
       }
       return Promise.resolve(true);
     } else {
@@ -433,7 +248,6 @@ export class UserStore {
     if (res.success) {
       await UserStore.removeToken();
       this.login = false;
-      this.clearProfile();
       return Promise.resolve(true);
     } else {
       return Promise.reject(res.message);
@@ -448,7 +262,6 @@ export class UserStore {
       const avatar = res.result.id;
       const result = await this.editMyDetailInfo({ avatarId: avatar });
       if (result) {
-        this.userInfoDetail.avatar = { url: res.result.url, id: avatar };
         return Promise.resolve(true);
       } else {
         return Promise.resolve(result);
@@ -486,7 +299,6 @@ export class UserStore {
     };
     const res: ApiResult = await Api.getInstance.post({ url: BaseUrl + '/public/login-by-phone', params, withToken: false });
     if (res.success) {
-      this.userBindingInfo = res.result;
       await UserStore.setToken(res.result.token);
       this.login = true;
       return Promise.resolve(res.success);
@@ -503,7 +315,6 @@ export class UserStore {
   async getParentsStudents(): Promise<boolean | string> {
     const res: ApiResult = await Api.getInstance.get({ url: '/xueyue/sys/user/getContacts', params: {}, withToken: true });
     if (res.success) {
-      this.parentsStudents = res.result;
       return Promise.resolve(res.success);
     } else {
       return Promise.resolve(res.message);
@@ -521,7 +332,6 @@ export class UserStore {
     };
     const res: boolean | string = await this.editMyDetailInfo(params);
     if (typeof res === 'boolean') {
-      this.userInfoDetail.realName = realname;
       return Promise.resolve(true);
     } else {
       return Promise.resolve(res);
@@ -539,7 +349,6 @@ export class UserStore {
     const res: ApiResult = await Api.getInstance.patch({ url: BaseUrl + '/users/update-my-username', params, withToken: true });
 
     if (res.success) {
-      this.userInfoDetail.username = username;
       return Promise.resolve(true);
     } else {
       return Promise.resolve(res.message);
@@ -557,7 +366,6 @@ export class UserStore {
     };
     const res: boolean | string = await this.editMyDetailInfo(params);
     if (typeof res === 'boolean') {
-      this.userInfoDetail.nickName = nickName;
       return Promise.resolve(true);
     } else {
       return Promise.resolve(res);
@@ -576,7 +384,6 @@ export class UserStore {
     };
     const res: boolean | string = await this.editMyDetailInfo(params);
     if (typeof res === 'boolean') {
-      this.userInfoDetail.email = email;
       return Promise.resolve(true);
     } else {
       return Promise.resolve(res);
@@ -635,26 +442,6 @@ export class UserStore {
   }
 
   /**
-   * get UserLoginVerifyCode
-   * url: /xueyue/sys/getCheckCode
-   */
-  @action
-  async handleSmsCode(): Promise<boolean> {
-    this.loginVerifyImage = '';
-    this.loginVerifyKey = '';
-    const res: ApiResult = await Api.getInstance.get({ url: BaseUrl + '/public/generate-captcha', withToken: false });
-    if (res.success) {
-      this.loginVerifyLoading = false;
-      this.loginVerifyImage = res.result.imageBase64;
-      this.loginVerifyKey = res.result.key;
-      return Promise.resolve(res.success);
-    } else {
-      this.loginVerifyLoading = true;
-      return Promise.reject(res.message);
-    }
-  }
-
-  /**
    * get change of identity
    * url: /users/current-upgrade-to-teacher
    */
@@ -664,7 +451,7 @@ export class UserStore {
     if (res.success) {
       await UserStore.removeToken();
       this.login = false;
-      this.clearProfile();
+      // this.clearProfile();
       return Promise.resolve(res.success);
     } else {
       return Promise.reject(res.message);
@@ -679,7 +466,7 @@ export class UserStore {
   async queryUserInfo(): Promise<boolean> {
     const res: ApiResult = await Api.getInstance.get({ url: BaseUrl + '/users/current', withToken: true });
     if (res.success) {
-      this.userInfoDetail = res.result;
+      // this.userInfoDetail = res.result;
       this.login = true;
       return Promise.resolve(res.success);
     } else {
@@ -695,7 +482,7 @@ export class UserStore {
   async loginByUserName(param: { password: string; userName: string; verifyCode: string }, resPass: any): Promise<string | boolean> {
     const params: UserLoginParamType = {
       captcha: param.verifyCode,
-      captchaKey: this.loginVerifyKey,
+      // captchaKey: this.loginVerifyKey,
       deviceType: deviceInfo,
       password: resPass,
       username: param.userName
@@ -703,7 +490,7 @@ export class UserStore {
     const res: ApiResult = await Api.getInstance.post({ url: BaseUrl + '/public/login-by-username', params, withToken: false });
     if (res.success) {
       await UserStore.setToken(res.result.token);
-      this.userBindingInfo = res.result;
+      // this.userBindingInfo = res.result;
       this.login = true;
       return Promise.resolve(res.success);
     } else {
@@ -774,7 +561,6 @@ export class UserStore {
   async getProfile(): Promise<void> {
     const res: ApiResult = await Api.getInstance.get({ url: '/xueyue/sys/myProfile', withToken: true });
     if (res.success) {
-      this.userInfo = res.result;
       this.login = true;
     } else {
       this.login = false;
