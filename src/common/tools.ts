@@ -1,10 +1,9 @@
 import _, { memoize } from 'lodash';
 import i18n from 'i18n-js';
 import { check, PERMISSIONS, request } from 'react-native-permissions';
-import { Alert, Dimensions, Modal, PermissionsAndroid, Platform, StatusBar } from 'react-native';
+import { Alert, Dimensions, PermissionsAndroid, Platform, StatusBar } from 'react-native';
 import { SERVER_URL } from './app.config';
 import AsyncStorage from '@react-native-community/async-storage';
-import { LESSON_TYPE_DEMAND, LESSON_TYPE_LIVE } from './status-module';
 import DeviceInfo from 'react-native-device-info';
 import { Buffer } from 'buffer';
 
@@ -75,6 +74,10 @@ export const byteToString = (arr) => {
   }
   console.log('2', str);
   // return str;
+};
+export const regCutString = (value): any => {
+  let str = value.match(/([\d\D]{2})/g);
+  return str.toString().replace(/[,]/g, ' ');
 };
 
 export const stringToByte = (value): Array<any> => {

@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import i18n from 'i18n-js';
 import { Appearance, Platform, StatusBar } from 'react-native';
 import { APP_COLOR_MODE, APP_LANGUAGE } from '../common/constants';
-import { baseToHex, stringToByte, t } from '../common/tools';
+import { baseToHex, regCutString, stringToByte, t } from '../common/tools';
 import { darkTheme, theme } from '../common/theme';
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
@@ -28,6 +28,8 @@ export class BlueToothStore {
   @observable blueRootList: any[] = [];
   @observable blueRootInfo: any = {};
 
+  @observable device: any = {};
+
   constructor() {
     makeAutoObservable(this);
   }
@@ -40,25 +42,26 @@ export class BlueToothStore {
   @action
   async sendActiveMessage(params) {
     const { value, data } = params;
-    // let buffer = Buffer.from(value).toString('base64');
-    // let buffer = Buffer.from(value).toString('hex');
-    let buffer = Buffer.from(stringToByte(value)).toString('base64');
+    let storeRes = regCutString(value);
+    let buffer = Buffer.from(stringToByte(storeRes)).toString('base64');
     await this.devicesInfo.writeCharacteristicWithResponseForService(data.serviceUUID, data.uuid, buffer);
-    // const result = await this.devicesInfo.writeCharacteristicWithoutResponseForService(data.serviceUUID, data.uuid, buffer);
-    // const result = await this.devicesInfo.writeCharacteristicWithResponseForService(data.serviceUUID, data.uuid, buffer);
-    // const result = await this.manager.writeDescriptorForDevice(data.deviceID, data.serviceUUID, data.characteristicUUID, data.uuid, buffer);
-    // console.log(result, value);
   }
 
   @action
   async listenActiveMessage(params) {
     const { data } = params;
-    console.log(data);
     this.devicesInfo.monitorCharacteristicForService(data.serviceUUID, data.uuid, (error, characteristic) => {
       let value = baseToHex(characteristic.value);
       this.blueRootList = [...this.blueRootList, value];
-      console.log(error, this.blueRootList);
+      // console.log(getBatteryService(characteristic.value));
+      if (value.slice(0, 2) === 'a1') this.setBasicInfo(value);
     });
+  }
+
+  @action
+  async setBasicInfo(val) {
+    let res = await this.devicesModules(val);
+    console.log(res);
   }
 
   @action
@@ -72,6 +75,21 @@ export class BlueToothStore {
       characteristicUUID: 'f0080002-0451-4000-b000-000000000000',
       uuid: '00002902-0000-1000-8000-00805f9b34fb'
     };
+  }
+
+  @action
+  async devicesModules(val) {
+    let hex = parseInt(val.slice(0, 2), 16) - 256;
+    let params = {
+      '-95': (e) => {
+        let battery = e.match(/([\d\D]{2})/g);
+        return {
+          power: parseInt(battery[4], 16)
+        };
+      }
+    };
+    this.device[hex] = params[hex](val);
+    return this.device;
   }
 
   @action

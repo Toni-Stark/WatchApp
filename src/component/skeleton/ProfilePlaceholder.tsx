@@ -9,7 +9,7 @@ export const ProfilePlaceholder = (): JSX.Element => {
     for (let i = 0; i < counts; i++) {
       const percent = Math.ceil(Math.random() * 100);
       view.push(
-        <Placeholder key={i} Animation={Fade} Left={PlaceholderMedia}>
+        <Placeholder key={i} Animation={Fade}>
           <PlaceholderLine width={percent} />
           <PlaceholderLine />
         </Placeholder>
@@ -18,22 +18,16 @@ export const ProfilePlaceholder = (): JSX.Element => {
     return view;
   };
 
-  const renderAvatar = () => {
-    return <PlaceholderMedia size={80} isRound style={{ marginRight: 10 }} />;
-  };
-
   return (
     <View style={[tw.m4]}>
       <Placeholder Animation={Fade}>
-        <Placeholder Animation={Fade} Left={renderAvatar} style={{ marginBottom: 20, marginLeft: 120 }}>
-          <View style={{ marginTop: 100 }}>
-            {/*<PlaceholderLine width={50} />*/}
-            {/*<PlaceholderLine width={70} />*/}
-            <PlaceholderMedia size={80} isRound style={{ marginRight: 10 }} />
+        <Placeholder Animation={Fade} style={{ marginBottom: 20, marginLeft: 110 }}>
+          <View style={{ marginTop: 40 }}>
+            <PlaceholderMedia size={120} isRound style={{}} />
           </View>
         </Placeholder>
       </Placeholder>
-      <PlaceholderLine height={100} style={{ marginBottom: 10, borderRadius: 5 }} />
+      <PlaceholderLine height={100} style={{ marginBottom: 30, marginTop: 20, borderRadius: 5 }} />
       {renderContent(8)}
     </View>
   );
