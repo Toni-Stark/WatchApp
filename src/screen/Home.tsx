@@ -8,22 +8,22 @@ import { observer } from 'mobx-react-lite';
 import { HeaderBar } from '../component/home/HeaderBar';
 import FastImage from 'react-native-fast-image';
 import BluetoothStateManager from 'react-native-bluetooth-state-manager';
-import { hasAndroidPermission } from '../common/tools';
+import { arrSort, arrToByte, eventTimes, hasAndroidPermission } from '../common/tools';
 import { Svg, Circle } from 'react-native-svg';
-import { CommonUtil } from '../common/signing';
 import { Hexagon } from '../component/home/Hexagon';
+import { allDataSign, batterySign, mainListen, passRegSign } from '../common/watch-module';
 
 export const Home: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
     const { blueToothStore } = useStore();
     const baseView = useRef<any>(undefined);
-    const [dashArray, setDashArray] = useState([Math.PI * 2 * 102]);
+    const [dashArray] = useState([Math.PI * 2 * 102]);
     const [timeList] = useState([
       { name: '今天', value: 1 },
       { name: '昨天', value: 2 },
       { name: '前天', value: 3 }
     ]);
-    const [contentList] = useState([
+    const [contentList, setContentList] = useState([
       { title: '运动', evalTitle: '最大步数', color: '#0098f7', image: require('../assets/home/footer.png'), value: '788步' },
       { title: '睡眠', evalTitle: '最长睡眠', color: '#5b75c5', image: require('../assets/home/sleep.png'), value: '2小时' },
       { title: '心率', evalTitle: '最近', color: '#ff007e', image: require('../assets/home/heartPulse.png'), value: '' },
@@ -34,42 +34,45 @@ export const Home: ScreenComponent = observer(
     const [active, setActive] = useState(1);
 
     useEffect(() => {
-      blueToothStore.setBasicInfo('a10000062077001201000001f792321639ef0001');
       if (blueToothStore?.devicesInfo) {
         (async () => await successDialog())();
       }
     }, [blueToothStore?.devicesInfo]);
+
+    useEffect(() => {
+      eventTimes(() => {
+        currentSetContentList(blueToothStore.device);
+      }, 1500);
+    }, [blueToothStore.device]);
 
     const updateMenuState = () => {
       console.log('打开分享链接');
     };
     const chooseTabs = (val) => {
       setActive(val);
+      console.log(val);
     };
     const openBlueTooth = useCallback(() => {
       navigation.navigate('BlueToothDetail', {});
     }, [navigation]);
 
     const successDialog = useCallback(async () => {
-      let res = CommonUtil.getUtilHex();
-      let responseParams = {
-        data: {
-          deviceID: 'EF:39:16:32:92:F7',
-          serviceUUID: 'f0080001-0451-4000-B000-000000000000',
-          uuid: 'f0080002-0451-4000-B000-000000000000'
-        }
-      };
-      await blueToothStore.listenActiveMessage(responseParams);
-      let params = {
-        value: res,
-        data: {
-          deviceID: 'EF:39:16:32:92:F7',
-          serviceUUID: 'f0080001-0451-4000-B000-000000000000',
-          uuid: 'f0080003-0451-4000-B000-000000000000'
-        }
-      };
-      await blueToothStore.sendActiveMessage(params);
+      await blueToothStore.listenActiveMessage(mainListen);
+      await blueToothStore.sendActiveMessage(passRegSign);
+      await blueToothStore.sendActiveMessage(batterySign);
+      await blueToothStore.sendActiveMessage(allDataSign);
     }, []);
+
+    const currentSetContentList: Function = (device) => {
+      let list: any = contentList;
+      if (!device['-47']) return;
+      list[2].value = device['-47'].i8[0] + 'bpm';
+      list[3].value = `${arrSort(device['-47'].i9, true)[0]}/${arrSort(device['-47'].i10, false)[0]}mmHg`;
+      console.log('device-----------------');
+      console.log(list);
+      console.log('device-----------------');
+      setContentList([...list]);
+    };
 
     const blueToothDetail = useCallback(async () => {
       await hasAndroidPermission();
@@ -85,6 +88,7 @@ export const Home: ScreenComponent = observer(
     }, []);
 
     const currentDevice = useMemo(() => {
+      let isTrue = blueToothStore.device['-96']?.power || 0;
       if (blueToothStore.devicesInfo) {
         return (
           <TouchableOpacity style={styles.linkModule} onPress={openBlueTooth}>
@@ -93,7 +97,12 @@ export const Home: ScreenComponent = observer(
                 <FastImage style={styles.imageIcon} source={require('../assets/home/device.png')} />
                 <Text style={styles.labelData}>{blueToothStore.devicesInfo.name}</Text>
                 <View style={styles.battery}>
-                  <View style={[styles.batteryContent, { width: `${50}%` }]} />
+                  {[1, 2, 3, 4].map((item) => (
+                    <View
+                      style={[styles.batteryContent, { backgroundColor: item <= isTrue ? '#ffffff' : '' }]}
+                      key={Math.ceil(Math.random() * 10000).toString()}
+                    />
+                  ))}
                 </View>
               </View>
               <View style={styles.labelView}>
@@ -118,7 +127,7 @@ export const Home: ScreenComponent = observer(
           </TouchableOpacity>
         );
       }
-    }, [blueToothDetail, blueToothStore.devicesInfo, openBlueTooth]);
+    }, [blueToothDetail, blueToothStore.devicesInfo, openBlueTooth, blueToothStore.device]);
 
     const currentResult = useMemo(() => {
       return (
@@ -127,7 +136,7 @@ export const Home: ScreenComponent = observer(
             {timeList.map((item) => {
               let current = item.value === active;
               return (
-                <TouchableWithoutFeedback onPress={() => chooseTabs(item.value)}>
+                <TouchableWithoutFeedback key={item.name} onPress={() => chooseTabs(item.value)}>
                   <View style={styles.tabBar}>
                     <Text style={[styles.barText, { color: current ? '#8f8f8f' : '#cecece' }]}>{item.name}</Text>
                     {current ? <View style={styles.triangle} /> : null}
@@ -139,7 +148,7 @@ export const Home: ScreenComponent = observer(
           <View style={styles.tableList}>
             {contentList.map((item) => {
               return (
-                <View key={item.title.toString()} style={styles.tableItem}>
+                <View key={Math.ceil(Math.random() * 10000).toString()} style={styles.tableItem}>
                   <View style={styles.tableHeader}>
                     <View style={styles.tableStart}>
                       <Hexagon border={true} color={item.color}>
@@ -159,7 +168,7 @@ export const Home: ScreenComponent = observer(
           </View>
         </View>
       );
-    }, [blueToothStore.blueRootList, active]);
+    }, [blueToothStore.blueRootList, active, blueToothStore.device, contentList]);
 
     const renderContext = useMemo(() => {
       return (
@@ -199,7 +208,7 @@ export const Home: ScreenComponent = observer(
           {currentResult}
         </ScrollView>
       );
-    }, [currentDevice, blueToothStore.devicesInfo, blueToothStore.blueRootList, active]);
+    }, [currentDevice, blueToothStore.devicesInfo, blueToothStore.blueRootList, active, blueToothStore.device, contentList]);
 
     return (
       <BaseView ref={baseView} style={[tw.flex1]}>
@@ -278,16 +287,19 @@ const styles = StyleSheet.create({
     borderColor: '#ffffff',
     borderRadius: 2,
     borderStyle: 'solid',
+    flexDirection: 'row',
     borderWidth: 1,
     height: 15,
     marginLeft: 10,
     padding: 1,
+    paddingLeft: 0,
     width: 37
   },
   batteryContent: {
     backgroundColor: '#ffffff',
     flex: 1,
-    height: '100%'
+    height: '100%',
+    marginLeft: 1
   },
   tabRow: {
     flexDirection: 'row'

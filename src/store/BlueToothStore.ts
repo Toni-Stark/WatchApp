@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import i18n from 'i18n-js';
 import { Appearance, Platform, StatusBar } from 'react-native';
 import { APP_COLOR_MODE, APP_LANGUAGE } from '../common/constants';
-import { baseToHex, regCutString, stringToByte, t } from '../common/tools';
+import { arrToByte, baseToHex, regCutString, stringToByte, t } from '../common/tools';
 import { darkTheme, theme } from '../common/theme';
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
@@ -28,7 +28,13 @@ export class BlueToothStore {
   @observable blueRootList: any[] = [];
   @observable blueRootInfo: any = {};
 
-  @observable device: any = {};
+  @observable device: any = {
+    '-47': {
+      i8: [],
+      i9: [],
+      i10: []
+    }
+  };
 
   constructor() {
     makeAutoObservable(this);
@@ -41,20 +47,19 @@ export class BlueToothStore {
 
   @action
   async sendActiveMessage(params) {
-    const { value, data } = params;
-    let storeRes = regCutString(value);
+    let storeRes = regCutString(params.value);
     let buffer = Buffer.from(stringToByte(storeRes)).toString('base64');
-    await this.devicesInfo.writeCharacteristicWithResponseForService(data.serviceUUID, data.uuid, buffer);
+    await this.devicesInfo.writeCharacteristicWithResponseForService(params.serviceUUID, params.uuid, buffer);
   }
-
   @action
   async listenActiveMessage(params) {
-    const { data } = params;
-    this.devicesInfo.monitorCharacteristicForService(data.serviceUUID, data.uuid, (error, characteristic) => {
+    this.devicesInfo.monitorCharacteristicForService(params.serviceUUID, params.uuid, (error, characteristic) => {
       let value = baseToHex(characteristic.value);
       this.blueRootList = [...this.blueRootList, value];
-      // console.log(getBatteryService(characteristic.value));
+      console.log(this.blueRootList);
       if (value.slice(0, 2) === 'a1') this.setBasicInfo(value);
+      if (value.slice(0, 2) === 'a0') this.setBasicInfo(value);
+      if (value.slice(0, 2) === 'd1') this.setBasicInfo(value);
     });
   }
 
@@ -82,13 +87,40 @@ export class BlueToothStore {
     let hex = parseInt(val.slice(0, 2), 16) - 256;
     let params = {
       '-95': (e) => {
+        console.log(e);
+        // let battery = e.match(/([\d\D]{2})/g);
+        // return {
+        //   power: parseInt(battery[4], 16)
+        // };
+      },
+      '-96': (e) => {
         let battery = e.match(/([\d\D]{2})/g);
         return {
           power: parseInt(battery[4], 16)
         };
+      },
+      '-47': (e) => {
+        let list: any = this.device[hex] || {};
+        let message = arrToByte(e.match(/([\d\D]{2})/g), true);
+        let prototype = e.match(/([\d\D]{2})/g);
+        // let i = byte2HexToIntArr[19]; = 00 大概率是分钟
+        // let i4 = byte2HexToIntArr[5]; = 00 大概率是小时
+        // let i5 = byte2HexToIntArr[7]; = 00
+        // let i6 = byte2HexToIntArr[8]; = 00
+        // let i7 = byte2HexToIntArr[9]; = 00
+        console.log(list, message[14], list['i8'], parseInt(message[14]) > 30);
+        parseInt(message[14]) > 30 && list['i8'].push(message[14]); //心率
+        message[15] && list['i9'].push(message[15]); //血压高
+        message[16] && list['i10'].push(message[16]); //血压低
+        list['i3'] = list['i3'] || message[17];
+        list['i2'] = list['i2'] || message[18];
+        list['intValue'] = list['intValue'] || parseInt(prototype[2] + prototype[1], 16);
+        list['intValue2'] = list['intValue2'] || parseInt(prototype[10] + prototype[11], 16);
+        list['intValue3'] = list['intValue3'] || parseInt(prototype[12] + prototype[13], 16);
+        return list;
       }
     };
-    this.device[hex] = params[hex](val);
+    this.device = { ...this.device, [hex]: params[hex](val) };
     return this.device;
   }
 

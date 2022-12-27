@@ -1,12 +1,6 @@
-// 10进制16进制转换
-export const strToHex = (num) => {
-  if (num > -128 && num < 0) return (256 + num).toString(16);
-  if (num >= 0 && num <= 15) return '0' + (num + 0).toString(16);
-  if (num > 15 && num < 127) return (num + 0).toString(16);
-  return (num + 0).toString(16);
-};
+import { strToHex } from './tools';
 
-const getHexBits = (val): any => {
+export const getHexBits = (val): any => {
   return ((((val | 0) & 0xff) + 128) % 256) - 128;
 };
 const getHexBytes = (x): any => {
@@ -42,6 +36,7 @@ export const createSigning = (arg) => {
   return byte;
 };
 
+// 生成密码访问code
 export class CommonUtil {
   public static bytesToHexString<Object>(src): string {
     let word = /[,]/;
@@ -52,27 +47,22 @@ export class CommonUtil {
   public static getSysMonth() {
     return new Date().getMonth() + 1;
   }
-
   public static getSysYear() {
     return new Date().getFullYear();
   }
-
   public static getSysDay() {
     return new Date().getDate();
   }
-
   public static getSysHour() {
     return new Date().getHours();
   }
-
   public static getSysMiute() {
     return new Date().getMinutes();
   }
-
   public static getSysSecond() {
     return new Date().getSeconds();
   }
-  public static getUtilByte(str, byte, bool): string {
+  public static getUtilByte(num, str, byte, bool): string {
     let sysYear = this.getSysYear();
     let sysMonth = this.getSysMonth();
     let sysDay = this.getSysDay();
@@ -83,15 +73,17 @@ export class CommonUtil {
     let strRight = /^[A-Fa-f]{1,4}$/.test(str);
 
     let arr: any[];
+    let hex = parseInt(num, 16) - 256;
     if (byte === 1) {
-      arr = [-96, strRight ? '00' : str, strToHex(byte), 0, 0, 0, 0, 0, 0, 0, 0];
+      arr = [hex, strRight ? '00' : str, strToHex(byte), 0, 0, 0, 0, 0, 0, 0, 0];
       return this.bytesToHexString(arr);
     }
-    arr = [-95, strRight ? '00' : str, byte, sysYear, sysMonth, sysDay, sysHour, sysMiute, sysSecond, bool ? 1 : 0, 1];
+    arr = [hex, strRight ? '00' : str, byte, sysYear, sysMonth, sysDay, sysHour, sysMiute, sysSecond, bool ? 1 : 0, 1];
     return this.bytesToHexString(arr);
   }
 
+  // 登录初始化信息
   public static getUtilHex() {
-    return this.getUtilByte('0000', 0, false);
+    return this.getUtilByte('a1', '0000', 0, false);
   }
 }

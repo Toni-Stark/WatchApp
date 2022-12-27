@@ -51,33 +51,35 @@ export const getChartStatus = (item): ChartStatus[] => {
   return list;
 };
 
-export const byteToString = (arr) => {
-  if (typeof arr === 'string') {
-    return arr;
-  }
-  var str = '',
-    _arr = arr;
-  for (var i = 0; i < _arr.length; i++) {
-    var one = _arr[i].toString(2),
-      v = one.match(/^1+?(?=0)/);
-    if (v && one.length == 8) {
-      var bytesLength = v[0].length;
-      var store = _arr[i].toString(2).slice(7 - bytesLength);
-      for (var st = 1; st < bytesLength; st++) {
-        store += _arr[st + i].toString(2).slice(2);
-      }
-      str += String.fromCharCode(parseInt(store, 2));
-      i += bytesLength - 1;
-    } else {
-      str += String.fromCharCode(_arr[i]);
-    }
-  }
-  console.log('2', str);
-  // return str;
-};
 export const regCutString = (value): any => {
   let str = value.match(/([\d\D]{2})/g);
   return str.toString().replace(/[,]/g, ' ');
+};
+
+let timer: any = null;
+export const eventTimes = (callback: Function, time = 1000) => {
+  clearTimeout(timer);
+  timer = null;
+  timer = setTimeout(() => {
+    callback();
+  }, time);
+};
+
+// 10进制16进制转换
+export const strToHex = (num): string => {
+  if (num > -128 && num < 0) return (256 + num).toString(16);
+  if (num >= 0 && num <= 15) return '0' + (num + 0).toString(16);
+  if (num > 15 && num < 127) return (num + 0).toString(16);
+  return (num + 0).toString(16);
+};
+
+export const arrToByte = (arr, bool?: boolean): string => {
+  let list = arr.map((item) => {
+    if (bool) return parseInt(item, 16);
+    return strToHex(item);
+  });
+  if (bool) return list;
+  return list.toString().replace(/[,]/g, ' ');
 };
 
 export const stringToByte = (value): Array<any> => {
@@ -99,8 +101,15 @@ export const stringToByte = (value): Array<any> => {
 
 export const baseToHex = (str): any => {
   let buffer = Buffer.from(str, 'base64');
-  let hex = buffer.toString('hex');
-  return hex;
+  return buffer.toString('hex');
+};
+
+export const arrSort = (arr, bool): Array<any> => {
+  let fun = function (a, b) {
+    if (bool) return b - a;
+    return a - b;
+  };
+  return arr.sort(fun);
 };
 
 export const getFileSize = (size?: string): string => {
