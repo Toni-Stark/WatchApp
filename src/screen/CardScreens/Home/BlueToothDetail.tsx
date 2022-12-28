@@ -35,16 +35,6 @@ export const BlueToothDetail: ScreenComponent = observer(
       blueToothStore.manager.servicesForDevice(deviceId).then((res) => {
         if (res.length > 0) {
           blueToothStore.servicesDevices = res;
-          // if (serviceUUID) {
-          //   blueToothStore.manager.characteristicsForDevice(deviceId, serviceUUID).then((data) => {
-          //     console.log('拿到特征值');
-          //     console.log(data);
-          //     blueToothStore.writeId = data[0].serviceUUID;
-          //     blueToothStore.notifyId = data[0].uuid;
-          //     blueToothStore.characteristics = data;
-          //   });
-          //   setSpinner(false);
-          // }
         }
         setSpinner(false);
       });
@@ -58,10 +48,6 @@ export const BlueToothDetail: ScreenComponent = observer(
     useEffect(() => {
       getAllDeviceInfo();
     }, []);
-
-    const getInServers = () => {
-      navigation.navigate('BlueServers', {});
-    };
 
     const renderItem = ({ item, index }) => {
       return (

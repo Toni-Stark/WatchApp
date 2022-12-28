@@ -1,16 +1,8 @@
-import { action, computed, makeAutoObservable, observable } from 'mobx';
+import { action, makeAutoObservable, observable } from 'mobx';
 import AsyncStorage from '@react-native-community/async-storage';
 import { TOKEN_NAME } from '../common/constants';
 import { Api, ApiResult } from '../common/api';
-import { deviceInfo, t } from '../common/tools';
-import {
-  USER_MODE_CLASS_STUDENT,
-  USER_MODE_CLASS_TEACHER,
-  USER_MODE_CLASS_TOUR,
-  USER_MODE_PARENT,
-  USER_MODE_STUDENT,
-  USER_MODE_TEACHER
-} from '../common/status-module';
+import { deviceInfo } from '../common/tools';
 
 export interface LoginInfo {
   token: string; // "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1NzczNDcwNDIsInVzZXJuYW1lIjoiTWFjcm93In0.idA_cLA-mxWegNddotiDhy_oZxIvjJlYcNb1CwSUj2A"

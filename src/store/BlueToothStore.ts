@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import i18n from 'i18n-js';
 import { Appearance, Platform, StatusBar } from 'react-native';
 import { APP_COLOR_MODE, APP_LANGUAGE } from '../common/constants';
-import { arrToByte, baseToHex, regCutString, stringToByte, t } from '../common/tools';
+import { arrToByte, baseToHex, eventTimes, regCutString, stringToByte, t } from '../common/tools';
 import { darkTheme, theme } from '../common/theme';
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
@@ -35,6 +35,9 @@ export class BlueToothStore {
       i10: []
     }
   };
+  @observable currentDevice: any = this.device;
+  @observable refreshing: boolean = false;
+  @observable refreshInfo: any = {};
 
   constructor() {
     makeAutoObservable(this);
@@ -56,24 +59,25 @@ export class BlueToothStore {
     this.devicesInfo.monitorCharacteristicForService(params.serviceUUID, params.uuid, (error, characteristic) => {
       let value = baseToHex(characteristic.value);
       this.blueRootList = [...this.blueRootList, value];
-      console.log(this.blueRootList);
-      if (value.slice(0, 2) === 'a1') this.setBasicInfo(value);
-      if (value.slice(0, 2) === 'a0') this.setBasicInfo(value);
-      if (value.slice(0, 2) === 'd1') this.setBasicInfo(value);
+      if (value.slice(0, 2) === 'a1') this.devicesModules(value);
+      if (value.slice(0, 2) === 'a0') this.devicesModules(value);
+      if (value.slice(0, 2) === 'd1') this.devicesModules(value);
+      eventTimes(() => {
+        this.setBasicInfo();
+      }, 1000);
     });
   }
 
   @action
-  async setBasicInfo(val) {
-    let res = await this.devicesModules(val);
-    console.log(res);
+  async setBasicInfo() {
+    this.refreshing = false;
+    this.currentDevice = { ...this.device };
   }
 
   @action
   async getDescriptorsForDeviceInfo(params) {
     const { data } = params;
     const result = await this.manager.descriptorsForDevice(data.deviceID, data.serviceUUID, data.uuid);
-    console.log(result);
     this.blueRootInfo = {
       deviceID: 'EF:39:16:32:92:F7',
       serviceUUID: 'F0080001-0451-4000-B000-000000000000',
@@ -108,7 +112,6 @@ export class BlueToothStore {
         // let i5 = byte2HexToIntArr[7]; = 00
         // let i6 = byte2HexToIntArr[8]; = 00
         // let i7 = byte2HexToIntArr[9]; = 00
-        console.log(list, message[14], list['i8'], parseInt(message[14]) > 30);
         parseInt(message[14]) > 30 && list['i8'].push(message[14]); //心率
         message[15] && list['i9'].push(message[15]); //血压高
         message[16] && list['i10'].push(message[16]); //血压低
@@ -122,6 +125,36 @@ export class BlueToothStore {
     };
     this.device = { ...this.device, [hex]: params[hex](val) };
     return this.device;
+  }
+
+  @action
+  async reConnectDevice(params, callback) {
+    this.refreshInfo = { ...params };
+    this.refreshing = true;
+    this.manager.startDeviceScan(null, null, (error, device) => {
+      if (error) {
+        // 处理错误（扫描会自动停止）
+        return;
+      }
+      if (device.id === params.deviceID) {
+        device
+          .connect()
+          .then((res) => {
+            if (res.id) {
+              return res.discoverAllServicesAndCharacteristics();
+            } else {
+              return callback({ type: '1', delay: 1 });
+            }
+          })
+          .then((device) => {
+            this.devicesInfo = device;
+            return callback({ type: '2', delay: 1 });
+          })
+          .catch((err) => {
+            return callback({ type: '1', delay: 1 });
+          });
+      }
+    });
   }
 
   @action

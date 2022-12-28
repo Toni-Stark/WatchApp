@@ -5,3 +5,5 @@ export const APP_SEARCH_HISTORY = 'APP_HISTORY';
 export const APP_SEARCH_HISTORY_SPLITTER = ';';
 export const USER_AGREEMENT = 'Y_USER_AGREE';
 export const OSS_CONFIG = 'O_OSS_CONFIG';
+
+export const DEVICE_INFO = 'DEVICE_INFO';

@@ -12,6 +12,10 @@ import { arrSort, arrToByte, eventTimes, hasAndroidPermission } from '../common/
 import { Svg, Circle } from 'react-native-svg';
 import { Hexagon } from '../component/home/Hexagon';
 import { allDataSign, batterySign, mainListen, passRegSign } from '../common/watch-module';
+import AsyncStorage from '@react-native-community/async-storage';
+import moment from 'moment';
+import { DEVICE_INFO } from '../common/constants';
+import Spinkit from 'react-native-spinkit';
 
 export const Home: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -34,29 +38,44 @@ export const Home: ScreenComponent = observer(
     const [active, setActive] = useState(1);
 
     useEffect(() => {
-      if (blueToothStore?.devicesInfo) {
-        (async () => await successDialog())();
-      }
+      (async () => {
+        let deviceInfo: string | null = await AsyncStorage.getItem(DEVICE_INFO);
+        if (deviceInfo && JSON.parse(deviceInfo)) {
+          await blueToothStore.reConnectDevice(JSON.parse(deviceInfo), (res) => {
+            if (res.type === '1') {
+              blueToothStore.refreshing = false;
+              baseView.current.showToast({ text: '重连失败', delay: 1 });
+            }
+          });
+        }
+        if (blueToothStore?.devicesInfo) {
+          await successDialog();
+        }
+      })();
     }, [blueToothStore?.devicesInfo]);
 
     useEffect(() => {
       eventTimes(() => {
-        currentSetContentList(blueToothStore.device);
+        currentSetContentList(blueToothStore.currentDevice);
       }, 1500);
-    }, [blueToothStore.device]);
+    }, [blueToothStore.currentDevice]);
 
     const updateMenuState = () => {
       console.log('打开分享链接');
     };
     const chooseTabs = (val) => {
       setActive(val);
-      console.log(val);
     };
     const openBlueTooth = useCallback(() => {
       navigation.navigate('BlueToothDetail', {});
     }, [navigation]);
 
     const successDialog = useCallback(async () => {
+      let deviceInfo = {
+        deviceID: blueToothStore.devicesInfo.id,
+        time: moment(new Date()).format('YYYY-MM-DD')
+      };
+      await AsyncStorage.setItem(DEVICE_INFO, JSON.stringify(deviceInfo));
       await blueToothStore.listenActiveMessage(mainListen);
       await blueToothStore.sendActiveMessage(passRegSign);
       await blueToothStore.sendActiveMessage(batterySign);
@@ -66,8 +85,8 @@ export const Home: ScreenComponent = observer(
     const currentSetContentList: Function = (device) => {
       let list: any = contentList;
       if (!device['-47']) return;
-      list[2].value = device['-47'].i8[0] + 'bpm';
-      list[3].value = `${arrSort(device['-47'].i9, true)[0]}/${arrSort(device['-47'].i10, false)[0]}mmHg`;
+      list[2].value = (device['-47'].i8[0] || 0) + 'bpm';
+      list[3].value = `${arrSort(device['-47'].i9, true)[0] || 0}/${arrSort(device['-47'].i10, false)[0] || 0}mmHg`;
       console.log('device-----------------');
       console.log(list);
       console.log('device-----------------');
@@ -88,14 +107,27 @@ export const Home: ScreenComponent = observer(
     }, []);
 
     const currentDevice = useMemo(() => {
-      let isTrue = blueToothStore.device['-96']?.power || 0;
+      let isTrue = blueToothStore.currentDevice['-96']?.power || 0;
+      if (blueToothStore.refreshing) {
+        return (
+          <TouchableOpacity style={styles.linkModule} onPress={openBlueTooth}>
+            <View style={[tw.flexRow, tw.itemsCenter, tw.justifyAround, tw.p2, tw.flex1]}>
+              <Spinkit type="Circle" size={25} color="white" />
+              <View style={[tw.flexRow, tw.itemsCenter]}>
+                <Text style={[styles.labelColor, styles.labelRe]}>正在重连:{blueToothStore.refreshInfo.deviceID}</Text>
+              </View>
+              <FastImage style={styles.imageIcon} source={require('../assets/home/right.png')} />
+            </View>
+          </TouchableOpacity>
+        );
+      }
       if (blueToothStore.devicesInfo) {
         return (
           <TouchableOpacity style={styles.linkModule} onPress={openBlueTooth}>
             <View style={[tw.flexRow, tw.itemsCenter, tw.justifyBetween, tw.p2, tw.flex1]}>
               <View style={[tw.flexRow, tw.itemsCenter]}>
                 <FastImage style={styles.imageIcon} source={require('../assets/home/device.png')} />
-                <Text style={styles.labelData}>{blueToothStore.devicesInfo.name}</Text>
+                <Text style={[styles.labelColor, styles.labelData]}>{blueToothStore.devicesInfo.name}</Text>
                 <View style={styles.battery}>
                   {[1, 2, 3, 4].map((item) => (
                     <View
@@ -106,28 +138,27 @@ export const Home: ScreenComponent = observer(
                 </View>
               </View>
               <View style={styles.labelView}>
-                <Text style={styles.labelText}>更多操作</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-        );
-      } else {
-        return (
-          <TouchableOpacity style={styles.linkStatus} onPress={blueToothDetail}>
-            <View style={[tw.flexRow, tw.itemsCenter, tw.justifyBetween, tw.p2, tw.flex1]}>
-              <View style={[tw.flexRow, tw.itemsCenter]}>
-                <FastImage style={styles.imageIcon} source={require('../assets/home/device.png')} />
-                <Text style={styles.labelData}>设备未连接</Text>
-              </View>
-              <View style={[tw.flexRow, tw.itemsCenter]}>
-                <Text style={styles.labelData}>点击连接设备</Text>
-                <FastImage style={styles.imageIcon} source={require('../assets/home/right.png')} />
+                <Text style={[styles.labelColor, styles.labelText]}>更多操作</Text>
               </View>
             </View>
           </TouchableOpacity>
         );
       }
-    }, [blueToothDetail, blueToothStore.devicesInfo, openBlueTooth, blueToothStore.device]);
+      return (
+        <TouchableOpacity style={styles.linkStatus} onPress={blueToothDetail}>
+          <View style={[tw.flexRow, tw.itemsCenter, tw.justifyBetween, tw.p2, tw.flex1]}>
+            <View style={[tw.flexRow, tw.itemsCenter]}>
+              <FastImage style={styles.imageIcon} source={require('../assets/home/device.png')} />
+              <Text style={[styles.labelColor, styles.labelData]}>设备未连接</Text>
+            </View>
+            <View style={[tw.flexRow, tw.itemsCenter]}>
+              <Text style={[styles.labelColor, styles.labelData]}>点击连接设备</Text>
+              <FastImage style={styles.imageIcon} source={require('../assets/home/right.png')} />
+            </View>
+          </View>
+        </TouchableOpacity>
+      );
+    }, [blueToothDetail, blueToothStore.devicesInfo, openBlueTooth, blueToothStore.currentDevice, blueToothStore.refreshInfo, blueToothStore.refreshing]);
 
     const currentResult = useMemo(() => {
       return (
@@ -168,7 +199,7 @@ export const Home: ScreenComponent = observer(
           </View>
         </View>
       );
-    }, [blueToothStore.blueRootList, active, blueToothStore.device, contentList]);
+    }, [blueToothStore.blueRootList, active, blueToothStore.currentDevice, contentList]);
 
     const renderContext = useMemo(() => {
       return (
@@ -208,7 +239,16 @@ export const Home: ScreenComponent = observer(
           {currentResult}
         </ScrollView>
       );
-    }, [currentDevice, blueToothStore.devicesInfo, blueToothStore.blueRootList, active, blueToothStore.device, contentList]);
+    }, [
+      currentDevice,
+      blueToothStore.devicesInfo,
+      blueToothStore.blueRootList,
+      active,
+      blueToothStore.currentDevice,
+      contentList,
+      blueToothStore.refreshInfo,
+      blueToothStore.refreshing
+    ]);
 
     return (
       <BaseView ref={baseView} style={[tw.flex1]}>
@@ -247,12 +287,16 @@ const styles = StyleSheet.create({
     height: 23,
     width: 23
   },
+  labelColor: {
+    color: '#ffffff'
+  },
+  labelRe: {
+    fontSize: 18
+  },
   labelData: {
-    color: '#ffffff',
     fontSize: 15
   },
   labelText: {
-    color: '#ffffff',
     fontSize: 13
   },
   labelView: {
