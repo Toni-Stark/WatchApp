@@ -8,6 +8,9 @@ import { observer } from 'mobx-react-lite';
 import { useStore } from '../../../store';
 import { StackBar } from '../../../component/home/StackBar';
 import Spinner from 'react-native-loading-spinner-overlay/src/index';
+import AsyncStorage from '@react-native-community/async-storage';
+import { DEVICE_INFO } from '../../../common/constants';
+import { RootEnum } from '../../../common/sign-module';
 
 export const BlueToothDetail: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -31,7 +34,7 @@ export const BlueToothDetail: ScreenComponent = observer(
       }, 3000);
     };
     const getAllDeviceInfo = () => {
-      let deviceId = blueToothStore.devicesInfo.id;
+      let deviceId = blueToothStore.devicesInfo?.id;
       blueToothStore.manager.servicesForDevice(deviceId).then((res) => {
         if (res.length > 0) {
           blueToothStore.servicesDevices = res;
@@ -43,6 +46,15 @@ export const BlueToothDetail: ScreenComponent = observer(
     const connectItem = async (item, index) => {
       // setSpinner(true);
       navigation.navigate('BlueCharacteristics', { item, index });
+    };
+
+    const closeBlueTooth = async () => {
+      blueToothStore.isRoot = RootEnum['断开连接'];
+      await AsyncStorage.removeItem(DEVICE_INFO);
+      await setTimeout(async () => {
+        await blueToothStore.closeDevices();
+        navigation.goBack();
+      }, 1000);
     };
 
     useEffect(() => {
@@ -74,7 +86,10 @@ export const BlueToothDetail: ScreenComponent = observer(
         <View style={[tw.flex1, tw.justifyCenter, tw.textCenter]}>
           <StackBar title="服务列表" onBack={() => backScreen()} onHelp={openHelp} />
           <View style={styles.headerLabel}>
-            <Text>设备名称：{blueToothStore.devicesInfo.name}</Text>
+            <Text>设备名称：{blueToothStore.devicesInfo?.name}</Text>
+            <TouchableOpacity style={styles.closeBtn} onPress={closeBlueTooth}>
+              <Text style={styles.closeText}>断开连接</Text>
+            </TouchableOpacity>
           </View>
           <View style={styles.flexView}>
             <FlatList
@@ -111,7 +126,10 @@ export const styles = StyleSheet.create({
   headerLabel: {
     paddingHorizontal: 20,
     paddingVertical: 10,
-    width: '100%'
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
   },
   toothItem: {
     alignItems: 'center',
@@ -139,5 +157,13 @@ export const styles = StyleSheet.create({
   toothTitle: {
     color: '#000000',
     fontSize: 13
+  },
+  closeBtn: {
+    backgroundColor: 'red',
+    borderRadius: 5,
+    padding: 5
+  },
+  closeText: {
+    color: '#ffffff'
   }
 });

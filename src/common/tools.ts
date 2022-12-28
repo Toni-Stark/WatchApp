@@ -65,6 +65,18 @@ export const eventTimes = (callback: Function, time = 1000) => {
   }, time);
 };
 
+let times: any = null;
+export const eventTimer = (callback: Function, time = 1000) => {
+  console.log(12345);
+  if (times !== null) return;
+  console.log(11111);
+  times = setTimeout(() => {
+    callback();
+    clearTimeout(timer);
+    timer = null;
+  }, time);
+};
+
 // 10进制16进制转换
 export const strToHex = (num): string => {
   if (num > -128 && num < 0) return (256 + num).toString(16);

@@ -1,20 +1,25 @@
 import { action, makeAutoObservable, observable } from 'mobx';
 import AsyncStorage from '@react-native-community/async-storage';
 import i18n from 'i18n-js';
-import { Appearance, Platform, StatusBar } from 'react-native';
-import { APP_COLOR_MODE, APP_LANGUAGE } from '../common/constants';
-import { arrToByte, baseToHex, eventTimes, regCutString, stringToByte, t } from '../common/tools';
+import { Appearance, AppState, Platform, StatusBar } from 'react-native';
+import { APP_COLOR_MODE, APP_LANGUAGE, DEVICE_INFO } from '../common/constants';
+import { arrToByte, baseToHex, eventTimer, eventTimes, regCutString, stringToByte, t } from '../common/tools';
 import { darkTheme, theme } from '../common/theme';
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
+import BackgroundFetch from 'react-native-background-fetch';
+import moment from 'moment';
+import { allDataSign, batterySign, mainListen, passRegSign } from '../common/watch-module';
+import { isRoot, RootEnum } from '../common/sign-module';
 
 export type AppColorModeType = 'light' | 'dark' | 'system';
 export type AppLanguageType = 'zh' | 'en' | 'system';
+
 export class BlueToothStore {
   readonly defaultLanguage: AppLanguageType = 'zh';
   readonly defaultColorMode = Appearance.getColorScheme() === 'light' ? 'light' : 'dark';
   @observable showBootAnimation: boolean = true;
-  @observable manager: any = true;
+  @observable manager: any;
   @observable devicesInfo: any;
   @observable servicesDevices: any = [];
   @observable characteristics: any = [];
@@ -38,6 +43,16 @@ export class BlueToothStore {
   @observable currentDevice: any = this.device;
   @observable refreshing: boolean = false;
   @observable refreshInfo: any = {};
+  @observable hadBackgroundFetch: boolean = false;
+
+  @observable isRoot = RootEnum['初次进入'];
+  // 默认后台运行配置项
+  @observable configureOptions: any = {
+    minimumFetchInterval: 1,
+    enableHeadless: true,
+    forceAlarmManager: true,
+    stopOnTerminate: false
+  };
 
   constructor() {
     makeAutoObservable(this);
@@ -46,6 +61,87 @@ export class BlueToothStore {
   @action
   async setManagerInit() {
     this.manager = new BleManager();
+    await AppState.addEventListener('change', async (e) => {
+      if (e === 'background' && !this.hadBackgroundFetch) {
+        await this.initBackgroundFetch();
+      }
+    });
+  }
+
+  @action
+  async initBackgroundFetch() {
+    console.log('后台任务启动');
+    this.hadBackgroundFetch = true;
+    const onEvent = async (taskId) => {
+      console.log('添加后台任务', moment(new Date()).format('YYYY-MM-DD HH:mm:ss'));
+      await this.addEvent(taskId);
+      BackgroundFetch.finish(taskId);
+    };
+
+    const onTimeout = async (taskId) => {
+      console.warn('后台任务超时: ', taskId);
+      BackgroundFetch.finish(taskId);
+    };
+
+    // 初始化后台任务
+    let status = await BackgroundFetch.configure(this.configureOptions, onEvent, onTimeout);
+
+    console.log('[BackgroundFetch] configure status: ', status);
+  }
+
+  @action
+  async addEvent(taskId) {
+    // 用Promise模拟长时间的任务
+    return new Promise((resolve, reject) => {
+      this.successDialog();
+      resolve();
+    });
+  }
+
+  @action
+  async closeDevices() {
+    if (!this.devicesInfo?.id) {
+      return;
+    }
+    await this.manager.cancelDeviceConnection(this.devicesInfo.id);
+    this.devicesInfo = undefined;
+    this.manager = undefined;
+    this.device = {
+      '-47': {
+        i8: [],
+        i9: [],
+        i10: []
+      }
+    };
+    this.currentDevice = this.device;
+    this.refreshing = false;
+    this.refreshInfo = {};
+    this.manager = new BleManager();
+  }
+
+  @action
+  async setDeviceStorage(devices) {
+    let deviceInfo = {
+      deviceID: devices.id,
+      time: moment(new Date()).format('YYYY-MM-DD')
+    };
+    await AsyncStorage.setItem(DEVICE_INFO, JSON.stringify(deviceInfo));
+  }
+  @action
+  async successDialog() {
+    this.refreshing = true;
+    if (!this.devicesInfo?.id) {
+      return;
+    }
+    this.refreshInfo = {
+      deviceID: this.devicesInfo.id,
+      time: moment(new Date()).format('YYYY-MM-DD')
+    };
+    await this.setDeviceStorage(this.devicesInfo);
+    await this.listenActiveMessage(mainListen);
+    await this.sendActiveMessage(passRegSign);
+    await this.sendActiveMessage(batterySign);
+    await this.sendActiveMessage(allDataSign);
   }
 
   @action
@@ -57,11 +153,13 @@ export class BlueToothStore {
   @action
   async listenActiveMessage(params) {
     this.devicesInfo.monitorCharacteristicForService(params.serviceUUID, params.uuid, (error, characteristic) => {
+      if (error) return;
       let value = baseToHex(characteristic.value);
       this.blueRootList = [...this.blueRootList, value];
       if (value.slice(0, 2) === 'a1') this.devicesModules(value);
       if (value.slice(0, 2) === 'a0') this.devicesModules(value);
       if (value.slice(0, 2) === 'd1') this.devicesModules(value);
+      // console.log('解析数据', value);
       eventTimes(() => {
         this.setBasicInfo();
       }, 1000);
@@ -136,18 +234,30 @@ export class BlueToothStore {
         // 处理错误（扫描会自动停止）
         return;
       }
+      console.log('获取设备', device.name, device?.id !== params.deviceID);
+      if (device?.id !== params.deviceID) {
+        eventTimer(() => {
+          this.manager?.stopDeviceScan();
+          this.refreshing = false;
+          callback({ type: '3', delay: 1 });
+        }, 2000);
+        return;
+      }
       if (device.id === params.deviceID) {
+        this.manager?.stopDeviceScan();
         device
           .connect()
           .then((res) => {
+            this.manager?.stopDeviceScan();
+            this.isRoot = RootEnum['连接中'];
             if (res.id) {
               return res.discoverAllServicesAndCharacteristics();
-            } else {
-              return callback({ type: '1', delay: 1 });
             }
+            return callback({ type: '1', delay: 1 });
           })
-          .then((device) => {
-            this.devicesInfo = device;
+          .then((devices) => {
+            this.manager?.stopDeviceScan();
+            this.devicesInfo = devices;
             return callback({ type: '2', delay: 1 });
           })
           .catch((err) => {

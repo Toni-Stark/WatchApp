@@ -63,65 +63,9 @@ export const deviceStatus = {
   '-1': 'SOS_OPRATE'
 };
 
-export const BATTERY_PASSWROD_CHECK = -95;
-export const READ_BATTERY_SLEEP = -32;
-export const HEAD_ORIGAL_DF_OPRATE = -33;
-export const READ_BATTERY_ORIGINAL = -47;
-export const LONG_SERAT_OPRATE = -31;
-export const ALARM_OPRATE = -85;
-export const NIGHT_TURN_OPEATE = -86;
-export const READ_BATTERY_OPRATE = -96;
-export const BP_MODEL_OPRATE = -111;
-export const PHONE_MESSAGE = -63;
-export const DEVICE_FUNCTION = -89;
-export const DEVICE_NUMBER = -92;
-export const RATE_CURRENT_READ_OPRATE = -48;
-export const READ_CURRENT_SPORT_OPRATE = -88;
-export const BP_OPRATE = -112;
-export const PERSON_INFO_OPRATE = -93;
-export const DRINK_OPRATE = -41;
-export const HEAD_SEND_CONTENT_TO_WATCH_OPRATE = -62;
-export const DEVICE_MSG_OPRATE = -83;
-export const FIND_WATCH_BY_PHON_OPRATE = -82;
-export const DISCONNECT_WATCH_OPRATE = -81;
-export const CHECK_WEAR_OPRATE = -30;
-export const OAD_CMD_OPRATE = -94;
-export const PERSON_WATCH_SETTING_OPRATE = -72;
-export const TAKE_PHOTO_OPRATE = -74;
-export const FIND_PHONE_BY_WATCH_OPERATE = -75;
-export const CHANGE_WATCH_LANGUAGE_OPRATE = -12;
-export const SP_READ_OPRATE = -128;
-export const FTG_READ_OPRATE = -127;
-export const WOMEN_MENSE_SETTING_OPRATE = -123;
-export const HEART_WARING_OPRATE = -84;
-export const SCREEN_LIGTH_OPRATE = -79;
-export const MULTI_ALARM_OPRATE = -71;
-export const HID_BIND_OPRATE = -68;
-export const COUNT_DOWN_OPRATE = -78;
-export const ALL_SETTING_OPRATE = -77;
-export const SPORT_MODEL_CRC_OPRATE = -45;
-export const SPORT_MODEL_OPRATE_ORIGIN = -44;
-export const READ_BATTERY_SPO2H_ORIGINAL = -46;
-export const SPORT_MODEL_OPENCLOSE_OPRATE = -43;
-export const READ_SCREEN_STYLE_OPRATE = -57;
-export const BREATH_READ_OPRATE = -126;
-export const WEATHER_OPRATE = -56;
-export const HRV_OPRATE = -39;
-export const SCREEN_LIGTH_TIME_OPRATE = -76;
-export const SPO2H_BREATH_BREAK_REMIND_OPRATE = -122;
-export const DEVICE_DEBUG_OPRATE = -15;
-export const ECG_DATA_USE_ID_OPRATE = -105;
-export const ECG_DATA_GET_ID_OPRATE = -106;
-export const ECG_DATA_APP_OPRATE = -109;
-export const BATTERY_AUTO_CALLBACK = 1;
-export const BATTERY_LOWPOWER = 3;
-export const BATTERY_MANAGER_OPRATE = -17;
-export const BLUETOOTH3_OPRATE = 113;
-export const TEMPTURE_DETECT_OPRATEb = -121;
-export const TEMPTURE_ORIGAL_OPRATE = -120;
-export const MUSIC_OPRATE = -103;
-export const BATTERY_BIG_DATA_TARN = 80;
-export const READ_CURRENT_SPORT_SPORTMODEL_OPRATE = -40;
-export const GPS_DATA_OPRATE = 112;
-export const CONTACT_OPRATE = 114;
-export const SOS_OPRATE = -1;
+export enum RootEnum {
+  '初次进入',
+  '无设备连接',
+  '连接中',
+  '断开连接'
+}

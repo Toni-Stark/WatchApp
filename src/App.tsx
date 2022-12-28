@@ -99,7 +99,7 @@ const App = observer(() => {
   }, [userStore]);
 
   useEffect(() => {
-    blueToothStore.setManagerInit();
+    (async () => await blueToothStore.setManagerInit())();
   }, []);
 
   const goInApp = async () => {
