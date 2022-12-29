@@ -9,6 +9,7 @@ import { useStore } from '../../../store';
 import { StackBar } from '../../../component/home/StackBar';
 import Spinner from 'react-native-loading-spinner-overlay/src/index';
 import { RootEnum } from '../../../common/sign-module';
+import { mainListen } from '../../../common/watch-module';
 
 export const BlueTooth: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -76,6 +77,7 @@ export const BlueTooth: ScreenComponent = observer(
             blueToothStore.devicesInfo = device;
             blueToothStore.isRoot = RootEnum['连接中'];
             blueToothStore.setDeviceStorage(device);
+            blueToothStore.listenActiveMessage(mainListen);
             setConnectName(item.name);
             setSpinner(false);
             baseView.current.showToast({ text: '连接成功', delay: 1 });

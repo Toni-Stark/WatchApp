@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, ScrollView, SafeAreaView } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, ScrollView, SafeAreaView, AppState } from 'react-native';
 import BaseView from '../component/BaseView';
 import { useStore } from '../store';
 import { ScreenComponent } from './index';
@@ -11,13 +11,15 @@ import BluetoothStateManager from 'react-native-bluetooth-state-manager';
 import { arrSort, eventTimes, hasAndroidPermission } from '../common/tools';
 import { Svg, Circle } from 'react-native-svg';
 import { Hexagon } from '../component/home/Hexagon';
-import { allDataSign, batterySign, mainListen, passRegSign } from '../common/watch-module';
 import AsyncStorage from '@react-native-community/async-storage';
-import moment from 'moment';
 import { DEVICE_INFO } from '../common/constants';
 import Spinkit from 'react-native-spinkit';
 import { RootEnum } from '../common/sign-module';
+import moment from 'moment';
+import BackgroundFetch from 'react-native-background-fetch';
+import { observable } from 'mobx';
 
+let type = 0;
 export const Home: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
     const { blueToothStore } = useStore();
@@ -37,9 +39,19 @@ export const Home: ScreenComponent = observer(
       { title: '体温', evalTitle: '最近', color: '#ff451f', image: require('../assets/home/tiwen.png'), value: '36.6°C' }
     ]);
     const [active, setActive] = useState(1);
+    const [hasBack, setHasBack] = useState(false);
+    const [configureOptions] = useState({
+      minimumFetchInterval: 1,
+      enableHeadless: true,
+      forceAlarmManager: true,
+      stopOnTerminate: false,
+      startOnBoot: true
+    }); // 默认后台运行配置项
 
     useEffect(() => {
       (async () => {
+        const rePowered = await BluetoothStateManager.getState();
+        if (rePowered !== 'PoweredOn') return;
         let deviceInfo: string | null = await AsyncStorage.getItem(DEVICE_INFO);
         if (!blueToothStore?.devicesInfo) {
           if (deviceInfo && JSON.parse(deviceInfo)) {
@@ -47,10 +59,10 @@ export const Home: ScreenComponent = observer(
               if (res.type === '1') {
                 blueToothStore.isRoot = RootEnum['无设备连接'];
                 blueToothStore.refreshing = false;
-                baseView.current.showToast({ text: '重连失败', delay: 1 });
+                baseView?.current?.showToast({ text: '重连失败', delay: 1 });
               }
               if (res.type === '3') {
-                baseView.current.showToast({ text: '未搜索到设备', delay: 1 });
+                baseView?.current?.showToast({ text: '未搜索到设备', delay: 1 });
               }
             });
           }
@@ -61,6 +73,63 @@ export const Home: ScreenComponent = observer(
         }
       })();
     }, [blueToothStore?.devicesInfo, AsyncStorage, blueToothStore.isRoot]);
+
+    // await setBackgroundServer();
+    const setBackgroundServer = async () => {
+      if (hasBack) return;
+      AppState.addEventListener('change', async (e) => {
+        if (!blueToothStore.devicesInfo?.id) return;
+        if (e === 'background') {
+          await setHasBack(true);
+          if (type) return;
+          await initBackgroundFetch();
+        }
+        if (e === 'active') {
+          await removeBackgroundFetch();
+        }
+      });
+    };
+    const addEvent = (taskId) => {
+      // 用Promise模拟长时间的任务
+      return new Promise((resolve, reject) => {
+        blueToothStore.successDialog().then(() => {
+          resolve();
+        });
+      });
+    };
+
+    const initBackgroundFetch = async () => {
+      type = 1;
+      console.log('初始化后台任务', moment(new Date()).format('YYYY-MM-DD HH:mm:ss'));
+      try {
+        await BackgroundFetch.configure(
+          configureOptions,
+          async (taskId) => {
+            console.log('添加后台任务', taskId, moment(new Date()).format('YYYY-MM-DD HH:mm:ss'));
+            await addEvent(taskId);
+            BackgroundFetch.finish(taskId);
+          },
+          (taskId) => {
+            console.warn('后台任务超时: ', taskId, moment(new Date()).format('YYYY-MM-DD HH:mm:ss'));
+            BackgroundFetch.finish(taskId);
+          }
+        );
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    const removeBackgroundFetch = async () => {
+      console.log('清除后台服务');
+      type = 0;
+      await BackgroundFetch.stop();
+    };
+
+    useEffect(() => {
+      (async () => {
+        await setBackgroundServer();
+      })();
+    }, []);
 
     useEffect(() => {
       eventTimes(() => {
@@ -78,16 +147,11 @@ export const Home: ScreenComponent = observer(
       navigation.navigate('BlueToothDetail', {});
     }, [navigation]);
 
-    const successDialog = useCallback(async () => {}, []);
-
     const currentSetContentList: Function = (device) => {
       let list: any = contentList;
       if (!device['-47']) return;
       list[2].value = (device['-47'].i8[0] || 0) + 'bpm';
       list[3].value = `${arrSort(device['-47'].i9, true)[0] || 0}/${arrSort(device['-47'].i10, false)[0] || 0}mmHg`;
-      console.log('device-----------------');
-      console.log(list);
-      console.log('device-----------------');
       setContentList([...list]);
     };
 
@@ -97,10 +161,16 @@ export const Home: ScreenComponent = observer(
       if (Powered === 'PoweredOn') {
         navigation.navigate('BlueTooth', {});
       } else {
-        await BluetoothStateManager.requestToEnable();
-        setTimeout(() => {
+        try {
+          await BluetoothStateManager.enable();
+        } catch (err) {}
+
+        setTimeout(async () => {
+          const status = await BluetoothStateManager.getState();
+          if (status === 'PoweredOff') return;
+          if (!blueToothStore.manager) await blueToothStore.setManagerInit();
           navigation.navigate('BlueTooth', {});
-        }, 300);
+        }, 500);
       }
     }, []);
 
@@ -237,16 +307,7 @@ export const Home: ScreenComponent = observer(
           {currentResult}
         </ScrollView>
       );
-    }, [
-      currentDevice,
-      blueToothStore.devicesInfo,
-      blueToothStore.blueRootList,
-      active,
-      blueToothStore.currentDevice,
-      contentList,
-      blueToothStore.refreshInfo,
-      blueToothStore.refreshing
-    ]);
+    }, [currentDevice, blueToothStore.devicesInfo, active, blueToothStore.currentDevice, contentList, blueToothStore.refreshInfo, blueToothStore.refreshing]);
 
     return (
       <BaseView ref={baseView} style={[tw.flex1]}>

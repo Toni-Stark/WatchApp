@@ -67,9 +67,7 @@ export const eventTimes = (callback: Function, time = 1000) => {
 
 let times: any = null;
 export const eventTimer = (callback: Function, time = 1000) => {
-  console.log(12345);
   if (times !== null) return;
-  console.log(11111);
   times = setTimeout(() => {
     callback();
     clearTimeout(timer);
@@ -261,7 +259,6 @@ export const requestAudioAndVideoPermission = async (): Promise<boolean> => {
 };
 
 export const getStorage = async (name): Promise<string | null> => {
-  console.log(await AsyncStorage.getItem(name));
   return Promise.resolve(await AsyncStorage.getItem(name));
 };
 

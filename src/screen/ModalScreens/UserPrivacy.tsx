@@ -71,7 +71,6 @@ export const UserPrivacy: React.FunctionComponent<Props> = observer((props) => {
           <Button
             mode="contained"
             onPress={() => {
-              console.log(1234234);
               props.goInApp();
             }}
           >

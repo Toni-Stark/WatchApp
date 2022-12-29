@@ -4,22 +4,27 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { enableScreens } from 'react-native-screens';
 import * as RNLocalize from 'react-native-localize';
 import AsyncStorage from '@react-native-community/async-storage';
-import { Appearance, BackHandler, Platform, StatusBar } from 'react-native';
+import { Appearance, AppState, BackHandler, Platform, StatusBar } from 'react-native';
 import { Provider as PaperProvider, useTheme } from 'react-native-paper';
 import { NavigatorStack } from './screen';
-import { APP_COLOR_MODE, APP_LANGUAGE, USER_AGREEMENT } from './common/constants';
+import { APP_COLOR_MODE, APP_LANGUAGE, BLUE_STATUS, USER_AGREEMENT } from './common/constants';
 import { darkTheme, theme } from './common/theme';
 import { useStore } from './store';
 import { BootAnimation } from './screen/BootAnimation';
-import { delay, getStorage } from './common/tools';
+import { delay, getStorage, hasAndroidPermission } from './common/tools';
 import { UserStore } from './store/UserStore';
 import { observer, Observer } from 'mobx-react-lite';
 import { UserPrivacy } from './screen/ModalScreens/UserPrivacy';
+import BluetoothStateManager, { onStateChange } from 'react-native-bluetooth-state-manager';
+import { action } from 'mobx';
+import moment from 'moment';
+import BackgroundFetch from 'react-native-background-fetch';
 
 const App = observer(() => {
   const { colors } = useTheme();
   const { systemStore, userStore, blueToothStore } = useStore();
   const [userAgree, setUserAgree] = useState<boolean>(false);
+  const [blueTooth, setBlueTooth] = useState<boolean>(false);
 
   useEffect(() => {
     (async () => {
@@ -99,7 +104,14 @@ const App = observer(() => {
   }, [userStore]);
 
   useEffect(() => {
-    (async () => await blueToothStore.setManagerInit())();
+    (async () => {
+      await hasAndroidPermission();
+      const rePowered = await BluetoothStateManager.getState();
+      if (rePowered === 'PoweredOn') {
+        await blueToothStore.setManagerInit();
+      }
+      setBlueTooth(true);
+    })();
   }, []);
 
   const goInApp = async () => {
@@ -113,15 +125,17 @@ const App = observer(() => {
     //     setUserAgree(false);
     //   });
   };
-  const outApp = async () => {
-    await AsyncStorage.removeItem(USER_AGREEMENT);
-    getStorage(USER_AGREEMENT)
-      .then((res) => {
-        setUserAgree(!!res);
-      })
-      .catch(() => {
-        setUserAgree(false);
-      });
+  const outApp = async (isClean?: boolean) => {
+    if (!isClean) {
+      await AsyncStorage.removeItem(USER_AGREEMENT);
+      getStorage(USER_AGREEMENT)
+        .then((res) => {
+          setUserAgree(!!res);
+        })
+        .catch(() => {
+          setUserAgree(false);
+        });
+    }
     BackHandler.exitApp();
     BackHandler.exitApp();
     BackHandler.exitApp();
@@ -129,9 +143,10 @@ const App = observer(() => {
   };
 
   const showScreens = () => {
-    if (systemStore.showBootAnimation) {
+    if (systemStore.showBootAnimation || !blueTooth) {
       return <BootAnimation />;
-    } else if (Platform.OS === 'android' && !userAgree) {
+    }
+    if (Platform.OS === 'android' && !userAgree) {
       return (
         <UserPrivacy
           outApp={async () => {

@@ -10,7 +10,7 @@ import { Buffer } from 'buffer';
 import BackgroundFetch from 'react-native-background-fetch';
 import moment from 'moment';
 import { allDataSign, batterySign, mainListen, passRegSign } from '../common/watch-module';
-import { isRoot, RootEnum } from '../common/sign-module';
+import { RootEnum } from '../common/sign-module';
 
 export type AppColorModeType = 'light' | 'dark' | 'system';
 export type AppLanguageType = 'zh' | 'en' | 'system';
@@ -44,15 +44,9 @@ export class BlueToothStore {
   @observable refreshing: boolean = false;
   @observable refreshInfo: any = {};
   @observable hadBackgroundFetch: boolean = false;
+  @observable hadStateListener: boolean = false;
 
   @observable isRoot = RootEnum['初次进入'];
-  // 默认后台运行配置项
-  @observable configureOptions: any = {
-    minimumFetchInterval: 1,
-    enableHeadless: true,
-    forceAlarmManager: true,
-    stopOnTerminate: false
-  };
 
   constructor() {
     makeAutoObservable(this);
@@ -61,41 +55,6 @@ export class BlueToothStore {
   @action
   async setManagerInit() {
     this.manager = new BleManager();
-    await AppState.addEventListener('change', async (e) => {
-      if (e === 'background' && !this.hadBackgroundFetch) {
-        await this.initBackgroundFetch();
-      }
-    });
-  }
-
-  @action
-  async initBackgroundFetch() {
-    console.log('后台任务启动');
-    this.hadBackgroundFetch = true;
-    const onEvent = async (taskId) => {
-      console.log('添加后台任务', moment(new Date()).format('YYYY-MM-DD HH:mm:ss'));
-      await this.addEvent(taskId);
-      BackgroundFetch.finish(taskId);
-    };
-
-    const onTimeout = async (taskId) => {
-      console.warn('后台任务超时: ', taskId);
-      BackgroundFetch.finish(taskId);
-    };
-
-    // 初始化后台任务
-    let status = await BackgroundFetch.configure(this.configureOptions, onEvent, onTimeout);
-
-    console.log('[BackgroundFetch] configure status: ', status);
-  }
-
-  @action
-  async addEvent(taskId) {
-    // 用Promise模拟长时间的任务
-    return new Promise((resolve, reject) => {
-      this.successDialog();
-      resolve();
-    });
   }
 
   @action
@@ -138,7 +97,6 @@ export class BlueToothStore {
       time: moment(new Date()).format('YYYY-MM-DD')
     };
     await this.setDeviceStorage(this.devicesInfo);
-    await this.listenActiveMessage(mainListen);
     await this.sendActiveMessage(passRegSign);
     await this.sendActiveMessage(batterySign);
     await this.sendActiveMessage(allDataSign);
@@ -159,7 +117,7 @@ export class BlueToothStore {
       if (value.slice(0, 2) === 'a1') this.devicesModules(value);
       if (value.slice(0, 2) === 'a0') this.devicesModules(value);
       if (value.slice(0, 2) === 'd1') this.devicesModules(value);
-      // console.log('解析数据', value);
+      console.log('解析数据', value);
       eventTimes(() => {
         this.setBasicInfo();
       }, 1000);
@@ -170,6 +128,7 @@ export class BlueToothStore {
   async setBasicInfo() {
     this.refreshing = false;
     this.currentDevice = { ...this.device };
+    console.log('刷新了数据', moment(new Date()).format('YYYY-MM-DD HH:mm:ss'));
   }
 
   @action
@@ -210,14 +169,14 @@ export class BlueToothStore {
         // let i5 = byte2HexToIntArr[7]; = 00
         // let i6 = byte2HexToIntArr[8]; = 00
         // let i7 = byte2HexToIntArr[9]; = 00
-        parseInt(message[14]) > 30 && list['i8'].push(message[14]); //心率
-        message[15] && list['i9'].push(message[15]); //血压高
-        message[16] && list['i10'].push(message[16]); //血压低
-        list['i3'] = list['i3'] || message[17];
-        list['i2'] = list['i2'] || message[18];
-        list['intValue'] = list['intValue'] || parseInt(prototype[2] + prototype[1], 16);
-        list['intValue2'] = list['intValue2'] || parseInt(prototype[10] + prototype[11], 16);
-        list['intValue3'] = list['intValue3'] || parseInt(prototype[12] + prototype[13], 16);
+        parseInt(message[14]) > 30 && list.i8.push(message[14]); //心率
+        message[15] && list.i9.push(message[15]); //血压高
+        message[16] && list.i10.push(message[16]); //血压低
+        list.i3 = list.i3 || message[17];
+        list.i2 = list.i2 || message[18];
+        list.intValue = list?.intValue || parseInt(prototype[2] + prototype[1], 16);
+        list.intValue2 = list?.intValue2 || parseInt(prototype[10] + prototype[11], 16);
+        list.intValue3 = list?.intValue3 || parseInt(prototype[12] + prototype[13], 16);
         return list;
       }
     };
@@ -234,8 +193,8 @@ export class BlueToothStore {
         // 处理错误（扫描会自动停止）
         return;
       }
-      console.log('获取设备', device.name, device?.id !== params.deviceID);
-      if (device?.id !== params.deviceID) {
+      // console.log('获取设备', device.name, device?.id !== params.deviceID);
+      if (device.name && device?.id !== params.deviceID) {
         eventTimer(() => {
           this.manager?.stopDeviceScan();
           this.refreshing = false;
@@ -258,6 +217,7 @@ export class BlueToothStore {
           .then((devices) => {
             this.manager?.stopDeviceScan();
             this.devicesInfo = devices;
+            this.listenActiveMessage(mainListen);
             return callback({ type: '2', delay: 1 });
           })
           .catch((err) => {
