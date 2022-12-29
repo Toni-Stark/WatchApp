@@ -150,6 +150,7 @@ export const Home: ScreenComponent = observer(
     const currentSetContentList: Function = (device) => {
       let list: any = contentList;
       if (!device['-47']) return;
+      // list[0].value = `${arrSort(device['-47'].i9, true)[0] || 0}/${arrSort(device['-47'].i10, false)[0] || 0}mmHg`;
       list[2].value = (device['-47'].i8[0] || 0) + 'bpm';
       list[3].value = `${arrSort(device['-47'].i9, true)[0] || 0}/${arrSort(device['-47'].i10, false)[0] || 0}mmHg`;
       setContentList([...list]);
@@ -271,7 +272,7 @@ export const Home: ScreenComponent = observer(
 
     const renderContext = useMemo(() => {
       return (
-        <ScrollView style={[tw.flex1, [{ backgroundColor: '#fcfcfc', marginBottom: 50 }]]}>
+        <ScrollView style={[tw.flex1, [{ backgroundColor: '#fcfcfc', marginBottom: 60 }]]}>
           <View style={styles.header}>
             <View>
               <FastImage style={styles.headerImage} source={require('../assets/home/watch-banner.jpg')} />

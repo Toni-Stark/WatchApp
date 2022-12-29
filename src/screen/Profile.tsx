@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Text, useTheme, Avatar } from 'react-native-paper';
-import { Platform, View, TouchableOpacity, ScrollView, TouchableWithoutFeedback } from 'react-native';
+import { Platform, View, TouchableOpacity, ScrollView, TouchableWithoutFeedback, StyleSheet } from 'react-native';
 import BaseView from '../component/BaseView';
 import { useStore } from '../store';
 import { ScreenComponent } from './index';
@@ -173,25 +173,150 @@ export const Profile: ScreenComponent = observer(
       }
     };
 
-    const renderContent = () => {
-      if (!settingStore.loading) {
+    const renderContent = useMemo(() => {
+      if (settingStore.loading) {
         return <ProfilePlaceholder />;
       }
       return (
-        <ScrollView
-          style={[
-            { paddingTop: Platform.OS === 'ios' ? getStatusBarHeight(false) : 0, marginBottom: 55 + (Platform.OS === 'ios' ? 0 : getStatusBarHeight(false)) }
-          ]}
-        >
-          <Text>微信登录开发中，切换分支即可见</Text>
+        <ScrollView style={[tw.flex1, [{ marginBottom: 60 }]]}>
+          <View style={styles.header}>
+            <View style={styles.headerStart}>
+              <View style={styles.imageView}>
+                <FastImage style={styles.headerImg} source={require('../assets/home/header-assets.png')} resizeMode={FastImage.resizeMode.cover} />
+              </View>
+              <View style={styles.headerContent}>
+                <Text style={styles.userName}>用戶13</Text>
+                <View style={styles.userIcons}>
+                  <View style={styles.icons}>
+                    <Text style={styles.iconText}>已认证</Text>
+                  </View>
+                  <View style={styles.icons}>
+                    <Text style={styles.iconText}>桐君阁药房</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View style={styles.deviceLabel}>
+              <Text style={styles.deviceText}>设备绑定</Text>
+              <FastImage style={styles.deviceIcon} source={require('../assets/home/right.png')} resizeMode={FastImage.resizeMode.cover} />
+            </View>
+          </View>
+          <View style={styles.context}>
+            <View style={styles.moduleView}>
+              <Text style={styles.mainText}>我的设备</Text>
+              <View style={styles.labelView}>
+                <View style={styles.startLabel}>
+                  <FastImage style={styles.labelIcon} source={require('../assets/home/header-assets.png')} resizeMode={FastImage.resizeMode.cover} />
+                  <Text style={styles.labelText}>F22R</Text>
+                </View>
+                <FastImage style={styles.deviceIcon} source={require('../assets/home/right-gray.png')} resizeMode={FastImage.resizeMode.cover} />
+              </View>
+            </View>
+          </View>
         </ScrollView>
       );
-    };
+    }, [settingStore.loading]);
 
     return (
-      <BaseView ref={baseView} useSafeArea={settingStore.loading} style={[tw.flex1]}>
-        {renderContent()}
+      <BaseView ref={baseView} style={[tw.flex1, { backgroundColor: 'blue' }]}>
+        {renderContent}
       </BaseView>
     );
   }
 );
+
+const styles = StyleSheet.create({
+  headerStart: {
+    flexDirection: 'row'
+  },
+  header: {
+    backgroundColor: '#00D1DE',
+    height: 150,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 30
+  },
+  headerContent: {
+    flexDirection: 'column',
+    marginLeft: 10,
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingVertical: 2
+  },
+  headerImg: {
+    height: 50,
+    width: 50
+  },
+  iconText: { color: '#00D1DE', fontSize: 12 },
+  icons: {
+    backgroundColor: '#ffffff',
+    borderRadius: 9,
+    paddingHorizontal: 5,
+    paddingVertical: 3,
+    marginRight: 5
+  },
+  imageView: {
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: 50,
+    height: 60,
+    justifyContent: 'center',
+    width: 60
+  },
+  userIcons: {
+    alignItems: 'center',
+    flexDirection: 'row'
+  },
+  userName: {
+    color: '#ffffff',
+    fontSize: 18
+  },
+  deviceLabel: {
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    flexDirection: 'row',
+    paddingTop: 10
+  },
+  deviceText: {
+    fontSize: 14,
+    color: '#ffffff'
+  },
+  deviceIcon: {
+    width: 20,
+    height: 20
+  },
+  context: {
+    flex: 1
+  },
+  labelView: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 15,
+    paddingHorizontal: 10,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderStyle: 'solid',
+    borderColor: '#e3e3e3'
+  },
+  startLabel: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  labelIcon: {
+    width: 25,
+    height: 25
+  },
+  labelText: {
+    fontSize: 18,
+    marginLeft: 15
+  },
+  moduleView: {
+    padding: 20
+  },
+  mainText: {
+    fontSize: 16,
+    color: '#a6a6a6',
+    marginBottom: 10
+  }
+});

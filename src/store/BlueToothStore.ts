@@ -175,8 +175,8 @@ export class BlueToothStore {
         list.i3 = list.i3 || message[17];
         list.i2 = list.i2 || message[18];
         list.intValue = list?.intValue || parseInt(prototype[2] + prototype[1], 16);
-        list.intValue2 = list?.intValue2 || parseInt(prototype[10] + prototype[11], 16);
-        list.intValue3 = list?.intValue3 || parseInt(prototype[12] + prototype[13], 16);
+        list.intValue2 = list?.intValue2 || parseInt(prototype[10] + prototype[11], 16); //步数
+        list.intValue3 = list?.intValue3 || parseInt(prototype[12] + prototype[13], 16); //运动量
         return list;
       }
     };
