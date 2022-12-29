@@ -165,12 +165,8 @@ export const Profile: ScreenComponent = observer(
       } catch (err) {}
     }, [menuList, settingStore, studentList, teachersList, userStore.login]);
 
-    const navigateTo = () => {
-      if (userStore.login) {
-        navigation.navigate('Main', { screen: 'MyProfileDetail', options: { animationEnabled: false } });
-      } else {
-        navigation.navigate('LoginByPhone');
-      }
+    const goLogin = () => {
+      navigation.navigate('OnePassLogin', {});
     };
 
     const renderContent = useMemo(() => {
@@ -184,17 +180,19 @@ export const Profile: ScreenComponent = observer(
               <View style={styles.imageView}>
                 <FastImage style={styles.headerImg} source={require('../assets/home/header-assets.png')} resizeMode={FastImage.resizeMode.cover} />
               </View>
-              <View style={styles.headerContent}>
-                <Text style={styles.userName}>用戶13</Text>
-                <View style={styles.userIcons}>
-                  <View style={styles.icons}>
-                    <Text style={styles.iconText}>已认证</Text>
-                  </View>
-                  <View style={styles.icons}>
-                    <Text style={styles.iconText}>桐君阁药房</Text>
+              <TouchableOpacity onPress={goLogin}>
+                <View style={styles.headerContent}>
+                  <Text style={styles.userName}>用戶13</Text>
+                  <View style={styles.userIcons}>
+                    <View style={styles.icons}>
+                      <Text style={styles.iconText}>已认证</Text>
+                    </View>
+                    <View style={styles.icons}>
+                      <Text style={styles.iconText}>桐君阁药房</Text>
+                    </View>
                   </View>
                 </View>
-              </View>
+              </TouchableOpacity>
             </View>
             <View style={styles.deviceLabel}>
               <Text style={styles.deviceText}>设备绑定</Text>

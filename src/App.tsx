@@ -4,10 +4,10 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { enableScreens } from 'react-native-screens';
 import * as RNLocalize from 'react-native-localize';
 import AsyncStorage from '@react-native-community/async-storage';
-import { Appearance, AppState, BackHandler, Platform, StatusBar } from 'react-native';
+import { Appearance, BackHandler, Platform, StatusBar } from 'react-native';
 import { Provider as PaperProvider, useTheme } from 'react-native-paper';
 import { NavigatorStack } from './screen';
-import { APP_COLOR_MODE, APP_LANGUAGE, BLUE_STATUS, USER_AGREEMENT } from './common/constants';
+import { APP_COLOR_MODE, APP_LANGUAGE, USER_AGREEMENT } from './common/constants';
 import { darkTheme, theme } from './common/theme';
 import { useStore } from './store';
 import { BootAnimation } from './screen/BootAnimation';
@@ -15,10 +15,7 @@ import { delay, getStorage, hasAndroidPermission } from './common/tools';
 import { UserStore } from './store/UserStore';
 import { observer, Observer } from 'mobx-react-lite';
 import { UserPrivacy } from './screen/ModalScreens/UserPrivacy';
-import BluetoothStateManager, { onStateChange } from 'react-native-bluetooth-state-manager';
-import { action } from 'mobx';
-import moment from 'moment';
-import BackgroundFetch from 'react-native-background-fetch';
+import BluetoothStateManager from 'react-native-bluetooth-state-manager';
 
 const App = observer(() => {
   const { colors } = useTheme();
@@ -99,6 +96,8 @@ const App = observer(() => {
         if (res) {
           console.log('登录成功');
         }
+      } else {
+        // await userStore.rootWechat();
       }
     });
   }, [userStore]);

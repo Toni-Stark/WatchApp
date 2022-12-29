@@ -128,7 +128,7 @@ export class BlueToothStore {
   async setBasicInfo() {
     this.refreshing = false;
     this.currentDevice = { ...this.device };
-    console.log('刷新了数据', moment(new Date()).format('YYYY-MM-DD HH:mm:ss'));
+    console.log('刷新了数据', this.currentDevice, moment(new Date()).format('YYYY-MM-DD HH:mm:ss'));
   }
 
   @action
@@ -164,8 +164,8 @@ export class BlueToothStore {
         let list: any = this.device[hex] || {};
         let message = arrToByte(e.match(/([\d\D]{2})/g), true);
         let prototype = e.match(/([\d\D]{2})/g);
-        // let i = byte2HexToIntArr[19]; = 00 大概率是分钟
-        // let i4 = byte2HexToIntArr[5]; = 00 大概率是小时
+        // list.i = message[19]; // 分钟
+        // list.i4 = message[5]; // 小时
         // let i5 = byte2HexToIntArr[7]; = 00
         // let i6 = byte2HexToIntArr[8]; = 00
         // let i7 = byte2HexToIntArr[9]; = 00
