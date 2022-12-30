@@ -9,7 +9,6 @@ import { useStore } from '../../../store';
 import { StackBar } from '../../../component/home/StackBar';
 import Spinner from 'react-native-loading-spinner-overlay/src/index';
 import { getChartStatus } from '../../../common/tools';
-import { err } from 'react-native-svg/lib/typescript/xml';
 
 export const BlueCharacteristics: ScreenComponent = observer(
   (props): JSX.Element => {

@@ -8,35 +8,34 @@ import { observer } from 'mobx-react-lite';
 import { HeaderBar } from '../component/home/HeaderBar';
 import FastImage from 'react-native-fast-image';
 import BluetoothStateManager from 'react-native-bluetooth-state-manager';
-import { arrSort, eventTimes, hasAndroidPermission } from '../common/tools';
-import { Svg, Circle } from 'react-native-svg';
+import { arrCount, eventTimes, hasAndroidPermission } from '../common/tools';
 import { Hexagon } from '../component/home/Hexagon';
 import AsyncStorage from '@react-native-community/async-storage';
-import { DEVICE_INFO } from '../common/constants';
+import { DEVICE_DATA, DEVICE_INFO } from '../common/constants';
 import Spinkit from 'react-native-spinkit';
 import { RootEnum } from '../common/sign-module';
 import moment from 'moment';
 import BackgroundFetch from 'react-native-background-fetch';
-import { observable } from 'mobx';
+import { CirCleView } from '../component/home/CirCleView';
 
 let type = 0;
 export const Home: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
     const { blueToothStore } = useStore();
     const baseView = useRef<any>(undefined);
-    const [dashArray] = useState([Math.PI * 2 * 102]);
+    const [target, setTarget] = useState(102);
     const [timeList] = useState([
       { name: '今天', value: 1 },
       { name: '昨天', value: 2 },
       { name: '前天', value: 3 }
     ]);
     const [contentList, setContentList] = useState([
-      { title: '运动', evalTitle: '最大步数', color: '#0098f7', image: require('../assets/home/footer.png'), value: '788步' },
-      { title: '睡眠', evalTitle: '最长睡眠', color: '#5b75c5', image: require('../assets/home/sleep.png'), value: '2小时' },
-      { title: '心率', evalTitle: '最近', color: '#ff007e', image: require('../assets/home/heartPulse.png'), value: '' },
-      { title: '血压', evalTitle: '最近', color: '#ff9100', image: require('../assets/home/xueya.png'), value: '' },
-      { title: '血氧', evalTitle: '最近', color: '#3847a4', image: require('../assets/home/xueo2.png'), value: '' },
-      { title: '体温', evalTitle: '最近', color: '#ff451f', image: require('../assets/home/tiwen.png'), value: '36.6°C' }
+      { title: '运动', evalTitle: '最大步数', color: '#0098f7', image: require('../assets/home/footer.png'), value: '0', cap: '' },
+      { title: '睡眠', evalTitle: '最长睡眠', color: '#5b75c5', image: require('../assets/home/sleep.png'), value: '2', cap: '小时' },
+      { title: '心率', evalTitle: '最近', color: '#ff007e', image: require('../assets/home/heartPulse.png'), value: '', cap: 'bpm', time: '' },
+      { title: '血压', evalTitle: '最近', color: '#ff9100', image: require('../assets/home/xueya.png'), value: '', cap: 'mmHg', time: '' },
+      { title: '血氧', evalTitle: '最近', color: '#3847a4', image: require('../assets/home/xueo2.png'), value: '', cap: '' },
+      { title: '体温', evalTitle: '最近', color: '#ff451f', image: require('../assets/home/tiwen.png'), value: '', cap: '°C' }
     ]);
     const [active, setActive] = useState(1);
     const [hasBack, setHasBack] = useState(false);
@@ -127,14 +126,17 @@ export const Home: ScreenComponent = observer(
 
     useEffect(() => {
       (async () => {
+        // let data = await AsyncStorage.getItem(DEVICE_DATA);
+        // data && currentSetContentList(JSON.parse(data));
         await setBackgroundServer();
       })();
     }, []);
 
     useEffect(() => {
       eventTimes(() => {
+        setTarget(102);
         currentSetContentList(blueToothStore.currentDevice);
-      }, 1500);
+      }, 500);
     }, [blueToothStore.currentDevice]);
 
     const updateMenuState = () => {
@@ -147,13 +149,29 @@ export const Home: ScreenComponent = observer(
       navigation.navigate('BlueToothDetail', {});
     }, [navigation]);
 
-    const currentSetContentList: Function = (device) => {
+    const currentSetContentList: Function = async (device) => {
       let list: any = contentList;
-      if (!device['-47']) return;
-      // list[0].value = `${arrSort(device['-47'].i9, true)[0] || 0}/${arrSort(device['-47'].i10, false)[0] || 0}mmHg`;
-      list[2].value = (device['-47'].i8[0] || 0) + 'bpm';
-      list[3].value = `${arrSort(device['-47'].i9, true)[0] || 0}/${arrSort(device['-47'].i10, false)[0] || 0}mmHg`;
+      if (device['-47']) {
+        const { intValue2, i8, i9, i10, xinlvTime, xueyaTime } = device['-47'];
+        list[0].value = `${arrCount(intValue2)}`;
+        list[2].value = i8[i8.length - 1] || 0;
+        list[2].time = xinlvTime[i8.length - 1] || '';
+        if (i9.length > 0 && i10.length > 0) {
+          list[3].value = `${i9[i9.length - 1] || 0}/${i10[i10.length - 1] || 0}`;
+          list[3].time = xueyaTime[i9.length - 1] || '';
+        }
+      }
+      if (device['-120']) {
+        const { temperature } = device['-120'];
+        console.log(temperature, '体温');
+        if (temperature) {
+          list[5].value = temperature.toFixed(2);
+        }
+      }
       setContentList([...list]);
+      let circle = list[0].value < 9000 ? 102 - Math.ceil((list[0].value / 9000) * 102) : 102;
+      setTarget(circle);
+      await AsyncStorage.setItem(DEVICE_DATA, JSON.stringify(device));
     };
 
     const blueToothDetail = useCallback(async () => {
@@ -173,7 +191,7 @@ export const Home: ScreenComponent = observer(
           navigation.navigate('BlueTooth', {});
         }, 500);
       }
-    }, []);
+    }, [blueToothStore, navigation]);
 
     const currentDevice = useMemo(() => {
       let isTrue = blueToothStore.currentDevice['-96']?.power || 0;
@@ -200,7 +218,7 @@ export const Home: ScreenComponent = observer(
                 <View style={styles.battery}>
                   {[1, 2, 3, 4].map((item) => (
                     <View
-                      style={[styles.batteryContent, { backgroundColor: item <= isTrue ? '#ffffff' : '' }]}
+                      style={[styles.batteryContent, [{ backgroundColor: item <= isTrue ? '#ffffff' : '' }]]}
                       key={Math.ceil(Math.random() * 10000).toString()}
                     />
                   ))}
@@ -232,74 +250,59 @@ export const Home: ScreenComponent = observer(
     const currentResult = useMemo(() => {
       return (
         <View style={styles.resultView}>
-          <View style={styles.tabRow}>
-            {timeList.map((item) => {
-              let current = item.value === active;
-              return (
-                <TouchableWithoutFeedback key={item.name} onPress={() => chooseTabs(item.value)}>
-                  <View style={styles.tabBar}>
-                    <Text style={[styles.barText, { color: current ? '#8f8f8f' : '#cecece' }]}>{item.name}</Text>
-                    {current ? <View style={styles.triangle} /> : null}
-                  </View>
-                </TouchableWithoutFeedback>
-              );
-            })}
-          </View>
           <View style={styles.tableList}>
             {contentList.map((item) => {
               return (
                 <View key={Math.ceil(Math.random() * 1000000).toString()} style={styles.tableItem}>
-                  <View style={styles.tableHeader}>
-                    <View style={styles.tableStart}>
-                      <Hexagon border={true} color={item.color}>
-                        <FastImage style={styles.imageIcon} source={item.image} />
-                      </Hexagon>
-                      <Text style={[styles.headerTitle, { color: item.color }]}>{item.title}</Text>
+                  <Text style={[styles.endTitle, { color: item.color }]}>{item.title}</Text>
+                  {item.time ? (
+                    <View style={styles.timeHeader}>
+                      <Text style={[styles.timeTitle, { color: item.color }]}>
+                        {item.evalTitle}: {item.time}
+                      </Text>
+                      <View style={styles.tableStart}>
+                        <Text style={[styles.endValue, { color: item.color }]}>
+                          {item.value || 0}
+                          <Text style={styles.cap}> {item.cap}</Text>
+                        </Text>
+                      </View>
                     </View>
-                    <View style={styles.tableEnd}>
-                      <Text style={[styles.endTitle, { color: item.color }]}>{item.evalTitle}:</Text>
-                      <Text style={[styles.endValue, { color: item.color }]}>{item.value}</Text>
+                  ) : (
+                    <View style={styles.tableHeader}>
+                      <View style={styles.tableStart}>
+                        <Text style={[styles.headerTitle, { color: item.color }]}>{item.evalTitle}: </Text>
+                        <Text style={[styles.endValue, { color: item.color }]}>
+                          {item.value || 0}
+                          <Text style={styles.cap}> {item.cap}</Text>
+                        </Text>
+                      </View>
                     </View>
+                  )}
+                  <View style={styles.iconPosi}>
+                    <Hexagon border={true} color={item.color}>
+                      <FastImage style={styles.imageIcon} source={item.image} />
+                    </Hexagon>
                   </View>
-                  <View></View>
                 </View>
               );
             })}
           </View>
         </View>
       );
-    }, [blueToothStore.blueRootList, active, blueToothStore.currentDevice, contentList]);
+    }, [timeList, contentList, active]);
 
     const renderContext = useMemo(() => {
       return (
-        <ScrollView style={[tw.flex1, [{ backgroundColor: '#fcfcfc', marginBottom: 60 }]]}>
+        <ScrollView style={[tw.flex1, [{ backgroundColor: '#f2f2f2', marginBottom: 60 }]]}>
           <View style={styles.header}>
-            <View>
-              <FastImage style={styles.headerImage} source={require('../assets/home/watch-banner.jpg')} />
-              <Svg height="240" width="240">
-                {/*<Circle cx="119" cy="120" r="102" stroke="#ffffff" strokeWidth="9" fill="transparent" />*/}
-                <Circle
-                  cx="119"
-                  cy="120"
-                  r="102"
-                  // origin="50,50"
-                  stroke="#ffffff"
-                  strokeWidth="8"
-                  strokeLinecap="round"
-                  fill="transparent"
-                  strokeDasharray={dashArray}
-                  strokeDashoffset={Math.PI * 2 * 32}
-                  transform={`rotate(-90, 119, 120)`}
-                />
-              </Svg>
-            </View>
+            <CirCleView target={target} />
             <View style={{ position: 'absolute' }}>
               <View>
-                <Text style={styles.mainTitle}>788</Text>
+                <Text style={styles.mainTitle}>{contentList[0].value}</Text>
                 <Text style={styles.evalTitle}>步</Text>
               </View>
               <View style={styles.footerText}>
-                <Text style={styles.mainTitle}>0.3</Text>
+                <Text style={styles.mainTitle}>0.0</Text>
                 <Text style={styles.evalTitle}>小时</Text>
               </View>
             </View>
@@ -308,7 +311,7 @@ export const Home: ScreenComponent = observer(
           {currentResult}
         </ScrollView>
       );
-    }, [currentDevice, blueToothStore.devicesInfo, active, blueToothStore.currentDevice, contentList, blueToothStore.refreshInfo, blueToothStore.refreshing]);
+    }, [target, contentList, currentDevice, currentResult]);
 
     return (
       <BaseView ref={baseView} style={[tw.flex1]}>
@@ -335,13 +338,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative',
     width: '100%'
-  },
-  headerImage: {
-    height: 240,
-    left: 0,
-    position: 'absolute',
-    top: 0,
-    width: 240
   },
   imageIcon: {
     height: 23,
@@ -384,8 +380,9 @@ const styles = StyleSheet.create({
     textAlign: 'center'
   },
   resultView: {
-    padding: 10,
-    flex: 1
+    flex: 1,
+    paddingVertical: 15,
+    paddingHorizontal: 15
   },
   battery: {
     borderColor: '#ffffff',
@@ -426,32 +423,54 @@ const styles = StyleSheet.create({
     marginTop: 3,
     width: 0
   },
-  tableList: {},
+  tableList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between'
+  },
   tableItem: {
-    height: 170,
-    marginBottom: 10,
-    backgroundColor: '#f2f2f2'
+    // height: 170,
+    marginBottom: 15,
+    backgroundColor: '#ffffff',
+    width: '48%',
+    borderRadius: 15,
+    padding: 10
   },
   tableHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-    paddingHorizontal: 10
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+  timeHeader: {
+    alignItems: 'flex-start',
+    flexDirection: 'column',
+    justifyContent: 'space-between'
   },
   tableStart: {
+    alignItems: 'flex-end',
     flexDirection: 'row',
-    alignItems: 'center'
+    flex: 1,
+    paddingTop: 15
+  },
+  iconPosi: {
+    position: 'absolute',
+    right: 10,
+    top: 5
   },
   headerTitle: {
-    fontSize: 18,
-    marginLeft: 10
+    fontSize: 18
+  },
+  timeTitle: {
+    fontSize: 12
+  },
+  cap: {
+    fontSize: 12
   },
   tableEnd: {
     alignItems: 'flex-end'
   },
   endTitle: {
-    fontSize: 14,
+    fontSize: 20,
     color: '#0098f7'
   },
   endValue: {

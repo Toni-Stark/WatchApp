@@ -8,3 +8,4 @@ export const OSS_CONFIG = 'O_OSS_CONFIG';
 
 export const DEVICE_INFO = 'DEVICE_INFO';
 export const BLUE_STATUS = 'BLUE_STATUS';
+export const DEVICE_DATA = 'DEVICE_DATA';

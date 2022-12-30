@@ -122,6 +122,15 @@ export const arrSort = (arr, bool): Array<any> => {
   return arr.sort(fun);
 };
 
+export const arrCount = (arr): number => {
+  if (arr.length <= 0) return 0;
+  let sum: number = 0;
+  arr.forEach(function (num) {
+    sum += num;
+  });
+  return sum;
+};
+
 export const getFileSize = (size?: string): string => {
   if (Number(size) > 900000) {
     return (Number(size) * 0.000001).toFixed(2) + 'MB';
