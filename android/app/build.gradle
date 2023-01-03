@@ -131,7 +131,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.watch.app"
+        applicationId "com.namemmrgip5e"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled true  // 开启 multiDex 支持

@@ -1,4 +1,4 @@
-package com.watch.app;
+package com.namemmrgip5e;
 
 import com.facebook.react.ReactActivity;
 import android.os.Bundle;

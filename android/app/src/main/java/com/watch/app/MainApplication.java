@@ -1,4 +1,4 @@
-package com.watch.app;
+package com.namemmrgip5e;
 
 import android.app.Application;
 import android.content.Context;

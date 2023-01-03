@@ -21,7 +21,7 @@ import { CirCleView } from '../component/home/CirCleView';
 let type = 0;
 export const Home: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
-    const { blueToothStore } = useStore();
+    const { blueToothStore, weChatStore } = useStore();
     const baseView = useRef<any>(undefined);
     const [target, setTarget] = useState(102);
     const [timeList] = useState([
@@ -30,12 +30,75 @@ export const Home: ScreenComponent = observer(
       { name: '前天', value: 3 }
     ]);
     const [contentList, setContentList] = useState([
-      { title: '运动', evalTitle: '最大步数', color: '#0098f7', image: require('../assets/home/footer.png'), value: '0', cap: '' },
-      { title: '睡眠', evalTitle: '最长睡眠', color: '#5b75c5', image: require('../assets/home/sleep.png'), value: '0', cap: '小时' },
-      { title: '心率', evalTitle: '最近', color: '#ff007e', image: require('../assets/home/heartPulse.png'), value: '', cap: 'bpm', time: '' },
-      { title: '血压', evalTitle: '最近', color: '#ff9100', image: require('../assets/home/xueya.png'), value: '', cap: 'mmHg', time: '' },
-      { title: '血氧', evalTitle: '最近', color: '#3847a4', image: require('../assets/home/xueo2.png'), value: '', cap: '' },
-      { title: '体温', evalTitle: '最近', color: '#ff451f', image: require('../assets/home/tiwen.png'), value: '', cap: '°C' }
+      {
+        title: '运动',
+        evalTitle: '最大步数',
+        color: '#0098f7',
+        image: require('../assets/home/footer.png'),
+        value: '0',
+        cap: '',
+        fun: async () => {
+          await weChatStore.LaunchMiniProgram();
+        }
+      },
+      {
+        title: '睡眠',
+        evalTitle: '最长睡眠',
+        color: '#5b75c5',
+        image: require('../assets/home/sleep.png'),
+        value: '0',
+        cap: '小时',
+        fun: async () => {
+          await weChatStore.LaunchMiniProgram();
+        }
+      },
+      {
+        title: '心率',
+        evalTitle: '最近',
+        color: '#ff007e',
+        image: require('../assets/home/heartPulse.png'),
+        value: '',
+        cap: 'bpm',
+        time: '',
+        fun: async () => {
+          await weChatStore.LaunchMiniProgram();
+        }
+      },
+      {
+        title: '血压',
+        evalTitle: '最近',
+        color: '#ff9100',
+        image: require('../assets/home/xueya.png'),
+        value: '',
+        cap: 'mmHg',
+        time: '',
+        fun: async () => {
+          await weChatStore.LaunchMiniProgram();
+        }
+      },
+      {
+        title: '血氧',
+        evalTitle: '最近',
+        color: '#3847a4',
+        image: require('../assets/home/xueo2.png'),
+        value: '',
+        cap: '',
+        // fun: () => blueToothStore.checkBlO2()
+        fun: async () => {
+          await weChatStore.LaunchMiniProgram();
+        }
+      },
+      {
+        title: '体温',
+        evalTitle: '最近',
+        color: '#ff451f',
+        image: require('../assets/home/tiwen.png'),
+        value: '',
+        cap: '°C',
+        fun: async () => {
+          await weChatStore.LaunchMiniProgram();
+        }
+      }
     ]);
     const [active, setActive] = useState(1);
     const [hasBack, setHasBack] = useState(false);
@@ -73,7 +136,6 @@ export const Home: ScreenComponent = observer(
       })();
     }, [blueToothStore?.devicesInfo, AsyncStorage, blueToothStore.isRoot]);
 
-    // await setBackgroundServer();
     const setBackgroundServer = async () => {
       if (hasBack) return;
       AppState.addEventListener('change', async (e) => {
@@ -163,7 +225,6 @@ export const Home: ScreenComponent = observer(
       }
       if (device['-120']) {
         const { temperature } = device['-120'];
-        console.log(temperature, '体温');
         if (temperature) {
           list[5].value = temperature.toFixed(2);
         }
@@ -253,7 +314,13 @@ export const Home: ScreenComponent = observer(
           <View style={styles.tableList}>
             {contentList.map((item) => {
               return (
-                <View key={Math.ceil(Math.random() * 1000000).toString()} style={styles.tableItem}>
+                <TouchableOpacity
+                  key={Math.ceil(Math.random() * 1000000).toString()}
+                  style={styles.tableItem}
+                  onPress={() => {
+                    item.fun && item.fun();
+                  }}
+                >
                   <Text style={[styles.endTitle, { color: item.color }]}>{item.title}</Text>
                   {item.time ? (
                     <View style={styles.timeHeader}>
@@ -283,7 +350,7 @@ export const Home: ScreenComponent = observer(
                       <FastImage style={styles.imageIcon} source={item.image} />
                     </Hexagon>
                   </View>
-                </View>
+                </TouchableOpacity>
               );
             })}
           </View>

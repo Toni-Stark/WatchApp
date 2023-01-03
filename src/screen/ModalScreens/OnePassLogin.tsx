@@ -4,10 +4,12 @@ import BaseView from '../../component/BaseView';
 import RNBootSplash from 'react-native-bootsplash';
 import { StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { ScreenComponent } from '../index';
+import { useStore } from '../../store';
 
 export const OnePassLogin: ScreenComponent = observer(
   (props): JSX.Element => {
     const baseView = useRef<any>(undefined);
+    const { weChatStore } = useStore();
     const [status, setStatus] = useState(1);
     const [agree, setAgree] = useState(false);
     RNBootSplash.hide();
@@ -18,12 +20,13 @@ export const OnePassLogin: ScreenComponent = observer(
     const checkStatus = (val) => {
       setStatus(val);
     };
-    const currentLogin = () => {
+    const currentLogin = async () => {
       if (agree) {
         baseView.current.showLoading({ text: '登录中', delay: 1 });
-        setTimeout(() => {
+        const result = await weChatStore.checkWeChatInstall();
+        if (result) {
           props.navigation.goBack();
-        }, 1000);
+        }
       } else {
         baseView.current.showToast({ text: '请阅读并同意用户协议', delay: 1 });
       }

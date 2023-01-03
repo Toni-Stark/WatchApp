@@ -8,7 +8,17 @@ import { darkTheme, theme } from '../common/theme';
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
 import moment from 'moment';
-import { allDataC, allDataSign, allDataSleep, batterySign, bloodData, mainListen, passRegSign } from '../common/watch-module';
+import {
+  allDataC,
+  allDataHeartEnd,
+  allDataHeartStart,
+  allDataSign,
+  allDataSleep,
+  batterySign,
+  bloodData,
+  mainListen,
+  passRegSign
+} from '../common/watch-module';
 import { RootEnum } from '../common/sign-module';
 
 export type AppColorModeType = 'light' | 'dark' | 'system';
@@ -51,6 +61,7 @@ export class BlueToothStore {
   @observable refreshInfo: any = {};
   @observable hadBackgroundFetch: boolean = false;
   @observable hadStateListener: boolean = false;
+  @observable isCheckHeart: boolean = false;
 
   @observable isRoot = RootEnum['初次进入'];
 
@@ -59,12 +70,27 @@ export class BlueToothStore {
 
     (async () => {
       let data: any = await AsyncStorage.getItem(DEVICE_DATA);
-      console.log(data);
       if (data) {
         this.device = JSON.parse(data);
         this.currentDevice = JSON.parse(data);
       }
     })();
+  }
+
+  @action
+  async checkBlO2() {
+    // await this.sendActiveMessage(bloodData);
+    await this.sendActiveMessage(allDataSleep);
+  }
+  @action
+  async checkHeart() {
+    if (this.isCheckHeart) {
+      await this.sendActiveMessage(allDataHeartEnd);
+      this.isCheckHeart = false;
+      return;
+    }
+    await this.sendActiveMessage(allDataHeartStart);
+    this.isCheckHeart = true;
   }
 
   @action
@@ -112,11 +138,10 @@ export class BlueToothStore {
     await this.clearDevice();
     await this.setDeviceStorage(this.devicesInfo);
     await this.sendActiveMessage(passRegSign);
-    await this.sendActiveMessage(batterySign);
     await this.sendActiveMessage(allDataSign);
+    await this.sendActiveMessage(batterySign);
     await this.sendActiveMessage(allDataSleep);
     await this.sendActiveMessage(allDataC);
-    await this.sendActiveMessage(bloodData);
   }
 
   @action
@@ -207,7 +232,7 @@ export class BlueToothStore {
       },
       '-32': (e) => {
         let battery = e.match(/([\d\D]{2})/g);
-        // console.log(battery, 'battery');
+        console.log(battery, 'battery');
       },
       '-120': (e) => {
         let battery = e.match(/([\d\D]{2})/g);
@@ -218,7 +243,7 @@ export class BlueToothStore {
           };
         }
       },
-      '-128': (e) => {
+      '-46': (e) => {
         console.log(e, '血氧数据');
       }
     };
