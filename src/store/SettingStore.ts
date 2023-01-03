@@ -15,8 +15,7 @@ export class SettingStore {
   }
 
   @action
-  updateSettings(settings: Array<SettingViewItemType>) {
-    this.settings = settings;
+  updateSettings() {
     this.loading = false;
   }
 

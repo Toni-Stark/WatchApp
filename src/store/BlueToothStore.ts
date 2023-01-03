@@ -8,7 +8,7 @@ import { darkTheme, theme } from '../common/theme';
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
 import moment from 'moment';
-import { allDataC, allDataSign, allDataSleep, batterySign, mainListen, passRegSign } from '../common/watch-module';
+import { allDataC, allDataSign, allDataSleep, batterySign, bloodData, mainListen, passRegSign } from '../common/watch-module';
 import { RootEnum } from '../common/sign-module';
 
 export type AppColorModeType = 'light' | 'dark' | 'system';
@@ -116,6 +116,7 @@ export class BlueToothStore {
     await this.sendActiveMessage(allDataSign);
     await this.sendActiveMessage(allDataSleep);
     await this.sendActiveMessage(allDataC);
+    await this.sendActiveMessage(bloodData);
   }
 
   @action
@@ -129,11 +130,13 @@ export class BlueToothStore {
     this.devicesInfo.monitorCharacteristicForService(params.serviceUUID, params.uuid, (error, characteristic) => {
       if (error) return;
       let value = baseToHex(characteristic.value);
+      console.log(value);
       this.blueRootList = [...this.blueRootList, value];
       if (value.slice(0, 2) === 'a1') this.devicesModules(value);
       if (value.slice(0, 2) === 'a0') this.devicesModules(value);
       if (value.slice(0, 2) === 'd1') this.devicesModules(value);
       if (value.slice(0, 2) === '88') this.devicesModules(value);
+      if (value.slice(0, 2) === '80') this.devicesModules(value);
       eventTimes(() => {
         this.setBasicInfo();
       }, 1000);
@@ -144,7 +147,6 @@ export class BlueToothStore {
   async setBasicInfo() {
     this.refreshing = false;
     this.currentDevice = { ...this.device };
-    console.log('刷新了数据', moment(new Date()).format('YYYY-MM-DD HH:mm:ss'));
   }
 
   @action
@@ -215,6 +217,9 @@ export class BlueToothStore {
             temperature: (224 - byte) / 1.8
           };
         }
+      },
+      '-128': (e) => {
+        console.log(e, '血氧数据');
       }
     };
     this.device = { ...this.device, [hex]: params[hex](val) };

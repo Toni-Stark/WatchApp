@@ -31,7 +31,7 @@ export const Home: ScreenComponent = observer(
     ]);
     const [contentList, setContentList] = useState([
       { title: '运动', evalTitle: '最大步数', color: '#0098f7', image: require('../assets/home/footer.png'), value: '0', cap: '' },
-      { title: '睡眠', evalTitle: '最长睡眠', color: '#5b75c5', image: require('../assets/home/sleep.png'), value: '2', cap: '小时' },
+      { title: '睡眠', evalTitle: '最长睡眠', color: '#5b75c5', image: require('../assets/home/sleep.png'), value: '0', cap: '小时' },
       { title: '心率', evalTitle: '最近', color: '#ff007e', image: require('../assets/home/heartPulse.png'), value: '', cap: 'bpm', time: '' },
       { title: '血压', evalTitle: '最近', color: '#ff9100', image: require('../assets/home/xueya.png'), value: '', cap: 'mmHg', time: '' },
       { title: '血氧', evalTitle: '最近', color: '#3847a4', image: require('../assets/home/xueo2.png'), value: '', cap: '' },

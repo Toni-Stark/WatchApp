@@ -10,6 +10,8 @@ import { BlueServers } from './Home/BlueServers';
 import { BlueToothValue } from './Home/BlueToothValue';
 import { BlueToothWhite } from './Home/BlueToothWhite';
 import { BlueListener } from './Home/BlueListener';
+import { WatchStyleSetting } from './Profile/WatchStyleSetting';
+import { ClockDial } from './Profile/ClockDial';
 
 export type ScreensParamList = {
   Login: { message?: string };
@@ -26,5 +28,7 @@ export const CardScreens: Array<ScreenList> = [
   { name: 'BlueToothValue', component: BlueToothValue },
   { name: 'BlueCharacteristics', component: BlueCharacteristics },
   { name: 'BlueToothWhite', component: BlueToothWhite },
-  { name: 'BlueListener', component: BlueListener }
+  { name: 'WatchStyleSetting', component: WatchStyleSetting },
+  { name: 'BlueListener', component: BlueListener },
+  { name: 'ClockDial', component: ClockDial }
 ];
