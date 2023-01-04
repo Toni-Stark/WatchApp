@@ -8,12 +8,12 @@ import { observer } from 'mobx-react-lite';
 import { useStore } from '../../../../store';
 import { StackBar } from '../../../../component/home/StackBar';
 import { allDataHeartEnd, allDataHeartStart } from '../../../../common/watch-module';
+import { CirCleHeart } from '../../../../component/home/CirCleHeart';
 
 export const HeartTest: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
     const baseView = useRef<any>(undefined);
-    let valueSize: any = new Animated.Value(170);
-
+    const animateRef = useRef<any>(undefined);
     const { blueToothStore } = useStore();
     const [value, setValue] = useState(0);
     const [isOpen, setIsOpen] = useState(false);
@@ -24,7 +24,7 @@ export const HeartTest: ScreenComponent = observer(
         if (val === 1) {
           (async () => closeHeart())();
         }
-        // setValue(val || 0);
+        setValue(val || 0);
       }
     }, [blueToothStore.currentDevice]);
 
@@ -36,37 +36,16 @@ export const HeartTest: ScreenComponent = observer(
       console.log('帮助');
     };
     const openHeart = async () => {
-      // animate();
       setIsOpen(true);
-      setTimeout(async () => {
-        await blueToothStore.sendActiveWithoutMessage(allDataHeartStart);
-      }, 1000);
+      await blueToothStore.sendActiveWithoutMessage(allDataHeartStart);
+      // setTimeout(() => {
+      //   animateRef.current.animate();
+      // }, 1000);
     };
     const closeHeart = () => {
       blueToothStore.sendActiveWithoutMessage(allDataHeartEnd).then(() => {
         setIsOpen(false);
       });
-    };
-
-    const animate = () => {
-      Animated.loop(
-        Animated.sequence([
-          Animated.parallel([
-            Animated.timing(valueSize, {
-              toValue: 260,
-              duration: 2000,
-              useNativeDriver: true
-            })
-          ]),
-          Animated.parallel([
-            Animated.timing(valueSize, {
-              toValue: 170,
-              duration: 2000,
-              useNativeDriver: true
-            })
-          ])
-        ])
-      ).start();
     };
 
     const useButtonCheck = useMemo(() => {
@@ -91,15 +70,7 @@ export const HeartTest: ScreenComponent = observer(
             <View style={styles.contextView}>
               <Animated.View style={[styles.circleView]} />
               <Animated.View style={[styles.circleCenterView]} />
-              <Animated.View
-                style={[
-                  styles.circleMaxView,
-                  {
-                    width: valueSize,
-                    height: valueSize
-                  }
-                ]}
-              />
+              <CirCleHeart ref={animateRef} />
               <View style={styles.absoluteValues}>
                 <Text style={styles.values}>{value}</Text>
               </View>
@@ -143,13 +114,6 @@ export const styles = StyleSheet.create({
     height: 220,
     position: 'absolute',
     width: 220
-  },
-  circleMaxView: {
-    backgroundColor: 'rgba(15,233,252,0.89)',
-    borderRadius: 200,
-    height: 170,
-    position: 'absolute',
-    width: 170
   },
   circleView: {
     alignItems: 'center',
