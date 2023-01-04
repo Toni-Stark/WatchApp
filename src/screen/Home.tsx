@@ -38,7 +38,7 @@ export const Home: ScreenComponent = observer(
         value: '0',
         cap: '',
         fun: async () => {
-          await weChatStore.LaunchMiniProgram();
+          await jumpToMiniProgram();
         }
       },
       {
@@ -49,7 +49,7 @@ export const Home: ScreenComponent = observer(
         value: '0',
         cap: '小时',
         fun: async () => {
-          await weChatStore.LaunchMiniProgram();
+          await jumpToMiniProgram();
         }
       },
       {
@@ -61,7 +61,7 @@ export const Home: ScreenComponent = observer(
         cap: 'bpm',
         time: '',
         fun: async () => {
-          await weChatStore.LaunchMiniProgram();
+          await naviToCommon('HeartTest');
         }
       },
       {
@@ -73,7 +73,7 @@ export const Home: ScreenComponent = observer(
         cap: 'mmHg',
         time: '',
         fun: async () => {
-          await weChatStore.LaunchMiniProgram();
+          await jumpToMiniProgram();
         }
       },
       {
@@ -85,7 +85,7 @@ export const Home: ScreenComponent = observer(
         cap: '',
         // fun: () => blueToothStore.checkBlO2()
         fun: async () => {
-          await weChatStore.LaunchMiniProgram();
+          await naviToCommon('BloodTest');
         }
       },
       {
@@ -96,7 +96,7 @@ export const Home: ScreenComponent = observer(
         value: '',
         cap: '°C',
         fun: async () => {
-          await weChatStore.LaunchMiniProgram();
+          await jumpToMiniProgram();
         }
       }
     ]);
@@ -150,6 +150,17 @@ export const Home: ScreenComponent = observer(
         }
       });
     };
+
+    const jumpToMiniProgram = async () => {
+      let res = await weChatStore.launchMiniProgram();
+      if (res === 'notRegister') {
+        navigation.navigate('OnePassLogin', {});
+      }
+    };
+    const naviToCommon = (e) => {
+      navigation.navigate(e, {});
+    };
+
     const addEvent = (taskId) => {
       // 用Promise模拟长时间的任务
       return new Promise((resolve, reject) => {
@@ -318,7 +329,10 @@ export const Home: ScreenComponent = observer(
                   key={Math.ceil(Math.random() * 1000000).toString()}
                   style={styles.tableItem}
                   onPress={() => {
-                    item.fun && item.fun();
+                    if (!blueToothStore.refreshing && blueToothStore.devicesInfo) {
+                      return item.fun && item.fun();
+                    }
+                    baseView.current.showToast({ text: '请先连接设备', delay: 2 });
                   }}
                 >
                   <Text style={[styles.endTitle, { color: item.color }]}>{item.title}</Text>

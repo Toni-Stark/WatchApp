@@ -52,8 +52,15 @@ export const getChartStatus = (item): ChartStatus[] => {
 };
 
 export const regCutString = (value): any => {
-  let str = value.match(/([\d\D]{2})/g);
-  return str.toString().replace(/[,]/g, ' ');
+  let str = value.split(' ');
+  let res = str.map((item) => {
+    if (item.trim().length <= 1) {
+      return '0' + item.trim();
+    } else {
+      return item;
+    }
+  });
+  return res.toString().replace(/[,]/g, ' ');
 };
 
 let timer: any = null;

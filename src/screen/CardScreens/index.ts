@@ -12,6 +12,8 @@ import { BlueToothWhite } from './Home/BlueToothWhite';
 import { BlueListener } from './Home/BlueListener';
 import { WatchStyleSetting } from './Profile/WatchStyleSetting';
 import { ClockDial } from './Profile/ClockDial';
+import { BloodTest } from './Home/HomeCommon/BloodTest';
+import { HeartTest } from './Home/HomeCommon/HeartTest';
 
 export type ScreensParamList = {
   Login: { message?: string };
@@ -30,5 +32,7 @@ export const CardScreens: Array<ScreenList> = [
   { name: 'BlueToothWhite', component: BlueToothWhite },
   { name: 'WatchStyleSetting', component: WatchStyleSetting },
   { name: 'BlueListener', component: BlueListener },
-  { name: 'ClockDial', component: ClockDial }
+  { name: 'ClockDial', component: ClockDial },
+  { name: 'BloodTest', component: BloodTest },
+  { name: 'HeartTest', component: HeartTest }
 ];

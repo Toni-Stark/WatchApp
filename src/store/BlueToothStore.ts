@@ -33,7 +33,8 @@ const defaultDevice = {
     xueyaTime: [],
     intValue2: [],
     intValue3: []
-  }
+  },
+  '-180': {}
 };
 
 export class BlueToothStore {
@@ -151,6 +152,13 @@ export class BlueToothStore {
     await this.devicesInfo.writeCharacteristicWithResponseForService(params.serviceUUID, params.uuid, buffer);
   }
   @action
+  async sendActiveWithoutMessage(params) {
+    let storeRes = regCutString(params.value);
+    let buffer = Buffer.from(stringToByte(storeRes)).toString('base64');
+    await this.devicesInfo.writeCharacteristicWithoutResponseForService(params.serviceUUID, params.uuid, buffer);
+  }
+
+  @action
   async listenActiveMessage(params) {
     this.devicesInfo.monitorCharacteristicForService(params.serviceUUID, params.uuid, (error, characteristic) => {
       if (error) return;
@@ -160,6 +168,7 @@ export class BlueToothStore {
       if (value.slice(0, 2) === 'a1') this.devicesModules(value);
       if (value.slice(0, 2) === 'a0') this.devicesModules(value);
       if (value.slice(0, 2) === 'd1') this.devicesModules(value);
+      if (value.slice(0, 2) === 'd0') this.devicesModules(value);
       if (value.slice(0, 2) === '88') this.devicesModules(value);
       if (value.slice(0, 2) === '80') this.devicesModules(value);
       eventTimes(() => {
@@ -245,6 +254,15 @@ export class BlueToothStore {
       },
       '-46': (e) => {
         console.log(e, '血氧数据');
+      },
+      '-48': (e) => {
+        let battery = e.match(/([\d\D]{2})/g);
+        if (battery[1]) {
+          return {
+            heartJump: parseInt(battery[1], 16),
+            time: moment().format('YYYY-MM-DD HH:mm:ss')
+          };
+        }
       }
     };
     this.device = { ...this.device, [hex]: params[hex](val) };
@@ -267,7 +285,7 @@ export class BlueToothStore {
           this.manager?.stopDeviceScan();
           this.refreshing = false;
           !isDevice && callback({ type: '3', delay: 1 });
-        }, 5000);
+        }, 10000);
         return;
       } else {
         isDevice = true;

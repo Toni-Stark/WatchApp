@@ -92,7 +92,18 @@ export const allDataC = {
  * uuid: 写入特征值id;
  * */
 export const bloodData = {
-  value: arrToByte([-46, 1, 0, 0]),
+  value: arrToByte([-46, 1, 0, 1, 0]),
+  serviceUUID: 'f0080001-0451-4000-B000-000000000000',
+  uuid: 'f0080003-0451-4000-B000-000000000000'
+};
+
+/**
+ * 久坐数据：
+ * serviceUUID: 服务id;
+ * uuid: 写入特征值id;
+ * */
+export const downData = {
+  value: arrToByte([-31, 0, 0, 0, 0, 0, 0]),
   serviceUUID: 'f0080001-0451-4000-B000-000000000000',
   uuid: 'f0080003-0451-4000-B000-000000000000'
 };

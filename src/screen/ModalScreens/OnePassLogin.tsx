@@ -24,6 +24,7 @@ export const OnePassLogin: ScreenComponent = observer(
       if (agree) {
         baseView.current.showLoading({ text: '登录中', delay: 1 });
         const result = await weChatStore.checkWeChatInstall();
+        console.log(result, 'code');
         if (result) {
           props.navigation.goBack();
         }
