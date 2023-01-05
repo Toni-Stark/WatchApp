@@ -83,33 +83,113 @@ const color1 = '#00D1DE';
 const color2 = '#0d9fa8';
 const color3 = '#ffffff';
 const color4 = '#3f3f3f';
+const color5 = '#cecece';
+const color6 = '#ea97b9';
+
 const styles = StyleSheet.create({
+  agree: {
+    padding: 15,
+    paddingRight: 5
+  },
+  agreeMain: {
+    backgroundColor: color2,
+    borderRadius: 50,
+    height: 8,
+    width: 8
+  },
+  agreeView: {
+    alignItems: 'center',
+    borderColor: color2,
+    borderRadius: 50,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    height: 13,
+    justifyContent: 'center',
+    width: 13
+  },
+  buttonText: {
+    color: color3,
+    fontSize: 17
+  },
+  buttonView: {
+    alignItems: 'center',
+    backgroundColor: color1,
+    borderRadius: 30,
+    height: 50,
+    justifyContent: 'center',
+    marginTop: 50,
+    width: '88%'
+  },
   container: {
     alignItems: 'center',
     backgroundColor: color1,
     flex: 1,
     justifyContent: 'center'
   },
-  titleView: {
-    marginTop: -100
-  },
-  title: {
-    color: color3,
-    fontSize: 25
-  },
   content: {
     // height: '50%',
     // backgroundColor: '#ffffff'
     width: '78%'
+  },
+  contentButton: {
+    alignItems: 'center',
+    backgroundColor: color3,
+    borderTopRightRadius: 15,
+    height: 150,
+    justifyContent: 'center',
+    padding: 20
+  },
+  contentView: {
+    backgroundColor: color2
+  },
+  end: {
+    alignItems: 'center',
+    backgroundColor: color2,
+    borderBottomLeftRadius: 15,
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
+    flex: 1,
+    justifyContent: 'center',
+    zIndex: 50
+  },
+  endOpa: {
+    backgroundColor: color3,
+    bottom: 0,
+    height: '50%',
+    position: 'absolute',
+    width: '100%',
+    zIndex: 30
+  },
+  endStart: {
+    alignItems: 'center',
+    backgroundColor: color3,
+    borderBottomLeftRadius: 15,
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
+    flex: 1,
+    justifyContent: 'center',
+    zIndex: 50
+  },
+  endText: {
+    color: color5
+  },
+  endView: {
+    backgroundColor: color1,
+    position: 'relative',
+    width: '60%'
   },
   header: {
     flexDirection: 'row',
     height: 50,
     marginTop: 40
   },
-  startView: {
-    backgroundColor: color1,
-    width: '40%'
+  rightButton: {
+    alignItems: 'center',
+    backgroundColor: color3,
+    borderTopLeftRadius: 15,
+    height: 150,
+    justifyContent: 'center',
+    padding: 20
   },
   start: {
     alignItems: 'center',
@@ -134,73 +214,16 @@ const styles = StyleSheet.create({
     color: color4,
     fontSize: 16
   },
-  endView: {
+  startView: {
     backgroundColor: color1,
-    position: 'relative',
-    width: '60%'
+    width: '40%'
   },
-  endOpa: {
-    backgroundColor: color3,
-    bottom: 0,
-    height: '50%',
-    position: 'absolute',
-    width: '100%',
-    zIndex: 30
-  },
-  end: {
-    alignItems: 'center',
-    backgroundColor: color2,
-    borderBottomLeftRadius: 15,
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
-    flex: 1,
-    justifyContent: 'center',
-    zIndex: 50
-  },
-  endStart: {
-    alignItems: 'center',
-    backgroundColor: color3,
-    borderBottomLeftRadius: 15,
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
-    flex: 1,
-    justifyContent: 'center',
-    zIndex: 50
-  },
-  endText: {
-    color: '#cecece'
-  },
-  contentView: {
-    backgroundColor: color2
-  },
-  contentButton: {
-    alignItems: 'center',
-    backgroundColor: color3,
-    borderTopRightRadius: 15,
-    height: 150,
-    justifyContent: 'center',
-    padding: 20
-  },
-  rightButton: {
-    alignItems: 'center',
-    backgroundColor: color3,
-    borderTopLeftRadius: 15,
-    height: 150,
-    justifyContent: 'center',
-    padding: 20
-  },
-  buttonView: {
-    alignItems: 'center',
-    backgroundColor: color1,
-    borderRadius: 30,
-    height: 50,
-    justifyContent: 'center',
-    marginTop: 50,
-    width: '88%'
-  },
-  buttonText: {
+  title: {
     color: color3,
-    fontSize: 17
+    fontSize: 25
+  },
+  titleView: {
+    marginTop: -100
   },
   user: {
     alignItems: 'center',
@@ -211,28 +234,8 @@ const styles = StyleSheet.create({
     height: 50,
     justifyContent: 'center'
   },
-  agree: {
-    padding: 15,
-    paddingRight: 5
-  },
-  agreeView: {
-    alignItems: 'center',
-    borderColor: color2,
-    borderRadius: 50,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    height: 13,
-    justifyContent: 'center',
-    width: 13
-  },
-  userText: {},
   userMain: {
-    color: '#ea97b9'
+    color: color6
   },
-  agreeMain: {
-    backgroundColor: color2,
-    borderRadius: 50,
-    height: 8,
-    width: 8
-  }
+  userText: {}
 });

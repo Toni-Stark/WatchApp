@@ -7179,6 +7179,11 @@ react-native-keyboard-accessory@^0.1.14:
   resolved "https://registry.npm.taobao.org/react-native-keyboard-accessory/download/react-native-keyboard-accessory-0.1.14.tgz#f3685a728a5caa3e76ef403c217ba5c036882fd6"
   integrity sha1-82hacopcqj5270A8IXulwDaIL9Y=
 
+react-native-linear-gradient@^2.6.2:
+  version "2.6.2"
+  resolved "https://registry.npmmirror.com/react-native-linear-gradient/-/react-native-linear-gradient-2.6.2.tgz#56598a76832724b2afa7889747635b5c80948f38"
+  integrity sha512-Z8Xxvupsex+9BBFoSYS87bilNPWcRfRsGC0cpJk72Nxb5p2nEkGSBv73xZbEHnW2mUFvP+huYxrVvjZkr/gRjQ==
+
 react-native-loading-spinner-overlay@^3.0.1:
   version "3.0.1"
   resolved "https://registry.npmmirror.com/react-native-loading-spinner-overlay/-/react-native-loading-spinner-overlay-3.0.1.tgz#092481b8cce157d3af5ef942f845ad981f96bd36"

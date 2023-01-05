@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import i18n from 'i18n-js';
 import { Appearance, AppState, Platform, StatusBar } from 'react-native';
 import { APP_COLOR_MODE, APP_LANGUAGE, DEVICE_DATA, DEVICE_INFO } from '../common/constants';
-import { arrToByte, baseToHex, eventTimer, eventTimes, regCutString, stringToByte, t } from '../common/tools';
+import { arrToByte, baseToHex, eventTimer, eventTimes, getMinTen, regCutString, stringToByte, t } from '../common/tools';
 import { darkTheme, theme } from '../common/theme';
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
@@ -162,14 +162,11 @@ export class BlueToothStore {
     this.devicesInfo.monitorCharacteristicForService(params.serviceUUID, params.uuid, (error, characteristic) => {
       if (error) return;
       let value = baseToHex(characteristic.value);
-      console.log(value);
       this.blueRootList = [...this.blueRootList, value];
-      if (value.slice(0, 2) === 'a1') this.devicesModules(value);
-      if (value.slice(0, 2) === 'a0') this.devicesModules(value);
-      if (value.slice(0, 2) === 'd1') this.devicesModules(value);
-      if (value.slice(0, 2) === 'd0') this.devicesModules(value);
-      if (value.slice(0, 2) === '88') this.devicesModules(value);
-      if (value.slice(0, 2) === '80') this.devicesModules(value);
+      let regValue = ['a1', 'a0', 'd1', 'd0', 'd8', '88', '80'].includes(value.slice(0, 2));
+      if (regValue) {
+        this.devicesModules(value);
+      }
       eventTimes(() => {
         this.setBasicInfo();
       }, 1000);
@@ -212,6 +209,7 @@ export class BlueToothStore {
         };
       },
       '-47': (e) => {
+        console.log(e);
         let list: any = this.device[hex] || {};
         let message = arrToByte(e.match(/([\d\D]{2})/g), true);
         let prototype = e.match(/([\d\D]{2})/g);
@@ -227,7 +225,7 @@ export class BlueToothStore {
         if (message[15] && message[16]) {
           message[15] && list.i9.push(message[15]); //血压高
           message[16] && list.i10.push(message[16]); //血压低
-          list.xueyaTime.push(`${message[5]}:${message[19]}`); //血压低
+          list.xueyaTime.push(`${getMinTen(message[5])}:${getMinTen(message[19])}`); //血压低
         }
         list.i3 = list.i3 || message[17];
         list.i2 = list.i2 || message[18];
@@ -245,9 +243,10 @@ export class BlueToothStore {
       '-120': (e) => {
         let battery = e.match(/([\d\D]{2})/g);
         if (battery[12] > 0 && battery[11] > 0) {
-          let byte = parseInt(battery[12] + battery[11]);
+          let byte = parseInt(battery[12] + battery[11], 16);
+          console.log('body', byte);
           return {
-            temperature: (224 - byte) / 1.8
+            temperature: byte / 10
           };
         }
       },

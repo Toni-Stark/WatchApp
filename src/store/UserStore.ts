@@ -4,163 +4,11 @@ import { TOKEN_NAME } from '../common/constants';
 import { Api, ApiResult } from '../common/api';
 import { deviceInfo } from '../common/tools';
 
-export interface LoginInfo {
-  token: string; // "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1NzczNDcwNDIsInVzZXJuYW1lIjoiTWFjcm93In0.idA_cLA-mxWegNddotiDhy_oZxIvjJlYcNb1CwSUj2A"
-  userInfoDetail: userInfoDetailType;
-  key: string;
-  roles: Array<number>;
-}
-
-export interface UserInfoType {
-  avatar: string; // "files/201911/M2_1573109560983.jpg",
-  balance: number; // 0
-  birthday: string; // "1979-09-29",
-  cashStatus: number; // 1,
-  createBy: string; // "test",
-  createTime: number; // 1573020167000,
-  departs: Array<UserDepart>;
-  email: string; // "Macrow_wh@163.com",
-  frozenBalance: number; // 0
-  id: string; // "1191959091972632578",
-  lessonCount: number;
-  phone: string; // "13212332984",
-  post: string; // "cto",
-  realname: string; // "Macrow",
-  referrer: string; // 推荐人的推荐码
-  sex: number; // 1,
-  status: number; // 1,
-  studentCount: number;
-  telephone: string; // "023-66555511",
-  updateBy: string; // "Macrow",
-  updateTime: number; // 1575859988000,
-  userType: number; // 用户类型
-  username: string; // "Macrow",
-  workNo: string; // "0001"
-}
-
-export type userInfoDetailType = {
-  id?: string;
-  createdTime?: Date;
-  updatedTime?: Date;
-  username?: string;
-  phone?: string;
-  nickName?: string;
-  realName?: string;
-  avatar?: { id: string; url: string };
-  birthday?: Date;
-  sex?: number;
-  email?: string;
-  userType?: number;
-  isEnabled?: true;
-  createdBy?: string;
-  updatedBy?: string;
-  business?: {
-    id?: string;
-    createdTime?: Date;
-    updatedTime?: Date;
-    name?: string;
-    contactPerson?: any;
-    contactPhone?: any;
-    description?: any;
-    createdBy?: string;
-    updatedBy?: string;
-  };
-  organization?: {
-    id?: string;
-    createdTime?: Date;
-    updatedTime?: Date;
-    name?: string;
-    contactPerson?: any;
-    contactPhone?: any;
-    description?: any;
-    parentId?: string;
-    weight?: number;
-    createdBy?: string;
-    updatedBy?: string;
-  };
-  role?: {
-    id?: string;
-    createdTime?: Date;
-    updatedTime?: Date;
-    name?: string;
-    description?: string;
-    isRoot?: boolean;
-    createdBy?: string;
-    updatedBy?: string;
-  };
-  unreadCount?: 0;
-};
-
-export interface UserDepart {
-  address?: string; // "",
-  createBy?: string; // "admin",
-  createTime?: string; // "2019-02-21 16:14:41",
-  delFlag?: string; // "0",
-  departName?: string; // "研发部",
-  departNameAbbr?: string; // "",
-  departNameEn?: string; // "",
-  departOrder?: number; // 0,
-  description?: string; // null,
-  fax?: string; // "",
-  id?: string; // "57197590443c44f083d42ae24ef26a2c",
-  memo?: string; // "",
-  mobile?: string; // "",
-  orgCategory?: string; // "1",
-  orgCode?: string; // "A01A05",
-  orgType?: string; // "2",
-  parentId?: string; // "c6d7cb4deeac411cb3384b1b31278596",
-  status?: string; // "",
-  updateBy?: string; // "admin",
-  updateTime?: string; // "2019-03-27 19:05:49"
-}
-
-export type RegisterType = {
-  smsCode: string;
-  phone: string;
-  deviceType: number;
-  businessCode: string;
-};
-
-export type RegisterNoPhoneType = {
-  businessCode: string;
-  password: string;
-  deviceType: number;
-  username: string;
-};
-
-export type EditMyDetailInfoType = {
-  avatarId?: string;
-  birthday?: Date;
-  email?: string;
-  nickName?: string;
-  username?: string;
-  realName?: string;
-  sex?: number;
-};
-
-export type PhoneParamType = {
-  phone: string;
-  verifyCode: string;
-};
-export type UserLoginParamType = {
-  captcha?: string;
-  captchaKey?: string;
-  deviceType: number;
-  password: any;
-  username: string;
-};
-
-export type UserBindingInfoType = { id: string; nickName: string; token: string; username: string };
-
-export type ChangeUserInfoType = { realname?: string; id?: string; userName?: string; email?: string };
-
-export const SMS_MODE_LOGIN = 0;
 export const SMS_MODE_REGISTER = 1;
 
 export const BaseUrl = '/auth';
 
 export class UserStore {
-  public static DEVICE_UNKNOWN = 0;
   public static DEVICE_MOBILE = 1;
   public static DEVICE_DESKTOP = 2;
 
@@ -197,7 +45,7 @@ export class UserStore {
   async loginBySelectRoleAfterOnePass(key: string, role: number): Promise<boolean> {
     const res: ApiResult = await Api.getInstance.post({ url: '/xueyue/sys/login_by_select_role_after_one_pass', params: { key, role }, withToken: false });
     if (res.success) {
-      const loginInfoResult: LoginInfo = res.result;
+      const loginInfoResult = res.result;
       await UserStore.setToken(loginInfoResult.token);
       this.login = true;
       return Promise.resolve(res.success);
@@ -209,7 +57,7 @@ export class UserStore {
   @action
   async loginByOnePass(token): Promise<boolean> {
     const res: ApiResult = await Api.getInstance.post({ url: '/xueyue/sys/login_by_one_pass', params: { token }, withToken: false });
-    const loginInfoResult: LoginInfo = res.result;
+    const loginInfoResult = res.result;
     if (res.success) {
       if (loginInfoResult.key === undefined) {
         // 正常登陆
@@ -264,7 +112,7 @@ export class UserStore {
   }
 
   @action
-  async editMyDetailInfo(param: EditMyDetailInfoType): Promise<boolean | string> {
+  async editMyDetailInfo(param): Promise<boolean | string> {
     console.log(param, '改变信息的参数');
     const params = {
       avatarId: param.avatarId,
@@ -283,7 +131,7 @@ export class UserStore {
   }
 
   @action
-  async loginByPhone(param: PhoneParamType): Promise<boolean | string> {
+  async loginByPhone(param): Promise<boolean | string> {
     const params = {
       deviceType: deviceInfo,
       code: param.verifyCode,
@@ -319,7 +167,7 @@ export class UserStore {
    */
   @action
   async changeRealName(realname: string): Promise<boolean | string> {
-    const params: EditMyDetailInfoType = {
+    const params = {
       realName: realname
     };
     const res: boolean | string = await this.editMyDetailInfo(params);
@@ -335,7 +183,7 @@ export class UserStore {
    */
   @action
   async changeUserName(username: string): Promise<boolean | string> {
-    const params: EditMyDetailInfoType = {
+    const params = {
       username: username
     };
     const res: ApiResult = await Api.getInstance.patch({ url: BaseUrl + '/users/update-my-username', params, withToken: true });
@@ -353,7 +201,7 @@ export class UserStore {
    */
   @action
   async changeNickName(nickName: string): Promise<boolean | string> {
-    const params: EditMyDetailInfoType = {
+    const params = {
       nickName: nickName
     };
     const res: boolean | string = await this.editMyDetailInfo(params);
@@ -371,7 +219,7 @@ export class UserStore {
    */
   @action
   async changeEmail(email: string): Promise<boolean | string> {
-    const params: EditMyDetailInfoType = {
+    const params = {
       email: email
     };
     const res: boolean | string = await this.editMyDetailInfo(params);
@@ -472,7 +320,7 @@ export class UserStore {
    */
   @action
   async loginByUserName(param: { password: string; userName: string; verifyCode: string }, resPass: any): Promise<string | boolean> {
-    const params: UserLoginParamType = {
+    const params = {
       captcha: param.verifyCode,
       // captchaKey: this.loginVerifyKey,
       deviceType: deviceInfo,
@@ -495,8 +343,8 @@ export class UserStore {
    * url: /xueyue/sys/app_registe
    */
   @action
-  async doRegister({ smsCode, phone, deviceType, businessCode }: RegisterType): Promise<boolean | string> {
-    const params: RegisterType = { phone, smsCode, deviceType, businessCode };
+  async doRegister({ smsCode, phone, deviceType, businessCode }): Promise<boolean | string> {
+    const params = { phone, smsCode, deviceType, businessCode };
     console.log(params);
     const res: ApiResult = await Api.getInstance.post({ url: BaseUrl + '/public/app-user-register-by-phone', params: params, withToken: false });
     if (res.success) {
@@ -514,8 +362,8 @@ export class UserStore {
    * url: /xueyue/sys/app_registe
    */
   @action
-  async doRegisterNoPhone({ businessCode, password, deviceType, username }: RegisterNoPhoneType): Promise<boolean | string> {
-    const params: RegisterNoPhoneType = { businessCode, password, deviceType, username };
+  async doRegisterNoPhone({ businessCode, password, deviceType, username }): Promise<boolean | string> {
+    const params = { businessCode, password, deviceType, username };
     const res: ApiResult = await Api.getInstance.post({ url: BaseUrl + '/public/app-user-register-by-username', params: params, withToken: false });
     if (res.success) {
       console.log(res.result);
@@ -541,7 +389,7 @@ export class UserStore {
     if (res.success) {
       return Promise.resolve(res.success);
     } else {
-      return Promise.resolve(res.message);
+      return Promise.resolve(res.msg);
     }
   }
 

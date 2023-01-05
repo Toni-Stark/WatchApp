@@ -206,6 +206,12 @@ export const getRandomStringByTime = () => {
   return `${Date.now()}${Math.round(Math.random() * 100000)}`;
 };
 
+export const getMinTen = (num) => {
+  console.log(num);
+  if (num >= 10) return num;
+  return '0' + num;
+};
+
 export const getBottomSpace = () => {
   return isIphoneX() ? 34 : 0;
 };

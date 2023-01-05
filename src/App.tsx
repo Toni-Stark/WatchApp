@@ -14,12 +14,12 @@ import { BootAnimation } from './screen/BootAnimation';
 import { delay, getStorage, hasAndroidPermission } from './common/tools';
 import { UserStore } from './store/UserStore';
 import { observer, Observer } from 'mobx-react-lite';
-import { UserPrivacy } from './screen/ModalScreens/UserPrivacy';
 import BluetoothStateManager from 'react-native-bluetooth-state-manager';
+import { WeChatOnePassLogin } from './screen/ModalScreens/WeChatOnePassLogin';
 
 const App = observer(() => {
   const { colors } = useTheme();
-  const { systemStore, userStore, blueToothStore } = useStore();
+  const { systemStore, userStore, blueToothStore, weChatStore } = useStore();
   const [userAgree, setUserAgree] = useState<boolean>(false);
   const [blueTooth, setBlueTooth] = useState<boolean>(false);
 
@@ -113,16 +113,13 @@ const App = observer(() => {
     })();
   }, []);
 
-  const goInApp = async () => {
+  const goInApp = async (e) => {
     await AsyncStorage.setItem(USER_AGREEMENT, 'Happy every day');
+    const res = await weChatStore.userWeChatLogin({ code: e.code });
+    // if (res.code !== 200) {
+    console.log(res, '登录成功');
+    // }
     setUserAgree(true);
-    // getStorage(USER_AGREEMENT)
-    //   .then((res) => {
-    //     setUserAgree(!!res);
-    //   })
-    //   .catch(() => {
-    //     setUserAgree(false);
-    //   });
   };
   const outApp = async (isClean?: boolean) => {
     if (!isClean) {
@@ -147,12 +144,12 @@ const App = observer(() => {
     }
     if (Platform.OS === 'android' && !userAgree) {
       return (
-        <UserPrivacy
+        <WeChatOnePassLogin
           outApp={async () => {
             await outApp();
           }}
-          goInApp={async () => {
-            await goInApp();
+          goInApp={async (e) => {
+            await goInApp(e);
           }}
         />
       );

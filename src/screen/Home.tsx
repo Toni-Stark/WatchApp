@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, ScrollView, SafeAreaView, AppState } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, ScrollView, SafeAreaView, AppState, RefreshControl } from 'react-native';
 import BaseView from '../component/BaseView';
 import { useStore } from '../store';
 import { ScreenComponent } from './index';
@@ -17,6 +17,7 @@ import { RootEnum } from '../common/sign-module';
 import moment from 'moment';
 import BackgroundFetch from 'react-native-background-fetch';
 import { CirCleView } from '../component/home/CirCleView';
+import LinearGradient from 'react-native-linear-gradient';
 
 let type = 0;
 export const Home: ScreenComponent = observer(
@@ -24,16 +25,11 @@ export const Home: ScreenComponent = observer(
     const { blueToothStore, weChatStore } = useStore();
     const baseView = useRef<any>(undefined);
     const [target, setTarget] = useState(102);
-    const [timeList] = useState([
-      { name: '今天', value: 1 },
-      { name: '昨天', value: 2 },
-      { name: '前天', value: 3 }
-    ]);
-    const [contentList, setContentList] = useState([
+    const [contentList, setContentList] = useState<any>([
       {
         title: '运动',
         evalTitle: '最大步数',
-        color: '#0098f7',
+        colors: ['rgba(109,189,252,0.71)', 'rgba(51,163,250,0.71)', 'rgba(0,152,247,0.71)'],
         image: require('../assets/home/footer.png'),
         value: '0',
         cap: '',
@@ -44,7 +40,7 @@ export const Home: ScreenComponent = observer(
       {
         title: '睡眠',
         evalTitle: '最长睡眠',
-        color: '#5b75c5',
+        colors: ['rgba(91,117,197,0.71)', 'rgba(119,144,226,0.71)', 'rgba(148,174,255,0.71)'],
         image: require('../assets/home/sleep.png'),
         value: '0',
         cap: '小时',
@@ -55,7 +51,7 @@ export const Home: ScreenComponent = observer(
       {
         title: '心率',
         evalTitle: '最近',
-        color: '#ff007e',
+        colors: ['rgba(255,0,126,0.71)', 'rgba(253,41,144,0.71)', 'rgba(252,104,176,0.71)'],
         image: require('../assets/home/heartPulse.png'),
         value: '',
         cap: 'bpm',
@@ -67,7 +63,7 @@ export const Home: ScreenComponent = observer(
       {
         title: '血压',
         evalTitle: '最近',
-        color: '#ff9100',
+        colors: ['rgba(255,145,0,0.68)', 'rgba(248,159,41,0.68)', 'rgba(255,190,107,0.68)'],
         image: require('../assets/home/xueya.png'),
         value: '',
         cap: 'mmHg',
@@ -79,7 +75,7 @@ export const Home: ScreenComponent = observer(
       {
         title: '血氧',
         evalTitle: '最近',
-        color: '#3847a4',
+        colors: ['rgba(56,71,164,0.68)', 'rgba(94,112,206,0.68)', 'rgba(142,156,252,0.68)'],
         image: require('../assets/home/xueo2.png'),
         value: '',
         cap: '',
@@ -91,7 +87,7 @@ export const Home: ScreenComponent = observer(
       {
         title: '体温',
         evalTitle: '最近',
-        color: '#ff451f',
+        colors: ['rgba(253,160,139,0.67)', 'rgba(231,148,131,0.67)', 'rgba(227,126,105,0.67)'],
         image: require('../assets/home/tiwen.png'),
         value: '',
         cap: '°C',
@@ -100,7 +96,6 @@ export const Home: ScreenComponent = observer(
         }
       }
     ]);
-    const [active, setActive] = useState(1);
     const [hasBack, setHasBack] = useState(false);
     const [configureOptions] = useState({
       minimumFetchInterval: 1,
@@ -109,6 +104,7 @@ export const Home: ScreenComponent = observer(
       stopOnTerminate: false,
       startOnBoot: true
     }); // 默认后台运行配置项
+    const [refreshing, setRefreshing] = React.useState(false);
 
     useEffect(() => {
       (async () => {
@@ -199,8 +195,8 @@ export const Home: ScreenComponent = observer(
 
     useEffect(() => {
       (async () => {
-        // let data = await AsyncStorage.getItem(DEVICE_DATA);
-        // data && currentSetContentList(JSON.parse(data));
+        let data = await AsyncStorage.getItem(DEVICE_DATA);
+        data && currentSetContentList(JSON.parse(data));
         await setBackgroundServer();
       })();
     }, []);
@@ -214,9 +210,6 @@ export const Home: ScreenComponent = observer(
 
     const updateMenuState = () => {
       console.log('打开分享链接');
-    };
-    const chooseTabs = (val) => {
-      setActive(val);
     };
     const openBlueTooth = useCallback(() => {
       navigation.navigate('BlueToothDetail', {});
@@ -264,6 +257,11 @@ export const Home: ScreenComponent = observer(
         }, 500);
       }
     }, [blueToothStore, navigation]);
+
+    const onRefresh = useCallback(async () => {
+      setRefreshing(true);
+      await blueToothStore.successDialog().then(() => setRefreshing(false));
+    }, []);
 
     const currentDevice = useMemo(() => {
       let isTrue = blueToothStore.currentDevice['-96']?.power || 0;
@@ -322,12 +320,13 @@ export const Home: ScreenComponent = observer(
     const currentResult = useMemo(() => {
       return (
         <View style={styles.resultView}>
+          <Text style={styles.resultText}>今日实时数据</Text>
           <View style={styles.tableList}>
             {contentList.map((item) => {
               return (
                 <TouchableOpacity
                   key={Math.ceil(Math.random() * 1000000).toString()}
-                  style={styles.tableItem}
+                  style={[styles.tableItem]}
                   onPress={() => {
                     if (!blueToothStore.refreshing && blueToothStore.devicesInfo) {
                       return item.fun && item.fun();
@@ -335,46 +334,51 @@ export const Home: ScreenComponent = observer(
                     baseView.current.showToast({ text: '请先连接设备', delay: 2 });
                   }}
                 >
-                  <Text style={[styles.endTitle, { color: item.color }]}>{item.title}</Text>
-                  {item.time ? (
-                    <View style={styles.timeHeader}>
-                      <Text style={[styles.timeTitle, { color: item.color }]}>
-                        {item.evalTitle}: {item.time}
-                      </Text>
-                      <View style={styles.tableStart}>
-                        <Text style={[styles.endValue, { color: item.color }]}>
-                          {item.value || 0}
-                          <Text style={styles.cap}> {item.cap}</Text>
+                  <LinearGradient colors={item.colors} style={styles.tableItemLinear}>
+                    <Text style={[styles.endTitle]}>{item.title}</Text>
+                    {item.time ? (
+                      <View style={styles.timeHeader}>
+                        <Text style={[styles.timeTitle]}>
+                          {item.evalTitle}: {item.time}
                         </Text>
+                        <View style={styles.tableStart}>
+                          <Text style={[styles.endValue]}>
+                            {item.value || 0}
+                            <Text style={styles.cap}> {item.cap}</Text>
+                          </Text>
+                        </View>
                       </View>
-                    </View>
-                  ) : (
-                    <View style={styles.tableHeader}>
-                      <View style={styles.tableStart}>
-                        <Text style={[styles.headerTitle, { color: item.color }]}>{item.evalTitle}: </Text>
-                        <Text style={[styles.endValue, { color: item.color }]}>
-                          {item.value || 0}
-                          <Text style={styles.cap}> {item.cap}</Text>
-                        </Text>
+                    ) : (
+                      <View style={styles.tableHeader}>
+                        <View style={styles.tableStart}>
+                          <Text style={[styles.headerTitle]}>{item.evalTitle}: </Text>
+                          <Text style={[styles.endValue]}>
+                            {item.value || 0}
+                            <Text style={styles.cap}> {item.cap}</Text>
+                          </Text>
+                        </View>
                       </View>
+                    )}
+                    <View style={styles.iconPosi}>
+                      <Hexagon border={true} color={item.colors[0]}>
+                        <FastImage style={styles.imageIcon} source={item.image} />
+                      </Hexagon>
                     </View>
-                  )}
-                  <View style={styles.iconPosi}>
-                    <Hexagon border={true} color={item.color}>
-                      <FastImage style={styles.imageIcon} source={item.image} />
-                    </Hexagon>
-                  </View>
+                  </LinearGradient>
                 </TouchableOpacity>
               );
             })}
           </View>
         </View>
       );
-    }, [timeList, contentList, active]);
+    }, [contentList, blueToothStore.refreshing, blueToothStore.devicesInfo]);
 
     const renderContext = useMemo(() => {
       return (
-        <ScrollView style={[tw.flex1, [{ backgroundColor: '#f2f2f2', marginBottom: 60 }]]}>
+        <ScrollView
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          contentContainerStyle={[tw.flex1, [{ backgroundColor: '#f2f2f2', marginBottom: 60 }]]}
+        >
           <View style={styles.header}>
             <CirCleView target={target} />
             <View style={{ position: 'absolute' }}>
@@ -392,7 +396,7 @@ export const Home: ScreenComponent = observer(
           {currentResult}
         </ScrollView>
       );
-    }, [target, contentList, currentDevice, currentResult]);
+    }, [refreshing, onRefresh, target, contentList, currentDevice, currentResult]);
 
     return (
       <BaseView ref={baseView} style={[tw.flex1]}>
@@ -402,10 +406,50 @@ export const Home: ScreenComponent = observer(
     );
   }
 );
+const color1 = '#00D1DE';
+const color3 = '#ffffff';
+const color5 = '#cecece';
+const color7 = '#3d3d3d';
+const color8 = '#00bac4';
+const color9 = '#FF002F';
+const color10 = '#8f8f8f';
+const color11 = 'transparent';
 
 const styles = StyleSheet.create({
+  barText: {
+    color: color5,
+    fontSize: 16
+  },
+  battery: {
+    borderColor: color3,
+    borderRadius: 2,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    flexDirection: 'row',
+    height: 15,
+    marginLeft: 10,
+    padding: 1,
+    paddingLeft: 0,
+    width: 37
+  },
+  batteryContent: {
+    backgroundColor: color3,
+    flex: 1,
+    height: '100%',
+    marginLeft: 1
+  },
+  cap: {
+    fontSize: 12
+  },
+  endTitle: {
+    color: color7,
+    fontSize: 16
+  },
+  endValue: {
+    fontSize: 19
+  },
   evalTitle: {
-    color: '#ffffff',
+    color: color3,
     marginTop: 2,
     textAlign: 'center'
   },
@@ -414,30 +458,38 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    backgroundColor: '#00D1DE',
+    backgroundColor: color1,
     height: 260,
     justifyContent: 'center',
     position: 'relative',
     width: '100%'
+  },
+  headerTitle: {
+    fontSize: 18
+  },
+  iconPosi: {
+    position: 'absolute',
+    right: 10,
+    top: 5
   },
   imageIcon: {
     height: 23,
     width: 23
   },
   labelColor: {
-    color: '#ffffff'
-  },
-  labelRe: {
-    fontSize: 18
+    color: color3
   },
   labelData: {
     fontSize: 15
+  },
+  labelRe: {
+    fontSize: 18
   },
   labelText: {
     fontSize: 13
   },
   labelView: {
-    borderColor: '#ffffff',
+    borderColor: color3,
     borderRadius: 8,
     borderStyle: 'solid',
     borderWidth: 1,
@@ -445,87 +497,60 @@ const styles = StyleSheet.create({
     paddingVertical: 3
   },
   linkModule: {
-    backgroundColor: '#00BAC4',
+    backgroundColor: color8,
     height: 50,
     width: '100%'
   },
   linkStatus: {
-    backgroundColor: '#FF002F',
+    backgroundColor: color9,
     height: 50,
     width: '100%'
   },
   mainTitle: {
-    color: '#ffffff',
+    color: color3,
     fontFamily: 'SimpleLineIcons',
     fontSize: 35,
     textAlign: 'center'
   },
+  resultText: {
+    fontSize: 18
+  },
   resultView: {
+    backgroundColor: color3,
+    borderRadius: 15,
     flex: 1,
-    paddingVertical: 15,
-    paddingHorizontal: 15
-  },
-  battery: {
-    borderColor: '#ffffff',
-    borderRadius: 2,
-    borderStyle: 'solid',
-    flexDirection: 'row',
-    borderWidth: 1,
-    height: 15,
-    marginLeft: 10,
-    padding: 1,
-    paddingLeft: 0,
-    width: 37
-  },
-  batteryContent: {
-    backgroundColor: '#ffffff',
-    flex: 1,
-    height: '100%',
-    marginLeft: 1
-  },
-  tabRow: {
-    flexDirection: 'row'
+    margin: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 10
   },
   tabBar: {
     alignItems: 'center',
     flex: 1
   },
-  barText: {
-    color: '#cecece',
-    fontSize: 16
+  tabRow: {
+    flexDirection: 'row'
   },
-  triangle: {
-    borderColor: 'transparent',
-    borderStyle: 'solid',
-    borderTopColor: '#8f8f8f',
-    borderTopWidth: 8,
-    borderWidth: 5,
-    height: 0,
-    marginTop: 3,
-    width: 0
-  },
-  tableList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between'
-  },
-  tableItem: {
-    // height: 170,
-    marginBottom: 15,
-    backgroundColor: '#ffffff',
-    width: '48%',
-    borderRadius: 15,
-    padding: 10
+  tableEnd: {
+    alignItems: 'flex-end'
   },
   tableHeader: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between'
   },
-  timeHeader: {
-    alignItems: 'flex-start',
-    flexDirection: 'column',
-    justifyContent: 'space-between'
+  tableItem: {
+    backgroundColor: color3,
+    marginBottom: 15,
+    width: '48%'
+  },
+  tableItemLinear: {
+    padding: 10
+  },
+  tableList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingVertical: 10
   },
   tableStart: {
     alignItems: 'flex-end',
@@ -533,29 +558,23 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 15
   },
-  iconPosi: {
-    position: 'absolute',
-    right: 10,
-    top: 5
-  },
-  headerTitle: {
-    fontSize: 18
+  timeHeader: {
+    alignItems: 'flex-start',
+    flexDirection: 'column',
+    justifyContent: 'space-between'
   },
   timeTitle: {
-    fontSize: 12
+    fontSize: 12,
+    paddingVertical: 10
   },
-  cap: {
-    fontSize: 12
-  },
-  tableEnd: {
-    alignItems: 'flex-end'
-  },
-  endTitle: {
-    fontSize: 20,
-    color: '#0098f7'
-  },
-  endValue: {
-    fontSize: 19,
-    color: '#0098f7'
+  triangle: {
+    borderColor: color11,
+    borderStyle: 'solid',
+    borderTopColor: color10,
+    borderTopWidth: 8,
+    borderWidth: 5,
+    height: 0,
+    marginTop: 3,
+    width: 0
   }
 });

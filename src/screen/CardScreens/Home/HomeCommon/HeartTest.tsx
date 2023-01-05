@@ -19,7 +19,7 @@ export const HeartTest: ScreenComponent = observer(
     const [isOpen, setIsOpen] = useState(false);
 
     useEffect(() => {
-      let val = blueToothStore.device['-48']?.heartJump;
+      let val = blueToothStore.currentDevice['-48']?.heartJump;
       if (val) {
         if (val === 1) {
           (async () => closeHeart())();
@@ -27,6 +27,15 @@ export const HeartTest: ScreenComponent = observer(
         setValue(val || 0);
       }
     }, [blueToothStore.currentDevice]);
+    useEffect(() => {
+      return () => {
+        if (isOpen) {
+          blueToothStore.sendActiveWithoutMessage(allDataHeartEnd).then(() => {
+            setIsOpen(false);
+          });
+        }
+      };
+    }, []);
 
     const backScreen = () => {
       navigation.goBack();
@@ -38,9 +47,6 @@ export const HeartTest: ScreenComponent = observer(
     const openHeart = async () => {
       setIsOpen(true);
       await blueToothStore.sendActiveWithoutMessage(allDataHeartStart);
-      // setTimeout(() => {
-      //   animateRef.current.animate();
-      // }, 1000);
     };
     const closeHeart = () => {
       blueToothStore.sendActiveWithoutMessage(allDataHeartEnd).then(() => {

@@ -35,7 +35,7 @@ export const Profile: ScreenComponent = observer(
               <View style={styles.imageView}>
                 <FastImage style={styles.headerImg} source={require('../assets/home/header-assets.png')} resizeMode={FastImage.resizeMode.cover} />
               </View>
-              <TouchableOpacity onPress={goLogin}>
+              <TouchableOpacity style={styles.loginView} onPress={goLogin}>
                 <View style={styles.headerContent}>
                   <Text style={styles.userName}>用戶13</Text>
                   <View style={styles.userIcons}>
@@ -104,6 +104,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 20,
     paddingTop: 30
+  },
+  loginView: {
+    flex: 1
   },
   headerContent: {
     flexDirection: 'column',

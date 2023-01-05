@@ -18,8 +18,8 @@ import { StackNavigationProp } from '@react-navigation/stack/src/types';
 
 export interface ApiResultInterface {
   code?: number;
-  message: string;
-  result: any;
+  msg: string;
+  data: any;
   success: boolean;
   timestamp: string;
 }
@@ -49,7 +49,7 @@ export class Api {
       baseURL: SERVER_URL,
       timeout: this.timeout,
       headers: {
-        Accept: 'application/json'
+        Accept: 'application/x-www-form-urlencoded'
       }
     });
     if (__DEV__) {
@@ -72,7 +72,7 @@ export class Api {
       }
       // this.timer = setTimeout(() => {
       //   if (this.timer) {
-      this.navigation.navigate('LoginByPhone');
+      this.navigation.navigate('WeChatOnePassLogin');
       // }
       // clearTimeout(this.timer);
       // }, 200);
@@ -174,23 +174,23 @@ export class Api {
     };
     const token = await UserStore.getToken();
     let response: ApiResponse<any>;
-    const rawHeaders = { 'X-Access-Token': '', 'Content-Type': 'application/json' };
+    const rawHeaders = { Authorization: '', Accept: 'application/x-www-form-urlencoded' };
     // console.log('0-登录失败-准备跳转页面', token);
     if (withToken) {
       // console.log('1-登录失败-准备跳转页面', withToken);
       if (token === null) {
         // console.log('2-登录失败-准备跳转页面', this.navigation);
         await this.redirectToLoginScreen();
-        return { code: 401, message: t('message.loginFailed'), result: null, success: false, timestamp: Api.getTimeStamp() };
+        return { code: 401, msg: t('message.loginFailed'), data: null, success: false, timestamp: Api.getTimeStamp() };
       } else {
-        rawHeaders['X-Access-Token'] = token;
+        rawHeaders.Authorization = token;
       }
     }
     if (multipart) {
       rawHeaders['Content-Type'] = 'multipart/form-data';
     }
     const headers = { headers: rawHeaders };
-
+    console.log(params, 'log');
     switch (operate) {
       case 'get':
         response = await this._api.get(url, params, headers);
@@ -208,16 +208,16 @@ export class Api {
         response = await this._api.delete(url, params, headers);
         break;
       default:
-        return { code: 500, message: '消息格式错误', result: null, success: false, timestamp: Api.getTimeStamp() };
+        return { code: 500, msg: '消息格式错误', data: null, success: false, timestamp: Api.getTimeStamp() };
     }
-    if (response.data?.message !== undefined && isAuthFailed(response.data.message)) {
+    if (response.data?.msg !== undefined && isAuthFailed(response.data.msg)) {
       const messageToUser = t('message.loginFailed');
       console.log(messageToUser, '1-登录状态有问题');
       if (withToken) {
         await UserStore.removeToken();
         await this.redirectToLoginScreen();
       } else {
-        return { code: response.data.status, message: messageToUser, result: response.data.result, success: false, timestamp: Api.getTimeStamp() };
+        return { code: response.data.status, msg: messageToUser, data: response.data.data, success: false, timestamp: Api.getTimeStamp() };
       }
     }
     switch (response.problem) {
@@ -226,21 +226,21 @@ export class Api {
       case CLIENT_ERROR:
       case SERVER_ERROR:
         if (response.data?.message !== undefined) {
-          return { code: response.data.status, message: response.data.message, result: response.data.result, success: false, timestamp: Api.getTimeStamp() };
+          return { code: response.data.status, msg: response.data.message, data: response.data.result, success: false, timestamp: Api.getTimeStamp() };
         } else if (response.status === 404) {
-          return { code: response.status, message: '服务器地址错误', result: null, success: false, timestamp: Api.getTimeStamp() };
+          return { code: response.status, msg: '服务器地址错误', data: null, success: false, timestamp: Api.getTimeStamp() };
         } else {
-          return { code: response.status, message: '访问服务器资源发生错误', result: null, success: false, timestamp: Api.getTimeStamp() };
+          return { code: response.status, msg: '访问服务器资源发生错误', data: null, success: false, timestamp: Api.getTimeStamp() };
         }
       case TIMEOUT_ERROR:
-        return { code: response.status, message: '访问服务器超时', result: null, success: false, timestamp: Api.getTimeStamp() };
+        return { code: response.status, msg: '访问服务器超时', data: null, success: false, timestamp: Api.getTimeStamp() };
       case CONNECTION_ERROR:
-        return { code: response.status, message: '无法访问服务器', result: null, success: false, timestamp: Api.getTimeStamp() };
+        return { code: response.status, msg: '无法访问服务器', data: null, success: false, timestamp: Api.getTimeStamp() };
       case NETWORK_ERROR:
-        return { code: response.status, message: '无法访问服务器', result: null, success: false, timestamp: Api.getTimeStamp() };
+        return { code: response.status, msg: '无法访问服务器', data: null, success: false, timestamp: Api.getTimeStamp() };
       case CANCEL_ERROR:
       default:
-        return { code: response.status, message: '发生未知错误', result: null, success: false, timestamp: Api.getTimeStamp() };
+        return { code: response.status, msg: '发生未知错误', data: null, success: false, timestamp: Api.getTimeStamp() };
     }
   }
 }

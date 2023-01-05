@@ -1,6 +1,9 @@
 import { action, makeAutoObservable, observable } from 'mobx';
 import * as WeChat from 'react-native-wechat-lib';
 import { Alert } from 'react-native';
+import { Api, ApiResult } from '../common/api';
+import { APP_LANGUAGE, TOKEN_NAME } from '../common/constants';
+import AsyncStorage from '@react-native-community/async-storage';
 
 export type AppColorModeType = 'light' | 'dark' | 'system';
 export type AppLanguageType = 'zh' | 'en' | 'system';
@@ -69,5 +72,27 @@ export class WeChatStore {
       }
       resolve(result);
     });
+  }
+
+  /**
+   * get UserLoginForWeChat
+   * url: /xueyue/sys/getCheckCode
+   */
+  @action
+  async userWeChatLogin({ code, type = 'App' }): Promise<string | undefined> {
+    // const res: ApiResult = await Api.getInstance.post({ url: '/member/member/check-login', params: qs.stringify({ code, type }, { encode: true }), withToken: false });
+    // if (res.code !== 200) {
+    //   return res.msg;
+    // }
+    // await AsyncStorage.setItem(TOKEN_NAME, res.data.token);
+    // console.log('res=--------------');
+    // console.log(res);
+    // console.log('res=--------------');
+    return;
+    // if (res.success) {
+    //   this.login = true;
+    // } else {
+    //   this.login = false;
+    // }
   }
 }

@@ -54,6 +54,7 @@
     "react-native-image-crop-picker": "^0.35.1",
     "react-native-image-viewing": "^0.2.0",
     "react-native-keyboard-accessory": "^0.1.14",
+    "react-native-linear-gradient": "^2.6.2",
     "react-native-loading-spinner-overlay": "^3.0.1",
     "react-native-localize": "^1.4.1",
     "react-native-media-controls": "^2.3.0",
