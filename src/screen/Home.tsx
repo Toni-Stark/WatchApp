@@ -268,7 +268,7 @@ export const Home: ScreenComponent = observer(
       await blueToothStore.successDialog().then(() => setRefreshing(false));
     }, []);
 
-    const currentDevice = useMemo(() => {
+    const currentDeviceView = useMemo(() => {
       let isTrue = blueToothStore.currentDevice['-96']?.power || 0;
       if (blueToothStore.refreshing) {
         return (
@@ -283,6 +283,60 @@ export const Home: ScreenComponent = observer(
           </TouchableOpacity>
         );
       }
+      if (!blueToothStore.devicesInfo) {
+        return (
+          <View style={styles.cardStart}>
+            <Text style={styles.tipText}>暂未绑定设备</Text>
+            <View style={styles.btnView}>
+              <Text style={styles.btnText}>去绑定</Text>
+            </View>
+          </View>
+        );
+      }
+      return (
+        <View style={styles.deviceStart}>
+          <Text style={styles.tipText}>设备名称: F22R</Text>
+          <View style={styles.deviceView}>
+            <Text style={styles.deviceText}>电量</Text>
+            <View style={styles.battery}>
+              {[1, 2, 3, 4].map((item) => (
+                <View
+                  style={[styles.batteryContent, [{ backgroundColor: item <= isTrue ? '#ffffff' : '' }]]}
+                  key={Math.ceil(Math.random() * 10000).toString()}
+                />
+              ))}
+            </View>
+          </View>
+        </View>
+      );
+    }, [blueToothDetail, blueToothStore.devicesInfo, blueToothStore.refreshInfo.deviceID, blueToothStore.refreshing]);
+
+    const currentDeviceBanner = useMemo(() => {
+      return (
+        <View style={styles.card}>
+          <LinearGradient
+            colors={['#0078FF', '#0081FF', '#005eff', '#0090ff', '#008EFF']}
+            style={styles.cardLinear}
+            start={{ x: 0.0, y: 0.25 }}
+            end={{ x: 0.5, y: 1.0 }}
+            locations={[0.3, 0.5, 0.2, 0.2, 0.1]}
+          >
+            <View style={styles.headerStart}>
+              <View style={styles.imageView}>
+                <FastImage style={styles.headerImg} source={require('../assets/home/header-assets.png')} resizeMode={FastImage.resizeMode.cover} />
+              </View>
+              <TouchableOpacity style={styles.loginView}>
+                <View style={styles.headerContent}>
+                  <Text style={styles.userName}>用戶13</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+            {currentDeviceView}
+          </LinearGradient>
+        </View>
+      );
+    }, [blueToothDetail, blueToothStore.devicesInfo, openBlueTooth, blueToothStore.currentDevice, blueToothStore.refreshInfo, blueToothStore.refreshing]);
+    const currentDevice = useMemo(() => {
       if (blueToothStore.devicesInfo) {
         return (
           <TouchableOpacity style={styles.linkModule} onPress={openBlueTooth}>
@@ -390,20 +444,21 @@ export const Home: ScreenComponent = observer(
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           contentContainerStyle={[tw.flex1, [{ backgroundColor: '#f2f2f2', marginBottom: 60 }]]}
         >
-          <View style={styles.header}>
-            <CirCleView target={target} />
-            <View style={{ position: 'absolute' }}>
-              <View>
-                <Text style={styles.mainTitle}>{contentList[0].value}</Text>
-                <Text style={styles.evalTitle}>步</Text>
-              </View>
-              <View style={styles.footerText}>
-                <Text style={styles.mainTitle}>0.0</Text>
-                <Text style={styles.evalTitle}>小时</Text>
-              </View>
-            </View>
-          </View>
-          {currentDevice}
+          {/*<View style={styles.header}>*/}
+          {/*  <CirCleView target={target} />*/}
+          {/*  <View style={{ position: 'absolute' }}>*/}
+          {/*    <View>*/}
+          {/*      <Text style={styles.mainTitle}>{contentList[0].value}</Text>*/}
+          {/*      <Text style={styles.evalTitle}>步</Text>*/}
+          {/*    </View>*/}
+          {/*    <View style={styles.footerText}>*/}
+          {/*      <Text style={styles.mainTitle}>0.0</Text>*/}
+          {/*      <Text style={styles.evalTitle}>小时</Text>*/}
+          {/*    </View>*/}
+          {/*  </View>*/}
+          {/*</View>*/}
+          {currentDeviceBanner}
+          {/*{currentDevice}*/}
           {currentResult}
         </ScrollView>
       );
@@ -438,7 +493,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flexDirection: 'row',
     height: 15,
-    marginLeft: 10,
     padding: 1,
     paddingLeft: 0,
     width: 37
@@ -451,6 +505,41 @@ const styles = StyleSheet.create({
   },
   cap: {
     fontSize: 12
+  },
+  card: {
+    height: 200,
+    margin: 10
+  },
+  cardLinear: {
+    flex: 1,
+    borderRadius: 15,
+    padding: 20
+  },
+  cardDevicesView: {
+    flexDirection: 'row',
+    flex: 1,
+    alignItems: 'center'
+  },
+  cardStart: {
+    paddingTop: 20
+  },
+  tipText: {
+    color: color3,
+    fontSize: 17,
+    fontWeight: 'bold'
+  },
+  btnView: {
+    alignItems: 'center',
+    backgroundColor: color3,
+    borderRadius: 8,
+    justifyContent: 'center',
+    marginTop: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6
+  },
+  btnText: {
+    color: '#0078FF',
+    fontSize: 17
   },
   endTitle: {
     color: color7,
@@ -475,6 +564,20 @@ const styles = StyleSheet.create({
     position: 'relative',
     width: '100%'
   },
+  headerContent: {
+    flexDirection: 'column',
+    flex: 1,
+    justifyContent: 'center',
+    marginLeft: 10,
+    paddingVertical: 2
+  },
+  headerImg: {
+    height: 50,
+    width: 50
+  },
+  headerStart: {
+    flexDirection: 'row'
+  },
   headerTitle: {
     fontSize: 18
   },
@@ -486,6 +589,14 @@ const styles = StyleSheet.create({
   imageIcon: {
     height: 23,
     width: 23
+  },
+  imageView: {
+    alignItems: 'center',
+    backgroundColor: color3,
+    borderRadius: 50,
+    height: 60,
+    justifyContent: 'center',
+    width: 60
   },
   labelColor: {
     color: color3
@@ -516,6 +627,9 @@ const styles = StyleSheet.create({
     backgroundColor: color9,
     height: 50,
     width: '100%'
+  },
+  loginView: {
+    flex: 1
   },
   mainTitle: {
     color: color3,
@@ -587,5 +701,22 @@ const styles = StyleSheet.create({
     height: 0,
     marginTop: 3,
     width: 0
+  },
+  userName: {
+    color: color3,
+    fontSize: 18
+  },
+  deviceView: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    paddingVertical: 10
+  },
+  deviceText: {
+    color: color3,
+    marginRight: 6,
+    fontSize: 15
+  },
+  deviceStart: {
+    marginTop: 40
   }
 });
