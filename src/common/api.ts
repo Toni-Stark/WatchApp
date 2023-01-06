@@ -15,6 +15,12 @@ import { SERVER_URL } from './app.config';
 import { UserStore } from '../store/UserStore';
 import { t } from './tools';
 import { StackNavigationProp } from '@react-navigation/stack/src/types';
+const qs = require('qs');
+
+export interface ErrorLog {
+  msg: string;
+  success: boolean;
+}
 
 export interface ApiResultInterface {
   code?: number;
@@ -49,7 +55,7 @@ export class Api {
       baseURL: SERVER_URL,
       timeout: this.timeout,
       headers: {
-        Accept: 'application/x-www-form-urlencoded'
+        'Content-Type': 'application/x-www-form-urlencoded'
       }
     });
     if (__DEV__) {
@@ -106,7 +112,7 @@ export class Api {
 
   async post(param: ApiParam): Promise<ApiResult> {
     const { url, params = {}, withToken = true, multipart = false } = param;
-    return this.RestfulOperate('post', url, params, withToken, multipart);
+    return this.RestfulOperate('post', url, qs.stringify(params), withToken, multipart);
   }
 
   async put(param: ApiParam): Promise<ApiResult> {
@@ -174,7 +180,10 @@ export class Api {
     };
     const token = await UserStore.getToken();
     let response: ApiResponse<any>;
-    const rawHeaders = { Authorization: '', Accept: 'application/x-www-form-urlencoded' };
+    const rawHeaders = {
+      Authorization: '',
+      'Content-Type': 'application/x-www-form-urlencoded'
+    };
     // console.log('0-登录失败-准备跳转页面', token);
     if (withToken) {
       // console.log('1-登录失败-准备跳转页面', withToken);
@@ -187,10 +196,9 @@ export class Api {
       }
     }
     if (multipart) {
-      rawHeaders['Content-Type'] = 'multipart/form-data';
+      rawHeaders['  Content-Type'] = 'multipart/form-data';
     }
     const headers = { headers: rawHeaders };
-    console.log(params, 'log');
     switch (operate) {
       case 'get':
         response = await this._api.get(url, params, headers);

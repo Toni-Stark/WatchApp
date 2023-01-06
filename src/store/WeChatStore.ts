@@ -1,8 +1,8 @@
 import { action, makeAutoObservable, observable } from 'mobx';
 import * as WeChat from 'react-native-wechat-lib';
 import { Alert } from 'react-native';
-import { Api, ApiResult } from '../common/api';
-import { APP_LANGUAGE, TOKEN_NAME } from '../common/constants';
+import { Api, ApiResult, ErrorLog } from '../common/api';
+import { TOKEN_NAME, USER_CONFIG } from '../common/constants';
 import AsyncStorage from '@react-native-community/async-storage';
 
 export type AppColorModeType = 'light' | 'dark' | 'system';
@@ -76,23 +76,48 @@ export class WeChatStore {
 
   /**
    * get UserLoginForWeChat
-   * url: /xueyue/sys/getCheckCode
+   * url: /member/member/check-login
    */
   @action
-  async userWeChatLogin({ code, type = 'App' }): Promise<string | undefined> {
-    // const res: ApiResult = await Api.getInstance.post({ url: '/member/member/check-login', params: qs.stringify({ code, type }, { encode: true }), withToken: false });
-    // if (res.code !== 200) {
-    //   return res.msg;
-    // }
-    // await AsyncStorage.setItem(TOKEN_NAME, res.data.token);
-    // console.log('res=--------------');
-    // console.log(res);
-    // console.log('res=--------------');
-    return;
-    // if (res.success) {
-    //   this.login = true;
-    // } else {
-    //   this.login = false;
-    // }
+  async userWeChatLogin({ code, type = 'App' }): Promise<Partial<ErrorLog> | undefined> {
+    return new Promise(async (resolve, reject) => {
+      const res: ApiResult = await Api.getInstance.post({
+        url: '/member/member/check-login',
+        params: { code, type },
+        withToken: false
+      });
+      if (res.code === 402) {
+        let data: Partial<ErrorLog> = await this.userGetLogin({ openid: res.data.openid, mobile_code: code });
+        if (data?.success) {
+          return resolve({ msg: '登录成功', success: true });
+        }
+        return resolve(data);
+      }
+      if (res.code !== 200) {
+        return resolve({ msg: res.msg, success: false });
+      }
+      await AsyncStorage.setItem(TOKEN_NAME, res.data.token);
+      await AsyncStorage.setItem(USER_CONFIG, JSON.stringify(res.data));
+      return resolve({ msg: '登录成功', success: true });
+    });
+  }
+
+  /**
+   * get UserLogin
+   * url: /member/member/login
+   */
+  @action
+  async userGetLogin({ openid, mobile_code, login_type = 'App' }): Promise<Partial<ErrorLog>> {
+    const res: ApiResult = await Api.getInstance.post({
+      url: '/member/member/login',
+      params: { openid, mobile_code, login_type },
+      withToken: false
+    });
+    if (res.code !== 200) {
+      return { msg: res.msg, success: false };
+    }
+    await AsyncStorage.setItem(TOKEN_NAME, res.data.token);
+    await AsyncStorage.setItem(USER_CONFIG, JSON.stringify(res.data));
+    return { msg: '登录成功', success: true };
   }
 }

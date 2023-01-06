@@ -2,7 +2,7 @@ import { action, makeAutoObservable, observable } from 'mobx';
 import AsyncStorage from '@react-native-community/async-storage';
 import i18n from 'i18n-js';
 import { Appearance, AppState, Platform, StatusBar } from 'react-native';
-import { APP_COLOR_MODE, APP_LANGUAGE, DEVICE_DATA, DEVICE_INFO } from '../common/constants';
+import { APP_COLOR_MODE, APP_LANGUAGE, DEVICE_DATA, DEVICE_INFO, TOKEN_NAME, USER_CONFIG } from '../common/constants';
 import { arrToByte, baseToHex, eventTimer, eventTimes, getMinTen, regCutString, stringToByte, t } from '../common/tools';
 import { darkTheme, theme } from '../common/theme';
 import { BleManager } from 'react-native-ble-plx';
@@ -20,6 +20,8 @@ import {
   passRegSign
 } from '../common/watch-module';
 import { RootEnum } from '../common/sign-module';
+import { RSJournalStore } from './RSJournalStore';
+import { Api, ApiResult, ErrorLog } from '../common/api';
 
 export type AppColorModeType = 'light' | 'dark' | 'system';
 export type AppLanguageType = 'zh' | 'en' | 'system';
@@ -56,8 +58,11 @@ export class BlueToothStore {
   @observable blueRootList: any[] = [];
   @observable blueRootInfo: any = {};
 
+  @observable listenDevices: any;
+
   @observable device: any = defaultDevice;
   @observable currentDevice: any = this.device;
+  @observable logcatDetailed: any = {};
   @observable refreshing: boolean = false;
   @observable refreshInfo: any = {};
   @observable hadBackgroundFetch: boolean = false;
@@ -147,6 +152,7 @@ export class BlueToothStore {
   @action
   async sendActiveMessage(params) {
     let storeRes = regCutString(params.value);
+    console.log(storeRes);
     let buffer = Buffer.from(stringToByte(storeRes)).toString('base64');
     await this.devicesInfo.writeCharacteristicWithResponseForService(params.serviceUUID, params.uuid, buffer);
   }
@@ -159,24 +165,32 @@ export class BlueToothStore {
 
   @action
   async listenActiveMessage(params) {
-    this.devicesInfo.monitorCharacteristicForService(params.serviceUUID, params.uuid, (error, characteristic) => {
-      if (error) return;
-      let value = baseToHex(characteristic.value);
-      this.blueRootList = [...this.blueRootList, value];
-      let regValue = ['a1', 'a0', 'd1', 'd0', 'd8', '88', '80'].includes(value.slice(0, 2));
-      if (regValue) {
-        this.devicesModules(value);
-      }
-      eventTimes(() => {
-        this.setBasicInfo();
-      }, 1000);
-    });
+    try {
+      // if (this.listenDevices) {
+      //   this.listenDevices?.remove();
+      // }
+      this.listenDevices = this.devicesInfo.monitorCharacteristicForService(params.serviceUUID, params.uuid, (error, characteristic) => {
+        if (error) return;
+        let value = baseToHex(characteristic.value);
+        this.blueRootList = [...this.blueRootList, value];
+        let regValue = ['a1', 'a0', 'd1', 'd0', 'd8', '88', '80'].includes(value.slice(0, 2));
+        if (regValue) {
+          this.devicesModules(value);
+        }
+        eventTimes(() => {
+          this.setBasicInfo();
+        }, 1000);
+      });
+    } catch (err) {
+      console.log('打印报错', err);
+    }
   }
 
   @action
   async setBasicInfo() {
     this.refreshing = false;
     this.currentDevice = { ...this.device };
+    // RSJournalStore.writeDataCache(this.logcatDetailed);
   }
 
   @action
@@ -193,7 +207,12 @@ export class BlueToothStore {
 
   @action
   async devicesModules(val) {
+    console.log(val, 'logs-------------');
     let hex = parseInt(val.slice(0, 2), 16) - 256;
+    // if (!this.logcatDetailed[hex]) {
+    //   this.logcatDetailed[hex] = '';
+    // }
+    // this.logcatDetailed[hex] += val + '\n';
     let params = {
       '-95': (e) => {
         // console.log(e);
@@ -209,7 +228,6 @@ export class BlueToothStore {
         };
       },
       '-47': (e) => {
-        console.log(e);
         let list: any = this.device[hex] || {};
         let message = arrToByte(e.match(/([\d\D]{2})/g), true);
         let prototype = e.match(/([\d\D]{2})/g);
@@ -220,9 +238,10 @@ export class BlueToothStore {
         // let i7 = byte2HexToIntArr[9]; = 00
         if (parseInt(message[14]) > 30) {
           list.i8.push(message[14]); //心率
-          list.xinlvTime.push(`${message[5]}:${message[19]}`); //血压高
+          list.xinlvTime.push(`${message[5]}:${message[19]}`); //心率记录时间
         }
         if (message[15] && message[16]) {
+          // console.log(message[15], message[16], message[5], message[19], '数据');
           message[15] && list.i9.push(message[15]); //血压高
           message[16] && list.i10.push(message[16]); //血压低
           list.xueyaTime.push(`${getMinTen(message[5])}:${getMinTen(message[19])}`); //血压低
@@ -242,9 +261,8 @@ export class BlueToothStore {
       },
       '-120': (e) => {
         let battery = e.match(/([\d\D]{2})/g);
-        if (battery[12] > 0 && battery[11] > 0) {
+        if (battery[12] !== '00' || battery[11] !== '00') {
           let byte = parseInt(battery[12] + battery[11], 16);
-          console.log('body', byte);
           return {
             temperature: byte / 10
           };
@@ -280,6 +298,7 @@ export class BlueToothStore {
       if (device.name && device?.id !== params.deviceID) {
         isDevice = false;
         eventTimer(() => {
+          console.log('停止搜索');
           this.manager?.stopDeviceScan();
           this.refreshing = false;
           !isDevice && callback({ type: '3', delay: 1 });
@@ -312,6 +331,28 @@ export class BlueToothStore {
         }
       }
     });
+  }
+
+  /**
+   * get UserLogin
+   * url: /apic/watch/device/list
+   */
+  @action
+  async userDeviceSetting(): Promise<any> {
+    const res: ApiResult = await Api.getInstance.post({
+      url: '/watch/device/list',
+      params: {},
+      withToken: false
+    });
+    if (res.code !== 200) {
+      return { msg: res.msg, success: false };
+    }
+    if (!res.data) {
+      return { needBinding: true };
+    }
+    if (!res.data.find((item) => item === this.devicesInfo.id)) {
+      return { needBinding: true };
+    }
   }
 
   @action

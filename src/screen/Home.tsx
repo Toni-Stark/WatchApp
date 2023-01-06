@@ -18,6 +18,7 @@ import moment from 'moment';
 import BackgroundFetch from 'react-native-background-fetch';
 import { CirCleView } from '../component/home/CirCleView';
 import LinearGradient from 'react-native-linear-gradient';
+import { mainListen } from '../common/watch-module';
 
 let type = 0;
 export const Home: ScreenComponent = observer(
@@ -29,7 +30,7 @@ export const Home: ScreenComponent = observer(
       {
         title: '运动',
         evalTitle: '最大步数',
-        colors: ['rgba(109,189,252,0.71)', 'rgba(51,163,250,0.71)', 'rgba(0,152,247,0.71)'],
+        colors: ['#F2F8FF', '#F7FCFF', '#FAFCFF'],
         image: require('../assets/home/footer.png'),
         value: '0',
         cap: '',
@@ -40,7 +41,7 @@ export const Home: ScreenComponent = observer(
       {
         title: '睡眠',
         evalTitle: '最长睡眠',
-        colors: ['rgba(91,117,197,0.71)', 'rgba(119,144,226,0.71)', 'rgba(148,174,255,0.71)'],
+        colors: ['#E7FBFC', '#ECFBFB', '#F4FEFF'],
         image: require('../assets/home/sleep.png'),
         value: '0',
         cap: '小时',
@@ -51,7 +52,7 @@ export const Home: ScreenComponent = observer(
       {
         title: '心率',
         evalTitle: '最近',
-        colors: ['rgba(255,0,126,0.71)', 'rgba(253,41,144,0.71)', 'rgba(252,104,176,0.71)'],
+        colors: ['#F2EFFF', '#F3F4FF', '#F7FAFF'],
         image: require('../assets/home/heartPulse.png'),
         value: '',
         cap: 'bpm',
@@ -63,7 +64,7 @@ export const Home: ScreenComponent = observer(
       {
         title: '血压',
         evalTitle: '最近',
-        colors: ['rgba(255,145,0,0.68)', 'rgba(248,159,41,0.68)', 'rgba(255,190,107,0.68)'],
+        colors: ['#F1EDFF', '#F3F4FF', '#FAF9FE'],
         image: require('../assets/home/xueya.png'),
         value: '',
         cap: 'mmHg',
@@ -75,7 +76,7 @@ export const Home: ScreenComponent = observer(
       {
         title: '血氧',
         evalTitle: '最近',
-        colors: ['rgba(56,71,164,0.68)', 'rgba(94,112,206,0.68)', 'rgba(142,156,252,0.68)'],
+        colors: ['#F1F4FF', '#F5F6FF', '#FFFAFA'],
         image: require('../assets/home/xueo2.png'),
         value: '',
         cap: '',
@@ -87,7 +88,7 @@ export const Home: ScreenComponent = observer(
       {
         title: '体温',
         evalTitle: '最近',
-        colors: ['rgba(253,160,139,0.67)', 'rgba(231,148,131,0.67)', 'rgba(227,126,105,0.67)'],
+        colors: ['#FFF8F7', '#FFEFEA', '#FFE5E1'],
         image: require('../assets/home/tiwen.png'),
         value: '',
         cap: '°C',
@@ -128,6 +129,7 @@ export const Home: ScreenComponent = observer(
         let bool = [RootEnum['初次进入'], RootEnum['连接中']].includes(blueToothStore.isRoot);
         if (blueToothStore?.devicesInfo && bool) {
           eventTimes(() => blueToothStore.successDialog(), 1000);
+          // await blueToothStore.listenActiveMessage(mainListen);
         }
       })();
     }, [blueToothStore?.devicesInfo, AsyncStorage, blueToothStore.isRoot]);
@@ -205,6 +207,9 @@ export const Home: ScreenComponent = observer(
       eventTimes(() => {
         setTarget(102);
         currentSetContentList(blueToothStore.currentDevice);
+        blueToothStore.userDeviceSetting().then((res) => {
+          console.log(res);
+        });
       }, 500);
     }, [blueToothStore.currentDevice]);
 
@@ -334,7 +339,13 @@ export const Home: ScreenComponent = observer(
                     baseView.current.showToast({ text: '请先连接设备', delay: 2 });
                   }}
                 >
-                  <LinearGradient colors={item.colors} style={styles.tableItemLinear}>
+                  <LinearGradient
+                    colors={item.colors}
+                    style={styles.tableItemLinear}
+                    start={{ x: 0.0, y: 0.25 }}
+                    end={{ x: 0.5, y: 1.0 }}
+                    locations={[0, 0.5, 0.6]}
+                  >
                     <Text style={[styles.endTitle]}>{item.title}</Text>
                     {item.time ? (
                       <View style={styles.timeHeader}>

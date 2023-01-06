@@ -5,7 +5,7 @@ import { Api } from '../common/api';
 const BaseUrl = '/auth';
 
 export class SettingStore {
-  @observable loading = true;
+  @observable loading = false;
   @observable settings: Array<SettingViewItemType> = [];
   @observable initURL: string | undefined = '';
   @observable canJump: boolean = true;
@@ -20,7 +20,7 @@ export class SettingStore {
   }
 
   @action
-  async updateInput(str: string): Promise<boolean> {
+  async updateInput(str: string) {
     const res = await Api.getInstance.get({
       url: '/xueyue/business/feedback/create',
       params: {
@@ -31,12 +31,11 @@ export class SettingStore {
     if (res.success) {
       return Promise.resolve(true);
     } else {
-      return Promise.reject(res.message);
     }
   }
 
   @action
-  async loginWithUuidForDesktop(uuid: string): Promise<boolean> {
+  async loginWithUuidForDesktop(uuid: string) {
     const res = await Api.getInstance.post({
       url: BaseUrl + '/users/request-login-by-qr-code',
       params: {
@@ -46,7 +45,6 @@ export class SettingStore {
     if (res.success) {
       return Promise.resolve(true);
     } else {
-      return Promise.reject(res.message);
     }
   }
 }

@@ -207,7 +207,6 @@ export const getRandomStringByTime = () => {
 };
 
 export const getMinTen = (num) => {
-  console.log(num);
   if (num >= 10) return num;
   return '0' + num;
 };

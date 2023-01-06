@@ -95,7 +95,7 @@ export class UserStore {
   }
 
   @action
-  async uploadAvatar(image): Promise<boolean | string> {
+  async uploadAvatar(image) {
     const res = await Api.getInstance.uploadAuthImage(image.path);
     console.log(res.result, '上传头像返回id');
     if (res.success) {
@@ -112,7 +112,7 @@ export class UserStore {
   }
 
   @action
-  async editMyDetailInfo(param): Promise<boolean | string> {
+  async editMyDetailInfo(param) {
     console.log(param, '改变信息的参数');
     const params = {
       avatarId: param.avatarId,
@@ -131,7 +131,7 @@ export class UserStore {
   }
 
   @action
-  async loginByPhone(param): Promise<boolean | string> {
+  async loginByPhone(param) {
     const params = {
       deviceType: deviceInfo,
       code: param.verifyCode,
@@ -152,7 +152,7 @@ export class UserStore {
    * url: /xueyue/sys/user/getContacts
    */
   @action
-  async getParentsStudents(): Promise<boolean | string> {
+  async getParentsStudents() {
     const res: ApiResult = await Api.getInstance.get({ url: '/xueyue/sys/user/getContacts', params: {}, withToken: true });
     if (res.success) {
       return Promise.resolve(res.success);
@@ -166,7 +166,7 @@ export class UserStore {
    * url: /xueyue/sys/user/edit
    */
   @action
-  async changeRealName(realname: string): Promise<boolean | string> {
+  async changeRealName(realname: string) {
     const params = {
       realName: realname
     };
@@ -182,7 +182,7 @@ export class UserStore {
    * url: /xueyue/sys/user/edit
    */
   @action
-  async changeUserName(username: string): Promise<boolean | string> {
+  async changeUserName(username: string) {
     const params = {
       username: username
     };
@@ -200,7 +200,7 @@ export class UserStore {
    * url: /xueyue/sys/user/edit
    */
   @action
-  async changeNickName(nickName: string): Promise<boolean | string> {
+  async changeNickName(nickName: string) {
     const params = {
       nickName: nickName
     };
@@ -218,7 +218,7 @@ export class UserStore {
    * status: incomplete
    */
   @action
-  async changeEmail(email: string): Promise<boolean | string> {
+  async changeEmail(email: string) {
     const params = {
       email: email
     };
@@ -236,7 +236,7 @@ export class UserStore {
    * status: incomplete
    */
   @action
-  async changePassword(param: { passwordNew?: string; oldPassword?: string; smsCode?: string }): Promise<boolean | string> {
+  async changePassword(param: { passwordNew?: string; oldPassword?: string; smsCode?: string }) {
     const params = {
       passwordNew: param.passwordNew,
       passwordOriginal: param.oldPassword,
@@ -257,7 +257,7 @@ export class UserStore {
    * url: /xueyue/sys/sendSms
    */
   @action
-  async sendSms(phone: string, mode: number): Promise<boolean | string> {
+  async sendSms(phone: string, mode: number) {
     const params = { phone, mode };
     const res: ApiResult = await Api.getInstance.post({ url: BaseUrl + '/public/generate-sms', params, withToken: false });
     if (res.success) {
@@ -343,7 +343,7 @@ export class UserStore {
    * url: /xueyue/sys/app_registe
    */
   @action
-  async doRegister({ smsCode, phone, deviceType, businessCode }): Promise<boolean | string> {
+  async doRegister({ smsCode, phone, deviceType, businessCode }) {
     const params = { phone, smsCode, deviceType, businessCode };
     console.log(params);
     const res: ApiResult = await Api.getInstance.post({ url: BaseUrl + '/public/app-user-register-by-phone', params: params, withToken: false });
@@ -362,16 +362,16 @@ export class UserStore {
    * url: /xueyue/sys/app_registe
    */
   @action
-  async doRegisterNoPhone({ businessCode, password, deviceType, username }): Promise<boolean | string> {
+  async doRegisterNoPhone({ businessCode, password, deviceType, username }) {
     const params = { businessCode, password, deviceType, username };
     const res: ApiResult = await Api.getInstance.post({ url: BaseUrl + '/public/app-user-register-by-username', params: params, withToken: false });
     if (res.success) {
-      console.log(res.result);
-      await UserStore.setToken(res.result.token);
-      this.login = true;
-      return Promise.resolve(res.success);
-    } else {
-      return Promise.resolve(res.message);
+      //   console.log(res.result);
+      //   await UserStore.setToken(res.result.token);
+      //   this.login = true;
+      //   return Promise.resolve(res.success);
+      // } else {
+      //   return Promise.resolve(res.message);
     }
   }
 
@@ -380,7 +380,7 @@ export class UserStore {
    * url: /xueyue/sys/sendSms
    */
   @action
-  async sendSmsRegister(phone?: string): Promise<boolean | string> {
+  async sendSmsRegister(phone?: string) {
     const params = {
       mobile: phone,
       smsMode: 1

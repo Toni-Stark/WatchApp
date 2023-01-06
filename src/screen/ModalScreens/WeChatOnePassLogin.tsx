@@ -21,7 +21,7 @@ export const WeChatOnePassLogin: React.FunctionComponent<Props> = observer(
     };
     const currentLogin = async () => {
       if (agree) {
-        baseView.current.showLoading({ text: '登录中', delay: 1 });
+        baseView.current.showLoading({ text: '登录中' });
         const result = await weChatStore.checkWeChatInstall();
         if (result) {
           props.goInApp(result);

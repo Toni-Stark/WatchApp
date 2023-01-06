@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { Appearance, BackHandler, Platform, StatusBar } from 'react-native';
 import { Provider as PaperProvider, useTheme } from 'react-native-paper';
 import { NavigatorStack } from './screen';
-import { APP_COLOR_MODE, APP_LANGUAGE, USER_AGREEMENT } from './common/constants';
+import { APP_COLOR_MODE, APP_LANGUAGE, TEST_TOKEN, TOKEN_NAME, USER_AGREEMENT } from './common/constants';
 import { darkTheme, theme } from './common/theme';
 import { useStore } from './store';
 import { BootAnimation } from './screen/BootAnimation';
@@ -20,7 +20,7 @@ import { WeChatOnePassLogin } from './screen/ModalScreens/WeChatOnePassLogin';
 const App = observer(() => {
   const { colors } = useTheme();
   const { systemStore, userStore, blueToothStore, weChatStore } = useStore();
-  const [userAgree, setUserAgree] = useState<boolean>(false);
+  const [isLogin, setIsLogin] = useState<boolean>(false);
   const [blueTooth, setBlueTooth] = useState<boolean>(false);
 
   useEffect(() => {
@@ -31,12 +31,12 @@ const App = observer(() => {
   }, []);
 
   useEffect(() => {
-    getStorage(USER_AGREEMENT)
+    getStorage(TOKEN_NAME)
       .then((res) => {
-        setUserAgree(!!res);
+        setIsLogin(!!res);
       })
       .catch(() => {
-        setUserAgree(false);
+        setIsLogin(false);
       });
   }, []);
 
@@ -90,16 +90,16 @@ const App = observer(() => {
   }, [systemStore]);
 
   useEffect(() => {
-    UserStore.getToken().then(async (token) => {
-      if (token) {
-        const res = await userStore.queryUserInfo();
-        if (res) {
-          console.log('登录成功');
-        }
-      } else {
-        // await userStore.rootWechat();
-      }
-    });
+    // UserStore.getToken().then(async (token) => {
+    //   if (token) {
+    //     const res = await userStore.queryUserInfo();
+    //     if (res) {
+    //       console.log('登录成功');
+    //     }
+    //   } else {
+    //     // await userStore.rootWechat();
+    //   }
+    // });
   }, [userStore]);
 
   useEffect(() => {
@@ -116,20 +116,19 @@ const App = observer(() => {
   const goInApp = async (e) => {
     await AsyncStorage.setItem(USER_AGREEMENT, 'Happy every day');
     const res = await weChatStore.userWeChatLogin({ code: e.code });
-    // if (res.code !== 200) {
-    console.log(res, '登录成功');
-    // }
-    setUserAgree(true);
+    if (res?.success) {
+      setIsLogin(true);
+    }
   };
   const outApp = async (isClean?: boolean) => {
     if (!isClean) {
       await AsyncStorage.removeItem(USER_AGREEMENT);
       getStorage(USER_AGREEMENT)
         .then((res) => {
-          setUserAgree(!!res);
+          setIsLogin(!!res);
         })
         .catch(() => {
-          setUserAgree(false);
+          setIsLogin(false);
         });
     }
     BackHandler.exitApp();
@@ -142,7 +141,8 @@ const App = observer(() => {
     if (systemStore.showBootAnimation || !blueTooth) {
       return <BootAnimation />;
     }
-    if (Platform.OS === 'android' && !userAgree) {
+    console.log('运行几次');
+    if (Platform.OS === 'android' && !isLogin) {
       return (
         <WeChatOnePassLogin
           outApp={async () => {
@@ -153,11 +153,9 @@ const App = observer(() => {
           }}
         />
       );
-    } else {
-      return <NavigatorStack />;
     }
+    return <NavigatorStack />;
   };
-
   return (
     <Observer>
       {() => (

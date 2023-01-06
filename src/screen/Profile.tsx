@@ -8,10 +8,12 @@ import { tw } from 'react-native-tailwindcss';
 import { ProfilePlaceholder } from '../component/skeleton/ProfilePlaceholder';
 import { observer } from 'mobx-react-lite';
 import FastImage from 'react-native-fast-image';
+import { RSJournalStore } from '../store/RSJournalStore';
+import { allDataSleep, bloodData } from '../common/watch-module';
 
 export const Profile: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
-    const { settingStore } = useStore();
+    const { settingStore, blueToothStore } = useStore();
     const baseView = useRef<any>(undefined);
 
     useEffect(() => {
@@ -23,6 +25,14 @@ export const Profile: ScreenComponent = observer(
     };
     const navigateToDevice = () => {
       navigation.navigate('WatchStyleSetting', {});
+    };
+
+    const writeText = async () => {
+      // await RSJournalStore.writeDataCache({});
+      await blueToothStore.sendActiveMessage(bloodData);
+    };
+    const readText = async () => {
+      await RSJournalStore.readFilesForDevice();
     };
     const renderContent = useMemo(() => {
       if (settingStore.loading) {
@@ -68,6 +78,29 @@ export const Profile: ScreenComponent = observer(
               </TouchableOpacity>
             </View>
           </View>
+          {/*<View style={styles.context}>*/}
+          {/*  <View style={styles.moduleView}>*/}
+          {/*    <Text style={styles.mainText}>添加数据</Text>*/}
+          {/*    <TouchableOpacity onPress={writeText}>*/}
+          {/*      <View style={styles.labelView}>*/}
+          {/*        <View style={styles.startLabel}>*/}
+          {/*          <FastImage style={styles.labelIcon} source={require('../assets/home/header-assets.png')} resizeMode={FastImage.resizeMode.cover} />*/}
+          {/*          <Text style={styles.labelText}>添加一条数据</Text>*/}
+          {/*        </View>*/}
+          {/*        <FastImage style={styles.deviceIcon} source={require('../assets/home/right-gray.png')} resizeMode={FastImage.resizeMode.cover} />*/}
+          {/*      </View>*/}
+          {/*    </TouchableOpacity>*/}
+          {/*    <TouchableOpacity onPress={readText}>*/}
+          {/*      <View style={styles.labelView}>*/}
+          {/*        <View style={styles.startLabel}>*/}
+          {/*          <FastImage style={styles.labelIcon} source={require('../assets/home/header-assets.png')} resizeMode={FastImage.resizeMode.cover} />*/}
+          {/*          <Text style={styles.labelText}>查看数据</Text>*/}
+          {/*        </View>*/}
+          {/*        <FastImage style={styles.deviceIcon} source={require('../assets/home/right-gray.png')} resizeMode={FastImage.resizeMode.cover} />*/}
+          {/*      </View>*/}
+          {/*    </TouchableOpacity>*/}
+          {/*  </View>*/}
+          {/*</View>*/}
         </ScrollView>
       );
     }, [settingStore.loading]);
