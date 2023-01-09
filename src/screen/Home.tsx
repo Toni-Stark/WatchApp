@@ -270,27 +270,26 @@ export const Home: ScreenComponent = observer(
 
     const currentDeviceView = useMemo(() => {
       let isTrue = blueToothStore.currentDevice['-96']?.power || 0;
-      if (blueToothStore.refreshing) {
+      if (false && blueToothStore.refreshing) {
         return (
-          <TouchableOpacity style={styles.linkModule} onPress={blueToothDetail}>
+          <TouchableOpacity style={styles.modalModule} onPress={blueToothDetail}>
             <View style={[tw.flexRow, tw.itemsCenter, tw.justifyAround, tw.p2, tw.flex1]}>
-              <Spinkit type="Circle" size={25} color="white" />
+              <Spinkit type="Circle" size={30} color="white" />
               <View style={[tw.flexRow, tw.itemsCenter]}>
-                <Text style={[styles.labelColor, styles.labelRe]}>加载设备:{blueToothStore.refreshInfo.deviceID}</Text>
+                <Text style={[styles.labelColor, styles.labelRe]}>搜索设备: {blueToothStore.refreshInfo.deviceID}</Text>
               </View>
-              <FastImage style={styles.imageIcon} source={require('../assets/home/right.png')} />
             </View>
           </TouchableOpacity>
         );
       }
-      if (!blueToothStore.devicesInfo) {
+      if (true || !blueToothStore.devicesInfo) {
         return (
-          <View style={styles.cardStart}>
+          <TouchableOpacity style={styles.cardStart} onPress={blueToothDetail}>
             <Text style={styles.tipText}>暂未绑定设备</Text>
             <View style={styles.btnView}>
               <Text style={styles.btnText}>去绑定</Text>
             </View>
-          </View>
+          </TouchableOpacity>
         );
       }
       return (
@@ -337,6 +336,7 @@ export const Home: ScreenComponent = observer(
       );
     }, [blueToothDetail, blueToothStore.devicesInfo, openBlueTooth, blueToothStore.currentDevice, blueToothStore.refreshInfo, blueToothStore.refreshing]);
     const currentDevice = useMemo(() => {
+      let isTrue = blueToothStore.currentDevice['-96']?.power || 0;
       if (blueToothStore.devicesInfo) {
         return (
           <TouchableOpacity style={styles.linkModule} onPress={openBlueTooth}>
@@ -521,7 +521,8 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   cardStart: {
-    paddingTop: 20
+    paddingTop: 20,
+    alignItems: 'flex-start'
   },
   tipText: {
     color: color3,
@@ -534,7 +535,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     marginTop: 10,
-    paddingHorizontal: 10,
+    paddingHorizontal: 20,
     paddingVertical: 6
   },
   btnText: {
@@ -622,6 +623,9 @@ const styles = StyleSheet.create({
     backgroundColor: color8,
     height: 50,
     width: '100%'
+  },
+  modalModule: {
+    flex: 1
   },
   linkStatus: {
     backgroundColor: color9,

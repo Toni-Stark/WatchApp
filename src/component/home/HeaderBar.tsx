@@ -8,11 +8,12 @@ export const HeaderBar = (props) => {
     <>
       <View style={[tw.flexRow, tw.pX3, tw.pY2, tw.itemsCenter, tw.justifyBetween, [{ backgroundColor: '#00D1DE' }], styles.header]}>
         <TouchableWithoutFeedback onPress={props.openLayout}>
-          <FastImage
-            style={[tw.w8, tw.h8, { borderRadius: 50 }]}
-            source={require('../../assets/home/header-assets.png')}
-            resizeMode={FastImage.resizeMode.cover}
-          />
+          {/*<FastImage*/}
+          {/*  style={[tw.w8, tw.h8, { borderRadius: 50 }]}*/}
+          {/*  source={require('../../assets/home/header-assets.png')}*/}
+          {/*  resizeMode={FastImage.resizeMode.cover}*/}
+          {/*/>*/}
+          <View style={[tw.w8, tw.h8]} />
         </TouchableWithoutFeedback>
         {props?.search ? (
           <View style={[tw.flexRow, tw.mX1, tw.borderR5, tw.pX1, tw.borderB2]}>
@@ -22,7 +23,8 @@ export const HeaderBar = (props) => {
           <Text style={styles.textStyle}>数据面板</Text>
         )}
         <View>
-          <FastImage style={[tw.w8, tw.h8, { borderRadius: 50 }]} source={require('../../assets/home/share.png')} resizeMode={FastImage.resizeMode.cover} />
+          {/*<FastImage style={[tw.w8, tw.h8, { borderRadius: 50 }]} source={require('../../assets/home/share.png')} resizeMode={FastImage.resizeMode.cover} />*/}
+          <View style={[tw.w8, tw.h8]} />
         </View>
       </View>
     </>
