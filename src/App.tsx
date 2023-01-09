@@ -90,19 +90,6 @@ const App = observer(() => {
   }, [systemStore]);
 
   useEffect(() => {
-    // UserStore.getToken().then(async (token) => {
-    //   if (token) {
-    //     const res = await userStore.queryUserInfo();
-    //     if (res) {
-    //       console.log('登录成功');
-    //     }
-    //   } else {
-    //     // await userStore.rootWechat();
-    //   }
-    // });
-  }, [userStore]);
-
-  useEffect(() => {
     (async () => {
       await hasAndroidPermission();
       const rePowered = await BluetoothStateManager.getState();

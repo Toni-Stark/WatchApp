@@ -38,6 +38,13 @@ const defaultDevice = {
   },
   '-180': {}
 };
+const defaultData = {
+  '1': '',
+  '2': '',
+  '3': '',
+  '4': '',
+  '5': ''
+};
 
 export class BlueToothStore {
   readonly defaultLanguage: AppLanguageType = 'zh';
@@ -61,6 +68,7 @@ export class BlueToothStore {
   @observable listenDevices: any;
 
   @observable device: any = defaultDevice;
+  @observable deviceFormData: any = defaultData;
   @observable currentDevice: any = this.device;
   @observable logcatDetailed: any = {};
   @observable refreshing: boolean = false;
@@ -70,6 +78,11 @@ export class BlueToothStore {
   @observable isCheckHeart: boolean = false;
 
   @observable isRoot = RootEnum['初次进入'];
+  @observable userRootDevices = [];
+
+  @observable needRegPassword = false;
+  @observable noPasswordTips = false;
+
   constructor() {
     makeAutoObservable(this);
 
@@ -112,6 +125,8 @@ export class BlueToothStore {
     if (!this.devicesInfo?.id) {
       return;
     }
+    this.needRegPassword = false;
+    this.noPasswordTips = false;
     await this.manager.cancelDeviceConnection(this.devicesInfo.id);
     this.devicesInfo = undefined;
     this.manager = undefined;
@@ -131,7 +146,8 @@ export class BlueToothStore {
     await AsyncStorage.setItem(DEVICE_INFO, JSON.stringify(deviceInfo));
   }
   @action
-  async successDialog() {
+  async successDialog(pass?: string) {
+    this.deviceFormData = defaultData;
     this.refreshing = true;
     if (!this.devicesInfo?.id) {
       return;
@@ -142,7 +158,7 @@ export class BlueToothStore {
     };
     await this.clearDevice();
     await this.setDeviceStorage(this.devicesInfo);
-    await this.sendActiveMessage(passRegSign);
+    await this.sendActiveMessage(passRegSign(pass));
     await this.sendActiveMessage(allDataSign);
     await this.sendActiveMessage(batterySign);
     await this.sendActiveMessage(allDataSleep);
@@ -152,7 +168,6 @@ export class BlueToothStore {
   @action
   async sendActiveMessage(params) {
     let storeRes = regCutString(params.value);
-    console.log(storeRes);
     let buffer = Buffer.from(stringToByte(storeRes)).toString('base64');
     await this.devicesInfo.writeCharacteristicWithResponseForService(params.serviceUUID, params.uuid, buffer);
   }
@@ -172,8 +187,9 @@ export class BlueToothStore {
       this.listenDevices = this.devicesInfo.monitorCharacteristicForService(params.serviceUUID, params.uuid, (error, characteristic) => {
         if (error) return;
         let value = baseToHex(characteristic.value);
+        console.log(value);
         this.blueRootList = [...this.blueRootList, value];
-        let regValue = ['a1', 'a0', 'd1', 'd0', 'd8', '88', '80'].includes(value.slice(0, 2));
+        let regValue = ['a1', 'a0', 'd1', 'd0', 'd8', '88', '80', 'd2'].includes(value.slice(0, 2));
         if (regValue) {
           this.devicesModules(value);
         }
@@ -207,15 +223,21 @@ export class BlueToothStore {
 
   @action
   async devicesModules(val) {
-    console.log(val, 'logs-------------');
     let hex = parseInt(val.slice(0, 2), 16) - 256;
+    console.log(hex, 'logs-----logs');
     // if (!this.logcatDetailed[hex]) {
     //   this.logcatDetailed[hex] = '';
     // }
     // this.logcatDetailed[hex] += val + '\n';
     let params = {
       '-95': (e) => {
-        // console.log(e);
+        let reg = [0, '0'].includes(e.slice(0, -1));
+        if (this.needRegPassword && reg) {
+          this.noPasswordTips = true;
+        }
+        if (reg) {
+          this.needRegPassword = true;
+        }
         // let battery = e.match(/([\d\D]{2})/g);
         // return {
         //   power: parseInt(battery[4], 16)
@@ -253,14 +275,18 @@ export class BlueToothStore {
         let val2 = parseInt(prototype[12] + prototype[13], 16);
         list.intValue2.push(val1); //步数
         list.intValue3.push(val2); //运动量
+        this.deviceFormData['1'] += e + '\n';
         return list;
       },
       '-32': (e) => {
         let battery = e.match(/([\d\D]{2})/g);
         console.log(battery, 'battery');
+        this.deviceFormData['4'] += e + '\n';
       },
       '-120': (e) => {
+        console.log(e);
         let battery = e.match(/([\d\D]{2})/g);
+        this.deviceFormData['3'] += e + '\n';
         if (battery[12] !== '00' || battery[11] !== '00') {
           let byte = parseInt(battery[12] + battery[11], 16);
           return {
@@ -281,6 +307,10 @@ export class BlueToothStore {
         }
       }
     };
+    if (hex !== -95) {
+      this.needRegPassword = false;
+      this.noPasswordTips = false;
+    }
     this.device = { ...this.device, [hex]: params[hex](val) };
     return this.device;
   }
@@ -334,25 +364,91 @@ export class BlueToothStore {
   }
 
   /**
-   * get UserLogin
-   * url: /apic/watch/device/list
+   * get UserDeviceSetting
+   * url: /watch/device/list
    */
   @action
-  async userDeviceSetting(): Promise<any> {
-    const res: ApiResult = await Api.getInstance.post({
-      url: '/watch/device/list',
-      params: {},
-      withToken: false
+  async userDeviceSetting(bool): Promise<any> {
+    return new Promise(async (resolve, reject) => {
+      const res: ApiResult = await Api.getInstance.post({
+        url: '/watch/device/list',
+        params: {},
+        withToken: true
+      });
+      let data = res.data;
+      if (bool) {
+        if (res.code !== 200) {
+          return resolve({ msg: res.msg, success: false });
+        }
+        if (data.device_list.length <= 0) {
+          return resolve({ needBinding: true, name: this.devicesInfo.name });
+        }
+        if (!data.device_list.find((item) => item.device_mac === this.devicesInfo.id)) {
+          return resolve({ needBinding: true, name: this.devicesInfo.name });
+        }
+      }
+      if (!bool) {
+        return resolve({ success: true, data: data.device_list });
+      }
     });
-    if (res.code !== 200) {
-      return { msg: res.msg, success: false };
-    }
-    if (!res.data) {
-      return { needBinding: true };
-    }
-    if (!res.data.find((item) => item === this.devicesInfo.id)) {
-      return { needBinding: true };
-    }
+  }
+
+  /**
+   * get updateDeviceList
+   * url:
+   */
+  @action
+  async updateDeviceList(): Promise<any> {
+    let data = this.deviceFormData;
+    // if (data['1']) await this.updateDeviceData({ type: '1', value: data['1'] });
+    // if (data['2']) await this.updateDeviceData({ type: '2', value: data['2'] });
+    // if (data['3']) await this.updateDeviceData({ type: '3', value: data['3'] });
+    // if (data['4']) await this.updateDeviceData({ type: '4', value: data['4'] });
+    // if (data['5']) await this.updateDeviceData({ type: '5', value: data['5'] });
+  }
+
+  /**
+   * get updateDeviceData
+   * url: /watch/device/list
+   */
+  @action
+  async updateDeviceData(params): Promise<any> {
+    return new Promise(async (resolve, reject) => {
+      const res: ApiResult = await Api.getInstance.post({
+        url: '/watch/data/save',
+        params: {
+          type: params.type,
+          record_date: moment(new Date()).format('YYYY-MM-DD HH:mm'),
+          device_mac: this.devicesInfo.id,
+          raw_data: params.value
+        },
+        withToken: true
+      });
+      console.log(res.data, 'log--------');
+      return resolve(res);
+    });
+  }
+
+  /**
+   * get bindUserDevice
+   * url: /watch/device/binding
+   */
+  @action
+  async bindUserDevice(): Promise<any> {
+    return new Promise(async (resolve, reject) => {
+      const res: ApiResult = await Api.getInstance.post({
+        url: '/watch/device/binding',
+        params: {
+          device_mac: this.devicesInfo.id,
+          device_name: this.devicesInfo.name
+        },
+        withToken: true
+      });
+      if (res.code !== 200) {
+        return resolve({ msg: res.msg, success: false });
+      }
+      return resolve({ msg: '绑定成功', success: true });
+    });
   }
 
   @action

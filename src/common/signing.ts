@@ -83,7 +83,7 @@ export class CommonUtil {
   }
 
   // 登录初始化信息
-  public static getUtilHex() {
-    return this.getUtilByte('a1', '0000', 0, false);
+  public static getUtilHex(pass = '0000') {
+    return this.getUtilByte('a1', pass, 0, false);
   }
 }

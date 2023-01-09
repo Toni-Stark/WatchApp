@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import BaseView from '../../../component/BaseView';
 import { useStore } from '../../../store';
@@ -11,11 +11,31 @@ import { StackBar } from '../../../component/home/StackBar';
 
 export const WatchStyleSetting: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
-    const { settingStore } = useStore();
+    const { settingStore, blueToothStore } = useStore();
     const baseView = useRef<any>(undefined);
+    const [switchList, setSwitchList] = useState<any>([]);
 
-    const navigateToDevice = () => {
-      navigation.navigate('ClockDial', {});
+    useEffect(() => {
+      updateData();
+    }, []);
+
+    const updateData = async () => {
+      await blueToothStore.userDeviceSetting(false).then((res) => {
+        console.log(res, 'logs--matter---');
+        if (!res.success) {
+          baseView.current.showToast({ text: res.msg, delay: 2 });
+          return;
+        }
+        let data: any = [];
+        res.data.map((item, index) => {
+          data.push({ name: item.device_name, value: item.device_mac });
+        });
+        setSwitchList(data);
+      });
+    };
+
+    const navigateToDevice = (item) => {
+      // navigation.navigate('ClockDial', {});
     };
     const backScreen = () => {
       navigation.goBack();
@@ -29,23 +49,32 @@ export const WatchStyleSetting: ScreenComponent = observer(
         <ScrollView style={[tw.flex1, [{ marginBottom: 60 }]]}>
           <View style={styles.moduleView}>
             <Text style={styles.mainText}>我的设备</Text>
-            <TouchableOpacity onPress={navigateToDevice}>
-              <View style={styles.labelView}>
-                <View style={styles.startLabel}>
-                  <FastImage
-                    style={styles.labelIcon}
-                    source={require('../../../assets/home/style-setting/watch-icon.png')}
-                    resizeMode={FastImage.resizeMode.cover}
-                  />
-                  <Text style={styles.labelText}>表盘设置</Text>
-                </View>
-                <FastImage style={styles.deviceIcon} source={require('../../../assets/home/right-gray.png')} resizeMode={FastImage.resizeMode.cover} />
-              </View>
-            </TouchableOpacity>
+            {switchList.map((item, index) => {
+              return (
+                <TouchableOpacity
+                  key={item.value}
+                  onPress={() => {
+                    navigateToDevice(item);
+                  }}
+                >
+                  <View style={[styles.labelView, index === 0 && styles.labelTop, index === switchList.length - 1 && styles.labelBottom]}>
+                    <View style={styles.startLabel}>
+                      <FastImage
+                        style={styles.labelIcon}
+                        source={require('../../../assets/home/style-setting/watch-icon.png')}
+                        resizeMode={FastImage.resizeMode.cover}
+                      />
+                      <Text style={styles.labelText}>{item.name}</Text>
+                    </View>
+                    {/*<FastImage style={styles.deviceIcon} source={require('../../../assets/home/right-gray.png')} resizeMode={FastImage.resizeMode.cover} />*/}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </ScrollView>
       );
-    }, [settingStore.loading]);
+    }, [settingStore.loading, switchList]);
 
     return (
       <BaseView ref={baseView} style={[tw.flex1, [{ backgroundColor: 'blue' }]]}>
@@ -70,14 +99,20 @@ const styles = StyleSheet.create({
   },
   labelView: {
     alignItems: 'center',
-    borderBottomWidth: 1,
-    borderColor: '#e3e3e3',
-    borderStyle: 'solid',
-    borderTopWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 10,
     paddingVertical: 15
+  },
+  labelTop: {
+    borderColor: '#e3e3e3',
+    borderStyle: 'solid',
+    borderTopWidth: 1
+  },
+  labelBottom: {
+    borderBottomWidth: 1,
+    borderColor: '#e3e3e3',
+    borderStyle: 'solid'
   },
   startLabel: {
     alignItems: 'center',

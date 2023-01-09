@@ -20,13 +20,13 @@ export const StackBar = (props) => {
         ) : (
           <Text style={styles.title}>{props.title}</Text>
         )}
-        {!props?.noTitle ? (
-          <TouchableOpacity onPress={props.onHelp}>
-            <Text style={styles.label}>帮助</Text>
-          </TouchableOpacity>
-        ) : (
-          <View />
-        )}
+        {/*{!props?.noTitle ? (*/}
+        {/*  <TouchableOpacity onPress={props.onHelp}>*/}
+        {/*    <Text style={styles.label}>帮助</Text>*/}
+        {/*  </TouchableOpacity>*/}
+        {/*) : (*/}
+        <View style={styles.labelView} />
+        {/*)}*/}
       </View>
     </>
   );
@@ -60,6 +60,9 @@ const styles = StyleSheet.create({
   label: {
     color: '#ffffff',
     fontSize: 14
+  },
+  labelView: {
+    width: 25
   },
   logo: {
     height: 28,

@@ -36,5 +36,5 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderStyle: 'solid'
   },
-  textStyle: { color: '#ffffff', fontSize: 17, fontWeight: 'bold' }
+  textStyle: { color: '#ffffff', fontSize: 17, fontWeight: 'bold', height: 43, lineHeight: 43 }
 });

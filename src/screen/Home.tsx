@@ -11,14 +11,16 @@ import BluetoothStateManager from 'react-native-bluetooth-state-manager';
 import { arrCount, eventTimes, hasAndroidPermission } from '../common/tools';
 import { Hexagon } from '../component/home/Hexagon';
 import AsyncStorage from '@react-native-community/async-storage';
-import { DEVICE_DATA, DEVICE_INFO } from '../common/constants';
+import { DEVICE_DATA, DEVICE_INFO, TOKEN_NAME, USER_CONFIG } from '../common/constants';
 import Spinkit from 'react-native-spinkit';
 import { RootEnum } from '../common/sign-module';
 import moment from 'moment';
 import BackgroundFetch from 'react-native-background-fetch';
 import { CirCleView } from '../component/home/CirCleView';
 import LinearGradient from 'react-native-linear-gradient';
-import { mainListen } from '../common/watch-module';
+import { allDataSleep, batterySign, bloodData, mainListen } from '../common/watch-module';
+import { PortalDialog } from '../component/home/PortalDialog';
+import { PasswordDialog } from '../component/home/PasswordDialog';
 
 let type = 0;
 export const Home: ScreenComponent = observer(
@@ -46,7 +48,7 @@ export const Home: ScreenComponent = observer(
         value: '0',
         cap: '小时',
         fun: async () => {
-          await jumpToMiniProgram();
+          await blueToothStore.sendActiveMessage(allDataSleep);
         }
       },
       {
@@ -82,7 +84,8 @@ export const Home: ScreenComponent = observer(
         cap: '',
         // fun: () => blueToothStore.checkBlO2()
         fun: async () => {
-          await naviToCommon('BloodTest');
+          // await naviToCommon('BloodTest');
+          await blueToothStore.sendActiveMessage(bloodData);
         }
       },
       {
@@ -105,7 +108,10 @@ export const Home: ScreenComponent = observer(
       stopOnTerminate: false,
       startOnBoot: true
     }); // 默认后台运行配置项
-    const [refreshing, setRefreshing] = React.useState(false);
+    const [refreshing, setRefreshing] = useState(false);
+    const [visDialog, setVisDialog] = useState(false);
+    const [visContext, setVisContext] = useState('');
+    const [password, setPassword] = useState('');
 
     useEffect(() => {
       (async () => {
@@ -129,10 +135,45 @@ export const Home: ScreenComponent = observer(
         let bool = [RootEnum['初次进入'], RootEnum['连接中']].includes(blueToothStore.isRoot);
         if (blueToothStore?.devicesInfo && bool) {
           eventTimes(() => blueToothStore.successDialog(), 1000);
-          // await blueToothStore.listenActiveMessage(mainListen);
+          await blueToothStore.listenActiveMessage(mainListen);
+          blueToothStore.userDeviceSetting(true).then((res) => {
+            if (res.needBinding) {
+              setVisContext(`绑定设备： ${res.name}`);
+              setVisDialog(true);
+            }
+          });
         }
       })();
     }, [blueToothStore?.devicesInfo, AsyncStorage, blueToothStore.isRoot]);
+
+    useEffect(() => {
+      if (blueToothStore.noPasswordTips && blueToothStore.needRegPassword) {
+        baseView.current.showToast({ text: '设备密码错误', delay: 2 });
+        setPassword('');
+      }
+    }, [blueToothStore.noPasswordTips]);
+
+    const openApi = async () => {
+      await blueToothStore.bindUserDevice().then((res) => {
+        baseView.current.showToast({ text: res.msg, delay: 2 });
+      });
+      setVisDialog(false);
+    };
+    const delayApi = () => {
+      setVisDialog(false);
+    };
+    const passApi = async () => {
+      if (password.trim().length <= 0) {
+        return baseView.current.showToast({ text: '请验证设备密码', delay: 2 });
+      }
+      await blueToothStore.successDialog(password);
+    };
+    const dissApi = async () => {
+      console.log(234);
+    };
+    const bindTextInput = (text) => {
+      setPassword(text);
+    };
 
     const setBackgroundServer = async () => {
       if (hasBack) return;
@@ -207,9 +248,6 @@ export const Home: ScreenComponent = observer(
       eventTimes(() => {
         setTarget(102);
         currentSetContentList(blueToothStore.currentDevice);
-        blueToothStore.userDeviceSetting().then((res) => {
-          console.log(res);
-        });
       }, 500);
     }, [blueToothStore.currentDevice]);
 
@@ -242,6 +280,7 @@ export const Home: ScreenComponent = observer(
       let circle = list[0].value < 9000 ? 102 - Math.ceil((list[0].value / 9000) * 102) : 102;
       setTarget(circle);
       await AsyncStorage.setItem(DEVICE_DATA, JSON.stringify(device));
+      await blueToothStore.updateDeviceList();
     };
 
     const blueToothDetail = useCallback(async () => {
@@ -268,9 +307,17 @@ export const Home: ScreenComponent = observer(
       await blueToothStore.successDialog().then(() => setRefreshing(false));
     }, []);
 
+    const closeBlueTooth = async () => {
+      blueToothStore.isRoot = RootEnum['断开连接'];
+      await AsyncStorage.removeItem(DEVICE_INFO);
+      await setTimeout(async () => {
+        await blueToothStore.closeDevices();
+      }, 1000);
+    };
+
     const currentDeviceView = useMemo(() => {
       let isTrue = blueToothStore.currentDevice['-96']?.power || 0;
-      if (false && blueToothStore.refreshing) {
+      if (blueToothStore.refreshing) {
         return (
           <TouchableOpacity style={styles.modalModule} onPress={blueToothDetail}>
             <View style={[tw.flexRow, tw.itemsCenter, tw.justifyAround, tw.p2, tw.flex1]}>
@@ -282,7 +329,7 @@ export const Home: ScreenComponent = observer(
           </TouchableOpacity>
         );
       }
-      if (true || !blueToothStore.devicesInfo) {
+      if (!blueToothStore.devicesInfo) {
         return (
           <TouchableOpacity style={styles.cardStart} onPress={blueToothDetail}>
             <Text style={styles.tipText}>暂未绑定设备</Text>
@@ -294,18 +341,23 @@ export const Home: ScreenComponent = observer(
       }
       return (
         <View style={styles.deviceStart}>
-          <Text style={styles.tipText}>设备名称: F22R</Text>
-          <View style={styles.deviceView}>
-            <Text style={styles.deviceText}>电量</Text>
-            <View style={styles.battery}>
-              {[1, 2, 3, 4].map((item) => (
-                <View
-                  style={[styles.batteryContent, [{ backgroundColor: item <= isTrue ? '#ffffff' : '' }]]}
-                  key={Math.ceil(Math.random() * 10000).toString()}
-                />
-              ))}
+          <View style={styles.deviceBanner}>
+            <Text style={styles.tipText}>设备名称: {blueToothStore.devicesInfo.name}</Text>
+            <View style={styles.deviceView}>
+              <Text style={styles.deviceText}>电量</Text>
+              <View style={styles.battery}>
+                {[1, 2, 3, 4].map((item) => (
+                  <View
+                    style={[styles.batteryContent, [{ backgroundColor: item <= isTrue ? '#ffffff' : '' }]]}
+                    key={Math.ceil(Math.random() * 10000).toString()}
+                  />
+                ))}
+              </View>
             </View>
           </View>
+          <TouchableOpacity style={styles.contextView} onPress={closeBlueTooth}>
+            <Text style={styles.deviceContext}>断开连接</Text>
+          </TouchableOpacity>
         </View>
       );
     }, [blueToothDetail, blueToothStore.devicesInfo, blueToothStore.refreshInfo.deviceID, blueToothStore.refreshing]);
@@ -314,11 +366,12 @@ export const Home: ScreenComponent = observer(
       return (
         <View style={styles.card}>
           <LinearGradient
-            colors={['#0078FF', '#0081FF', '#005eff', '#0090ff', '#008EFF']}
+            // colors={['#0078FF', '#0081FF', '#005eff', '#0090ff', '#008EFF']}
+            colors={['#00bac4', '#06d1dc', '#00dbe5', '#00D1DE']}
             style={styles.cardLinear}
             start={{ x: 0.0, y: 0.25 }}
             end={{ x: 0.5, y: 1.0 }}
-            locations={[0.3, 0.5, 0.2, 0.2, 0.1]}
+            locations={[0.2, 0.7, 0.5, 0.2]}
           >
             <View style={styles.headerStart}>
               <View style={styles.imageView}>
@@ -335,46 +388,6 @@ export const Home: ScreenComponent = observer(
         </View>
       );
     }, [blueToothDetail, blueToothStore.devicesInfo, openBlueTooth, blueToothStore.currentDevice, blueToothStore.refreshInfo, blueToothStore.refreshing]);
-    const currentDevice = useMemo(() => {
-      let isTrue = blueToothStore.currentDevice['-96']?.power || 0;
-      if (blueToothStore.devicesInfo) {
-        return (
-          <TouchableOpacity style={styles.linkModule} onPress={openBlueTooth}>
-            <View style={[tw.flexRow, tw.itemsCenter, tw.justifyBetween, tw.p2, tw.flex1]}>
-              <View style={[tw.flexRow, tw.itemsCenter]}>
-                <FastImage style={styles.imageIcon} source={require('../assets/home/device.png')} />
-                <Text style={[styles.labelColor, styles.labelData]}>{blueToothStore.devicesInfo.name}</Text>
-                <View style={styles.battery}>
-                  {[1, 2, 3, 4].map((item) => (
-                    <View
-                      style={[styles.batteryContent, [{ backgroundColor: item <= isTrue ? '#ffffff' : '' }]]}
-                      key={Math.ceil(Math.random() * 10000).toString()}
-                    />
-                  ))}
-                </View>
-              </View>
-              <View style={styles.labelView}>
-                <Text style={[styles.labelColor, styles.labelText]}>更多操作</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-        );
-      }
-      return (
-        <TouchableOpacity style={styles.linkStatus} onPress={blueToothDetail}>
-          <View style={[tw.flexRow, tw.itemsCenter, tw.justifyBetween, tw.p2, tw.flex1]}>
-            <View style={[tw.flexRow, tw.itemsCenter]}>
-              <FastImage style={styles.imageIcon} source={require('../assets/home/device.png')} />
-              <Text style={[styles.labelColor, styles.labelData]}>设备未连接</Text>
-            </View>
-            <View style={[tw.flexRow, tw.itemsCenter]}>
-              <Text style={[styles.labelColor, styles.labelData]}>点击连接设备</Text>
-              <FastImage style={styles.imageIcon} source={require('../assets/home/right.png')} />
-            </View>
-          </View>
-        </TouchableOpacity>
-      );
-    }, [blueToothDetail, blueToothStore.devicesInfo, openBlueTooth, blueToothStore.currentDevice, blueToothStore.refreshInfo, blueToothStore.refreshing]);
 
     const currentResult = useMemo(() => {
       return (
@@ -386,7 +399,12 @@ export const Home: ScreenComponent = observer(
                 <TouchableOpacity
                   key={Math.ceil(Math.random() * 1000000).toString()}
                   style={[styles.tableItem]}
-                  onPress={() => {
+                  onPress={async () => {
+                    // await AsyncStorage.removeItem(TOKEN_NAME);
+                    // let data = await AsyncStorage.getItem(USER_CONFIG);
+                    // console.log(data, '123345');
+                    // await blueToothStore.userDeviceSetting();
+                    // return;
                     if (!blueToothStore.refreshing && blueToothStore.devicesInfo) {
                       return item.fun && item.fun();
                     }
@@ -444,30 +462,18 @@ export const Home: ScreenComponent = observer(
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           contentContainerStyle={[tw.flex1, [{ backgroundColor: '#f2f2f2', marginBottom: 60 }]]}
         >
-          {/*<View style={styles.header}>*/}
-          {/*  <CirCleView target={target} />*/}
-          {/*  <View style={{ position: 'absolute' }}>*/}
-          {/*    <View>*/}
-          {/*      <Text style={styles.mainTitle}>{contentList[0].value}</Text>*/}
-          {/*      <Text style={styles.evalTitle}>步</Text>*/}
-          {/*    </View>*/}
-          {/*    <View style={styles.footerText}>*/}
-          {/*      <Text style={styles.mainTitle}>0.0</Text>*/}
-          {/*      <Text style={styles.evalTitle}>小时</Text>*/}
-          {/*    </View>*/}
-          {/*  </View>*/}
-          {/*</View>*/}
           {currentDeviceBanner}
-          {/*{currentDevice}*/}
           {currentResult}
         </ScrollView>
       );
-    }, [refreshing, onRefresh, target, contentList, currentDevice, currentResult]);
+    }, [refreshing, onRefresh, target, contentList, currentResult]);
 
     return (
       <BaseView ref={baseView} style={[tw.flex1]}>
         <HeaderBar openLayout={() => updateMenuState()} />
         {renderContext}
+        <PortalDialog visible={visDialog} open={openApi} delay={delayApi} context={visContext} />
+        <PasswordDialog visible={blueToothStore.needRegPassword} open={passApi} input={bindTextInput} />
       </BaseView>
     );
   }
@@ -503,31 +509,9 @@ const styles = StyleSheet.create({
     height: '100%',
     marginLeft: 1
   },
-  cap: {
-    fontSize: 12
-  },
-  card: {
-    height: 200,
-    margin: 10
-  },
-  cardLinear: {
-    flex: 1,
-    borderRadius: 15,
-    padding: 20
-  },
-  cardDevicesView: {
-    flexDirection: 'row',
-    flex: 1,
-    alignItems: 'center'
-  },
-  cardStart: {
-    paddingTop: 20,
-    alignItems: 'flex-start'
-  },
-  tipText: {
-    color: color3,
-    fontSize: 17,
-    fontWeight: 'bold'
+  btnText: {
+    color: color1,
+    fontSize: 17
   },
   btnView: {
     alignItems: 'center',
@@ -538,9 +522,53 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 6
   },
-  btnText: {
-    color: '#0078FF',
-    fontSize: 17
+  cap: {
+    fontSize: 12
+  },
+  card: {
+    height: 200,
+    margin: 10
+  },
+  cardDevicesView: {
+    flexDirection: 'row',
+    flex: 1,
+    alignItems: 'center'
+  },
+  cardLinear: {
+    borderRadius: 15,
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20
+  },
+  cardStart: {
+    alignItems: 'flex-start',
+    flex: 1,
+    paddingTop: 20
+  },
+  deviceBanner: {
+    flex: 1
+  },
+  deviceStart: {
+    flexDirection: 'row',
+    marginTop: 40
+  },
+  contextView: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center'
+  },
+  deviceContext: {
+    color: '#ffffff'
+  },
+  deviceText: {
+    color: color3,
+    fontSize: 15,
+    marginRight: 6
+  },
+  deviceView: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    paddingVertical: 10
   },
   endTitle: {
     color: color7,
@@ -624,9 +652,6 @@ const styles = StyleSheet.create({
     height: 50,
     width: '100%'
   },
-  modalModule: {
-    flex: 1
-  },
   linkStatus: {
     backgroundColor: color9,
     height: 50,
@@ -640,6 +665,9 @@ const styles = StyleSheet.create({
     fontFamily: 'SimpleLineIcons',
     fontSize: 35,
     textAlign: 'center'
+  },
+  modalModule: {
+    flex: 1
   },
   resultText: {
     fontSize: 18
@@ -696,6 +724,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     paddingVertical: 10
   },
+  tipText: {
+    color: color3,
+    fontSize: 17,
+    fontWeight: 'bold'
+  },
   triangle: {
     borderColor: color11,
     borderStyle: 'solid',
@@ -709,18 +742,5 @@ const styles = StyleSheet.create({
   userName: {
     color: color3,
     fontSize: 18
-  },
-  deviceView: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    paddingVertical: 10
-  },
-  deviceText: {
-    color: color3,
-    marginRight: 6,
-    fontSize: 15
-  },
-  deviceStart: {
-    marginTop: 40
   }
 });

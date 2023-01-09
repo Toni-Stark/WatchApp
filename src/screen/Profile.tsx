@@ -21,7 +21,8 @@ export const Profile: ScreenComponent = observer(
     }, [settingStore]);
 
     const goLogin = () => {
-      navigation.navigate('OnePassLogin', {});
+      // navigation.navigate('OnePassLogin', {});
+      navigation.navigate('UserInfo', {});
     };
     const navigateToDevice = () => {
       navigation.navigate('WatchStyleSetting', {});
@@ -52,17 +53,17 @@ export const Profile: ScreenComponent = observer(
                     <View style={styles.icons}>
                       <Text style={styles.iconText}>已认证</Text>
                     </View>
-                    <View style={styles.icons}>
-                      <Text style={styles.iconText}>桐君阁药房</Text>
-                    </View>
+                    {/*<View style={styles.icons}>*/}
+                    {/*  <Text style={styles.iconText}>桐君阁药房</Text>*/}
+                    {/*</View>*/}
                   </View>
                 </View>
               </TouchableOpacity>
             </View>
-            <View style={styles.deviceLabel}>
-              <Text style={[styles.deviceText]}>设备绑定</Text>
-              <FastImage style={styles.deviceIcon} source={require('../assets/home/right.png')} resizeMode={FastImage.resizeMode.cover} />
-            </View>
+            {/*<View style={styles.deviceLabel}>*/}
+            {/*  <Text style={[styles.deviceText]}>设备绑定</Text>*/}
+            {/*  <FastImage style={styles.deviceIcon} source={require('../assets/home/right.png')} resizeMode={FastImage.resizeMode.cover} />*/}
+            {/*</View>*/}
           </View>
           <View style={styles.context}>
             <View style={styles.moduleView}>
