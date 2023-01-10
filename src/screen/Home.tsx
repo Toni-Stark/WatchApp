@@ -8,7 +8,7 @@ import { observer } from 'mobx-react-lite';
 import { HeaderBar } from '../component/home/HeaderBar';
 import FastImage from 'react-native-fast-image';
 import BluetoothStateManager from 'react-native-bluetooth-state-manager';
-import { arrCount, eventTimes, hasAndroidPermission } from '../common/tools';
+import { arrCount, arrToByte, eventTimes, getMinTen, hasAndroidPermission } from '../common/tools';
 import { Hexagon } from '../component/home/Hexagon';
 import AsyncStorage from '@react-native-community/async-storage';
 import { DEVICE_DATA, DEVICE_INFO, TOKEN_NAME, USER_CONFIG } from '../common/constants';
@@ -16,9 +16,8 @@ import Spinkit from 'react-native-spinkit';
 import { RootEnum } from '../common/sign-module';
 import moment from 'moment';
 import BackgroundFetch from 'react-native-background-fetch';
-import { CirCleView } from '../component/home/CirCleView';
 import LinearGradient from 'react-native-linear-gradient';
-import { allDataSleep, batterySign, bloodData, mainListen } from '../common/watch-module';
+import { allDataSleep, batterySign, bloodData, mainListen, O2Data } from '../common/watch-module';
 import { PortalDialog } from '../component/home/PortalDialog';
 import { PasswordDialog } from '../component/home/PasswordDialog';
 
@@ -31,22 +30,24 @@ export const Home: ScreenComponent = observer(
     const [contentList, setContentList] = useState<any>([
       {
         title: '运动',
-        evalTitle: '最大步数',
+        evalTitle: '今日步数',
         colors: ['#F2F8FF', '#F7FCFF', '#FAFCFF'],
         image: require('../assets/home/footer.png'),
         value: '0',
-        cap: '',
+        cap: '步',
+        time: ' ',
         fun: async () => {
           await jumpToMiniProgram();
         }
       },
       {
         title: '睡眠',
-        evalTitle: '最长睡眠',
+        evalTitle: '昨晚睡眠时长',
         colors: ['#E7FBFC', '#ECFBFB', '#F4FEFF'],
         image: require('../assets/home/sleep.png'),
         value: '0',
-        cap: '小时',
+        cap: '',
+        time: ' ',
         fun: async () => {
           await blueToothStore.sendActiveMessage(allDataSleep);
         }
@@ -178,6 +179,7 @@ export const Home: ScreenComponent = observer(
     const setBackgroundServer = async () => {
       if (hasBack) return;
       AppState.addEventListener('change', async (e) => {
+        console.log('state', e);
         if (!blueToothStore.devicesInfo?.id) return;
         if (e === 'background') {
           await setHasBack(true);
@@ -203,9 +205,13 @@ export const Home: ScreenComponent = observer(
     const addEvent = (taskId) => {
       // 用Promise模拟长时间的任务
       return new Promise((resolve, reject) => {
-        blueToothStore.successDialog().then(() => {
+        console.log(blueToothStore.currentDevice, moment(new Date()).format('YYYY-MM-DD hh:mm'));
+        blueToothStore.getMsgUpload(mainListen).then(() => {
           resolve();
         });
+        // blueToothStore.userDeviceSetting(false).then((res) => {
+        //   console.log(res, '-----------------logs');
+        // });
       });
     };
 
@@ -213,10 +219,11 @@ export const Home: ScreenComponent = observer(
       type = 1;
       console.log('初始化后台任务', moment(new Date()).format('YYYY-MM-DD HH:mm:ss'));
       try {
+        // await blueToothStore.manager.cancelDeviceConnection(blueToothStore.devicesInfo.id);
         await BackgroundFetch.configure(
           configureOptions,
           async (taskId) => {
-            console.log('添加后台任务', taskId, moment(new Date()).format('YYYY-MM-DD HH:mm:ss'));
+            // await blueToothStore.listenActiveMessage(mainListen);
             await addEvent(taskId);
             BackgroundFetch.finish(taskId);
           },
@@ -276,11 +283,32 @@ export const Home: ScreenComponent = observer(
           list[5].value = temperature.toFixed(2);
         }
       }
+      if (device['-32']) {
+        let data = device['-32'];
+        if (!data['05']) {
+          return;
+        }
+        let five = arrToByte(data['05'].toString().split(','), true);
+        if (data) {
+          let startTime = `${getMinTen(five[5])}-${getMinTen(five[6])} ${getMinTen(five[7])}:${getMinTen(five[8])}`;
+          let endTime = `${getMinTen(five[9])}-${getMinTen(five[10])} ${getMinTen(five[11])}:${getMinTen(five[12])}`;
+          // return {
+          //   deepSleep: data['02']['12'],
+          //   startTime: startTime,
+          //   endTime: endTime
+          // };
+          const date1 = moment(startTime, 'MM-DD hh:mm');
+          const date2 = moment(endTime, 'MM-DD hh:mm');
+          let time = date2.diff(date1, 'minute');
+          const h = Math.floor(time / 60);
+          const mm = time % 60;
+          list[1].value = `${h}小时${mm}分钟`;
+        }
+      }
       setContentList([...list]);
       let circle = list[0].value < 9000 ? 102 - Math.ceil((list[0].value / 9000) * 102) : 102;
       setTarget(circle);
       await AsyncStorage.setItem(DEVICE_DATA, JSON.stringify(device));
-      await blueToothStore.updateDeviceList();
     };
 
     const blueToothDetail = useCallback(async () => {
@@ -322,8 +350,8 @@ export const Home: ScreenComponent = observer(
           <TouchableOpacity style={styles.modalModule} onPress={blueToothDetail}>
             <View style={[tw.flexRow, tw.itemsCenter, tw.justifyAround, tw.p2, tw.flex1]}>
               <Spinkit type="Circle" size={30} color="white" />
-              <View style={[tw.flexRow, tw.itemsCenter]}>
-                <Text style={[styles.labelColor, styles.labelRe]}>搜索设备: {blueToothStore.refreshInfo.deviceID}</Text>
+              <View style={styles.loadingView}>
+                <Text style={[styles.labelColor, styles.labelRe]}>搜索设备: {blueToothStore.refreshInfo.name}</Text>
               </View>
             </View>
           </TouchableOpacity>
@@ -742,5 +770,9 @@ const styles = StyleSheet.create({
   userName: {
     color: color3,
     fontSize: 18
+  },
+  loadingView: {
+    flex: 1,
+    paddingHorizontal: 20
   }
 });

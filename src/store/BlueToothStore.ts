@@ -8,20 +8,9 @@ import { darkTheme, theme } from '../common/theme';
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
 import moment from 'moment';
-import {
-  allDataC,
-  allDataHeartEnd,
-  allDataHeartStart,
-  allDataSign,
-  allDataSleep,
-  batterySign,
-  bloodData,
-  mainListen,
-  passRegSign
-} from '../common/watch-module';
+import { allDataC, allDataHeartEnd, allDataHeartStart, allDataSign, allDataSleep, batterySign, mainListen, passRegSign } from '../common/watch-module';
 import { RootEnum } from '../common/sign-module';
-import { RSJournalStore } from './RSJournalStore';
-import { Api, ApiResult, ErrorLog } from '../common/api';
+import { Api, ApiResult } from '../common/api';
 
 export type AppColorModeType = 'light' | 'dark' | 'system';
 export type AppLanguageType = 'zh' | 'en' | 'system';
@@ -36,7 +25,8 @@ const defaultDevice = {
     intValue2: [],
     intValue3: []
   },
-  '-180': {}
+  '-180': {},
+  '-32': {}
 };
 const defaultData = {
   '1': '',
@@ -82,6 +72,8 @@ export class BlueToothStore {
 
   @observable needRegPassword = false;
   @observable noPasswordTips = false;
+
+  @observable timerTimes = 0;
 
   constructor() {
     makeAutoObservable(this);
@@ -135,12 +127,24 @@ export class BlueToothStore {
     this.refreshing = false;
     this.refreshInfo = {};
     this.manager = new BleManager();
+    this.deviceFormData = defaultData;
+  }
+
+  @action
+  async getMsgUpload(params) {
+    try {
+      this.timerTimes = 0;
+      await this.sendActiveMessage(allDataSleep);
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   @action
   async setDeviceStorage(devices) {
     let deviceInfo = {
       deviceID: devices.id,
+      name: devices.name,
       time: moment(new Date()).format('YYYY-MM-DD')
     };
     await AsyncStorage.setItem(DEVICE_INFO, JSON.stringify(deviceInfo));
@@ -184,16 +188,19 @@ export class BlueToothStore {
       // if (this.listenDevices) {
       //   this.listenDevices?.remove();
       // }
+      let timer: any = null;
       this.listenDevices = this.devicesInfo.monitorCharacteristicForService(params.serviceUUID, params.uuid, (error, characteristic) => {
         if (error) return;
         let value = baseToHex(characteristic.value);
-        console.log(value);
         this.blueRootList = [...this.blueRootList, value];
-        let regValue = ['a1', 'a0', 'd1', 'd0', 'd8', '88', '80', 'd2'].includes(value.slice(0, 2));
+        let regValue = ['a1', 'a0', 'd1', 'd0', 'd8', '88', '80', 'd2', 'e0'].includes(value.slice(0, 2));
         if (regValue) {
           this.devicesModules(value);
         }
-        eventTimes(() => {
+        this.timerTimes += 1;
+        clearTimeout(timer);
+        timer = null;
+        timer = setTimeout(() => {
           this.setBasicInfo();
         }, 1000);
       });
@@ -206,25 +213,19 @@ export class BlueToothStore {
   async setBasicInfo() {
     this.refreshing = false;
     this.currentDevice = { ...this.device };
+    await this.updateDeviceList();
     // RSJournalStore.writeDataCache(this.logcatDetailed);
   }
 
   @action
   async getDescriptorsForDeviceInfo(params) {
     const { data } = params;
-    const result = await this.manager.descriptorsForDevice(data.deviceID, data.serviceUUID, data.uuid);
-    this.blueRootInfo = {
-      deviceID: 'EF:39:16:32:92:F7',
-      serviceUUID: 'F0080001-0451-4000-B000-000000000000',
-      characteristicUUID: 'f0080002-0451-4000-b000-000000000000',
-      uuid: '00002902-0000-1000-8000-00805f9b34fb'
-    };
+    await this.manager.descriptorsForDevice(data.deviceID, data.serviceUUID, data.uuid);
   }
 
   @action
   async devicesModules(val) {
     let hex = parseInt(val.slice(0, 2), 16) - 256;
-    console.log(hex, 'logs-----logs');
     // if (!this.logcatDetailed[hex]) {
     //   this.logcatDetailed[hex] = '';
     // }
@@ -260,10 +261,9 @@ export class BlueToothStore {
         // let i7 = byte2HexToIntArr[9]; = 00
         if (parseInt(message[14]) > 30) {
           list.i8.push(message[14]); //心率
-          list.xinlvTime.push(`${message[5]}:${message[19]}`); //心率记录时间
+          list.xinlvTime.push(`${getMinTen(message[5])}:${getMinTen(message[19])}`); //心率记录时间
         }
         if (message[15] && message[16]) {
-          // console.log(message[15], message[16], message[5], message[19], '数据');
           message[15] && list.i9.push(message[15]); //血压高
           message[16] && list.i10.push(message[16]); //血压低
           list.xueyaTime.push(`${getMinTen(message[5])}:${getMinTen(message[19])}`); //血压低
@@ -280,14 +280,19 @@ export class BlueToothStore {
       },
       '-32': (e) => {
         let battery = e.match(/([\d\D]{2})/g);
-        console.log(battery, 'battery');
-        this.deviceFormData['4'] += e + '\n';
+        let data: any = this.device[hex] || {};
+        data[battery[1]] = battery;
+        this.deviceFormData['2'] += e + '\n';
+        return data;
       },
       '-120': (e) => {
-        console.log(e);
         let battery = e.match(/([\d\D]{2})/g);
         this.deviceFormData['3'] += e + '\n';
-        if (battery[12] !== '00' || battery[11] !== '00') {
+        if (battery[12] === '00' || battery[11] === '00') {
+          return {
+            temperature: this.device['-120']?.temperature
+          };
+        } else {
           let byte = parseInt(battery[12] + battery[11], 16);
           return {
             temperature: byte / 10
@@ -295,7 +300,7 @@ export class BlueToothStore {
         }
       },
       '-46': (e) => {
-        console.log(e, '血氧数据');
+        // console.log(e, '血氧数据');
       },
       '-48': (e) => {
         let battery = e.match(/([\d\D]{2})/g);
@@ -399,12 +404,13 @@ export class BlueToothStore {
    */
   @action
   async updateDeviceList(): Promise<any> {
+    console.log(this.deviceFormData['-32']);
     let data = this.deviceFormData;
-    // if (data['1']) await this.updateDeviceData({ type: '1', value: data['1'] });
-    // if (data['2']) await this.updateDeviceData({ type: '2', value: data['2'] });
-    // if (data['3']) await this.updateDeviceData({ type: '3', value: data['3'] });
-    // if (data['4']) await this.updateDeviceData({ type: '4', value: data['4'] });
-    // if (data['5']) await this.updateDeviceData({ type: '5', value: data['5'] });
+    if (data['1']) await this.updateDeviceData({ type: '1', value: data['1'] });
+    if (data['2']) await this.updateDeviceData({ type: '2', value: data['2'] });
+    if (data['3']) await this.updateDeviceData({ type: '3', value: data['3'] });
+    if (data['4']) await this.updateDeviceData({ type: '4', value: data['4'] });
+    if (data['5']) await this.updateDeviceData({ type: '5', value: data['5'] });
   }
 
   /**
@@ -424,7 +430,6 @@ export class BlueToothStore {
         },
         withToken: true
       });
-      console.log(res.data, 'log--------');
       return resolve(res);
     });
   }

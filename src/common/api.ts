@@ -47,7 +47,7 @@ export class Api {
   }
   static instance: Api;
   readonly _api: ApisauceInstance;
-  readonly timeout: number = 10000;
+  readonly timeout: number = 5000;
   navigation: StackNavigationProp<any> | undefined;
 
   constructor() {
@@ -71,6 +71,7 @@ export class Api {
   public timer: any;
 
   private async redirectToLoginScreen() {
+    console.log(this.navigation, 'add');
     // console.log('2-token无效');
     if (this.navigation !== undefined) {
       while (this.navigation.canGoBack()) {
@@ -176,7 +177,7 @@ export class Api {
 
   private async RestfulOperate(operate: RestfulOperateType, url: string, params: any, withToken: boolean, multipart: boolean): Promise<ApiResult> {
     const isAuthFailed = (message: string) => {
-      return message.includes('toke') || message.includes('令牌校验失败');
+      return message.includes('401');
     };
     const token = await UserStore.getToken();
     let response: ApiResponse<any>;
@@ -218,7 +219,8 @@ export class Api {
       default:
         return { code: 500, msg: '消息格式错误', data: null, success: false, timestamp: Api.getTimeStamp() };
     }
-    if (response.data?.msg !== undefined && isAuthFailed(response.data.msg)) {
+    console.log(response.data, 'responseData');
+    if (response.data?.msg !== undefined && isAuthFailed(response.data.code.toString())) {
       const messageToUser = t('message.loginFailed');
       console.log(messageToUser, '1-登录状态有问题');
       if (withToken) {
