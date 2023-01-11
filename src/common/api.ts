@@ -71,18 +71,11 @@ export class Api {
   public timer: any;
 
   private async redirectToLoginScreen() {
-    console.log(this.navigation, 'add');
-    // console.log('2-token无效');
     if (this.navigation !== undefined) {
       while (this.navigation.canGoBack()) {
         this.navigation.goBack();
       }
-      // this.timer = setTimeout(() => {
-      //   if (this.timer) {
       this.navigation.navigate('WeChatOnePassLogin');
-      // }
-      // clearTimeout(this.timer);
-      // }, 200);
     }
   }
 
@@ -219,8 +212,9 @@ export class Api {
       default:
         return { code: 500, msg: '消息格式错误', data: null, success: false, timestamp: Api.getTimeStamp() };
     }
-    console.log(response.data, 'responseData');
+    console.log(response.data, '返回页面数据');
     if (response.data?.msg !== undefined && isAuthFailed(response.data.code.toString())) {
+      console.log('登录状态有问题');
       const messageToUser = t('message.loginFailed');
       console.log(messageToUser, '1-登录状态有问题');
       if (withToken) {

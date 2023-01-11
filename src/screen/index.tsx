@@ -19,7 +19,6 @@ import { Profile } from './Profile';
 const BottomIconSize = 22;
 const RootStack = createStackNavigator();
 const BottomTabStack = createMaterialBottomTabNavigator();
-export const TopTabStack = createMaterialTopTabNavigator();
 const MainStack = createStackNavigator<ScreensParamList>();
 
 const BottomTabs = observer(() => {

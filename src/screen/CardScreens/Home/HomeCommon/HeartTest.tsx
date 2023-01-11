@@ -58,20 +58,20 @@ export const HeartTest: ScreenComponent = observer(
       if (isOpen) {
         return (
           <TouchableOpacity style={[styles.buttons, styles.endBtn]} onPress={closeHeart}>
-            <Text style={styles.textBtn}>关闭心率测试</Text>
+            <Text style={styles.textBtn}>关闭血氧测试</Text>
           </TouchableOpacity>
         );
       }
       return (
         <TouchableOpacity style={[styles.buttons, styles.startBtn]} onPress={openHeart}>
-          <Text style={[styles.textBtn, styles.textStart]}>打开心率测试</Text>
+          <Text style={[styles.textBtn, styles.textStart]}>打开血氧测试</Text>
         </TouchableOpacity>
       );
     }, [isOpen]);
     return (
       <BaseView ref={baseView}>
         <View style={[tw.flex1, tw.justifyCenter, tw.textCenter]}>
-          <StackBar title="检测心率" onBack={() => backScreen()} onHelp={openHelp} />
+          <StackBar title="检测血氧" onBack={() => backScreen()} onHelp={openHelp} />
           <View style={styles.flexView}>
             <View style={styles.contextView}>
               <Animated.View style={[styles.circleView]} />

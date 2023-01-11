@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, ScrollView, SafeAreaView, AppState, RefreshControl } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, ScrollView, AppState, RefreshControl } from 'react-native';
 import BaseView from '../component/BaseView';
 import { useStore } from '../store';
 import { ScreenComponent } from './index';
@@ -11,15 +11,16 @@ import BluetoothStateManager from 'react-native-bluetooth-state-manager';
 import { arrCount, arrToByte, eventTimes, getMinTen, hasAndroidPermission } from '../common/tools';
 import { Hexagon } from '../component/home/Hexagon';
 import AsyncStorage from '@react-native-community/async-storage';
-import { DEVICE_DATA, DEVICE_INFO, TOKEN_NAME, USER_CONFIG } from '../common/constants';
+import { DEVICE_DATA, DEVICE_INFO } from '../common/constants';
 import Spinkit from 'react-native-spinkit';
 import { RootEnum } from '../common/sign-module';
 import moment from 'moment';
 import BackgroundFetch from 'react-native-background-fetch';
 import LinearGradient from 'react-native-linear-gradient';
-import { allDataSleep, batterySign, bloodData, mainListen, O2Data } from '../common/watch-module';
+import { allDataSleep, bloodData } from '../common/watch-module';
 import { PortalDialog } from '../component/home/PortalDialog';
 import { PasswordDialog } from '../component/home/PasswordDialog';
+import { Api } from '../common/api';
 
 let type = 0;
 export const Home: ScreenComponent = observer(
@@ -61,6 +62,7 @@ export const Home: ScreenComponent = observer(
         cap: 'bpm',
         time: '',
         fun: async () => {
+          // await blueToothStore.sendActiveMessage(bloodData);
           await naviToCommon('HeartTest');
         }
       },
@@ -83,10 +85,8 @@ export const Home: ScreenComponent = observer(
         image: require('../assets/home/xueo2.png'),
         value: '',
         cap: '',
-        // fun: () => blueToothStore.checkBlO2()
         fun: async () => {
-          // await naviToCommon('BloodTest');
-          await blueToothStore.sendActiveMessage(bloodData);
+          await jumpToMiniProgram();
         }
       },
       {
@@ -136,7 +136,7 @@ export const Home: ScreenComponent = observer(
         let bool = [RootEnum['初次进入'], RootEnum['连接中']].includes(blueToothStore.isRoot);
         if (blueToothStore?.devicesInfo && bool) {
           eventTimes(() => blueToothStore.successDialog(), 1000);
-          await blueToothStore.listenActiveMessage(mainListen);
+          // await blueToothStore.listenActiveMessage(mainListen);
           blueToothStore.userDeviceSetting(true).then((res) => {
             if (res.needBinding) {
               setVisContext(`绑定设备： ${res.name}`);
@@ -169,9 +169,6 @@ export const Home: ScreenComponent = observer(
       }
       await blueToothStore.successDialog(password);
     };
-    const dissApi = async () => {
-      console.log(234);
-    };
     const bindTextInput = (text) => {
       setPassword(text);
     };
@@ -179,14 +176,15 @@ export const Home: ScreenComponent = observer(
     const setBackgroundServer = async () => {
       if (hasBack) return;
       AppState.addEventListener('change', async (e) => {
-        console.log('state', e);
         if (!blueToothStore.devicesInfo?.id) return;
         if (e === 'background') {
           await setHasBack(true);
           if (type) return;
+          blueToothStore.backgroundActive = true;
           await initBackgroundFetch();
         }
         if (e === 'active') {
+          blueToothStore.backgroundActive = false;
           await removeBackgroundFetch();
         }
       });
@@ -205,8 +203,7 @@ export const Home: ScreenComponent = observer(
     const addEvent = (taskId) => {
       // 用Promise模拟长时间的任务
       return new Promise((resolve, reject) => {
-        console.log(blueToothStore.currentDevice, moment(new Date()).format('YYYY-MM-DD hh:mm'));
-        blueToothStore.getMsgUpload(mainListen).then(() => {
+        blueToothStore.getMsgUpload().then(() => {
           resolve();
         });
         // blueToothStore.userDeviceSetting(false).then((res) => {
@@ -250,8 +247,12 @@ export const Home: ScreenComponent = observer(
         await setBackgroundServer();
       })();
     }, []);
+    useEffect(() => {
+      Api.getInstance.setUpNavigation(navigation);
+    }, [navigation]);
 
     useEffect(() => {
+      console.log('页面数据变化');
       eventTimes(() => {
         setTarget(102);
         currentSetContentList(blueToothStore.currentDevice);
@@ -285,24 +286,23 @@ export const Home: ScreenComponent = observer(
       }
       if (device['-32']) {
         let data = device['-32'];
-        if (!data['05']) {
-          return;
-        }
-        let five = arrToByte(data['05'].toString().split(','), true);
-        if (data) {
-          let startTime = `${getMinTen(five[5])}-${getMinTen(five[6])} ${getMinTen(five[7])}:${getMinTen(five[8])}`;
-          let endTime = `${getMinTen(five[9])}-${getMinTen(five[10])} ${getMinTen(five[11])}:${getMinTen(five[12])}`;
-          // return {
-          //   deepSleep: data['02']['12'],
-          //   startTime: startTime,
-          //   endTime: endTime
-          // };
-          const date1 = moment(startTime, 'MM-DD hh:mm');
-          const date2 = moment(endTime, 'MM-DD hh:mm');
-          let time = date2.diff(date1, 'minute');
-          const h = Math.floor(time / 60);
-          const mm = time % 60;
-          list[1].value = `${h}小时${mm}分钟`;
+        if (data['05']) {
+          let five = arrToByte(data['05'].toString().split(','), true);
+          if (data) {
+            let startTime = `${getMinTen(five[5])}-${getMinTen(five[6])} ${getMinTen(five[7])}:${getMinTen(five[8])}`;
+            let endTime = `${getMinTen(five[9])}-${getMinTen(five[10])} ${getMinTen(five[11])}:${getMinTen(five[12])}`;
+            // return {
+            //   deepSleep: data['02']['12'],
+            //   startTime: startTime,
+            //   endTime: endTime
+            // };
+            const date1 = moment(startTime, 'MM-DD hh:mm');
+            const date2 = moment(endTime, 'MM-DD hh:mm');
+            let time = date2.diff(date1, 'minute');
+            const h = Math.floor(time / 60);
+            const mm = time % 60;
+            list[1].value = `${h}小时${mm}分钟`;
+          }
         }
       }
       setContentList([...list]);

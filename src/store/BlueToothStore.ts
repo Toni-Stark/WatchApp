@@ -1,19 +1,13 @@
 import { action, makeAutoObservable, observable } from 'mobx';
 import AsyncStorage from '@react-native-community/async-storage';
-import i18n from 'i18n-js';
-import { Appearance, AppState, Platform, StatusBar } from 'react-native';
-import { APP_COLOR_MODE, APP_LANGUAGE, DEVICE_DATA, DEVICE_INFO, TOKEN_NAME, USER_CONFIG } from '../common/constants';
-import { arrToByte, baseToHex, eventTimer, eventTimes, getMinTen, regCutString, stringToByte, t } from '../common/tools';
-import { darkTheme, theme } from '../common/theme';
+import { DEVICE_DATA, DEVICE_INFO } from '../common/constants';
+import { arrToByte, baseToHex, eventTimer, eventTimes, getMinTen, regCutString, stringToByte } from '../common/tools';
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
 import moment from 'moment';
 import { allDataC, allDataHeartEnd, allDataHeartStart, allDataSign, allDataSleep, batterySign, mainListen, passRegSign } from '../common/watch-module';
 import { RootEnum } from '../common/sign-module';
 import { Api, ApiResult } from '../common/api';
-
-export type AppColorModeType = 'light' | 'dark' | 'system';
-export type AppLanguageType = 'zh' | 'en' | 'system';
 
 const defaultDevice = {
   '-47': {
@@ -37,9 +31,6 @@ const defaultData = {
 };
 
 export class BlueToothStore {
-  readonly defaultLanguage: AppLanguageType = 'zh';
-  readonly defaultColorMode = Appearance.getColorScheme() === 'light' ? 'light' : 'dark';
-
   @observable showBootAnimation: boolean = true;
   @observable manager: any;
   @observable devicesInfo: any;
@@ -73,7 +64,8 @@ export class BlueToothStore {
   @observable needRegPassword = false;
   @observable noPasswordTips = false;
 
-  @observable timerTimes = 0;
+  @observable backgroundActive = false;
+  @observable dataChangeTime: any = '';
 
   constructor() {
     makeAutoObservable(this);
@@ -131,9 +123,8 @@ export class BlueToothStore {
   }
 
   @action
-  async getMsgUpload(params) {
+  async getMsgUpload() {
     try {
-      this.timerTimes = 0;
       await this.sendActiveMessage(allDataSleep);
     } catch (err) {
       console.log(err);
@@ -188,19 +179,32 @@ export class BlueToothStore {
       // if (this.listenDevices) {
       //   this.listenDevices?.remove();
       // }
-      let timer: any = null;
       this.listenDevices = this.devicesInfo.monitorCharacteristicForService(params.serviceUUID, params.uuid, (error, characteristic) => {
         if (error) return;
         let value = baseToHex(characteristic.value);
         this.blueRootList = [...this.blueRootList, value];
+        console.log(value);
         let regValue = ['a1', 'a0', 'd1', 'd0', 'd8', '88', '80', 'd2', 'e0'].includes(value.slice(0, 2));
         if (regValue) {
           this.devicesModules(value);
         }
-        this.timerTimes += 1;
-        clearTimeout(timer);
-        timer = null;
-        timer = setTimeout(() => {
+        if (this.backgroundActive) {
+          let dateTime = new Date().getTime();
+          let timeThan = this.dataChangeTime ? dateTime - this.dataChangeTime : dateTime;
+          if (timeThan > 10000) {
+            this.dataChangeTime = dateTime;
+            this.currentDevice = { ...this.device };
+          } else if (timeThan > 1000) {
+            this.dataChangeTime = dateTime;
+            this.updateDeviceList();
+          }
+          return;
+        }
+        if (['d0'].includes(value.slice(0, 2))) {
+          this.currentDevice = { ...this.device };
+          return;
+        }
+        eventTimes(() => {
           this.setBasicInfo();
         }, 1000);
       });
@@ -404,7 +408,6 @@ export class BlueToothStore {
    */
   @action
   async updateDeviceList(): Promise<any> {
-    console.log(this.deviceFormData['-32']);
     let data = this.deviceFormData;
     if (data['1']) await this.updateDeviceData({ type: '1', value: data['1'] });
     if (data['2']) await this.updateDeviceData({ type: '2', value: data['2'] });
@@ -454,61 +457,5 @@ export class BlueToothStore {
       }
       return resolve({ msg: '绑定成功', success: true });
     });
-  }
-
-  @action
-  async setI18nConfig(language: AppLanguageType | string | null, saveSetting: boolean = true) {
-    let selectedLanguage, saveLanguage;
-    switch (language) {
-      case 'zh':
-        selectedLanguage = language;
-        saveLanguage = language;
-        break;
-      case null:
-        saveLanguage = 'system';
-        break;
-      default:
-        selectedLanguage = this.defaultLanguage;
-        saveLanguage = 'system';
-    }
-    t.cache.clear();
-    i18n.locale = selectedLanguage;
-    if (saveSetting) {
-      await AsyncStorage.setItem(APP_LANGUAGE, saveLanguage);
-    }
-  }
-
-  @action
-  async setColorModeConfig(params: {
-    isSys: boolean;
-    mode: AppColorModeType | string | undefined | null;
-    saveSetting?: boolean;
-    backgroundColorStatusBar: string;
-  }) {
-    let selectedMode, saveMode, statusBarStyle;
-    let nowMode = Appearance.getColorScheme();
-    switch (params.mode) {
-      case 'light':
-        selectedMode = 'light';
-        saveMode = params.isSys ? 'system' : 'light';
-        statusBarStyle = 'dark-content';
-        break;
-      case 'dark':
-        selectedMode = 'dark';
-        saveMode = params.isSys ? 'system' : 'dark';
-        statusBarStyle = 'light-content';
-        break;
-      default:
-        selectedMode = Appearance.getColorScheme();
-        saveMode = 'system';
-        statusBarStyle = nowMode === 'dark' ? 'light-content' : 'dark-content';
-    }
-    if (params.saveSetting || true) {
-      await AsyncStorage.setItem(APP_COLOR_MODE, saveMode);
-      StatusBar.setBarStyle(statusBarStyle, false);
-      if (Platform.OS === 'android') {
-        StatusBar.setBackgroundColor(selectedMode === 'light' ? theme.colors.background : darkTheme.colors.background);
-      }
-    }
   }
 }

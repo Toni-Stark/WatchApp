@@ -4,22 +4,20 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { enableScreens } from 'react-native-screens';
 import * as RNLocalize from 'react-native-localize';
 import AsyncStorage from '@react-native-community/async-storage';
-import { Appearance, BackHandler, Platform, StatusBar } from 'react-native';
-import { Provider as PaperProvider, useTheme } from 'react-native-paper';
+import { BackHandler, Platform, StatusBar } from 'react-native';
+import { Provider as PaperProvider } from 'react-native-paper';
 import { NavigatorStack } from './screen';
-import { APP_COLOR_MODE, APP_LANGUAGE, TEST_TOKEN, TOKEN_NAME, USER_AGREEMENT } from './common/constants';
+import { APP_LANGUAGE, TOKEN_NAME, USER_AGREEMENT } from './common/constants';
 import { darkTheme, theme } from './common/theme';
 import { useStore } from './store';
 import { BootAnimation } from './screen/BootAnimation';
-import { delay, getStorage, hasAndroidPermission } from './common/tools';
-import { UserStore } from './store/UserStore';
+import { getStorage, hasAndroidPermission } from './common/tools';
 import { observer, Observer } from 'mobx-react-lite';
 import BluetoothStateManager from 'react-native-bluetooth-state-manager';
 import { WeChatOnePassLogin } from './screen/ModalScreens/WeChatOnePassLogin';
 
 const App = observer(() => {
-  const { colors } = useTheme();
-  const { systemStore, userStore, blueToothStore, weChatStore } = useStore();
+  const { systemStore, blueToothStore, weChatStore } = useStore();
   const [isLogin, setIsLogin] = useState<boolean>(false);
   const [blueTooth, setBlueTooth] = useState<boolean>(false);
 
@@ -39,38 +37,6 @@ const App = observer(() => {
         setIsLogin(false);
       });
   }, []);
-
-  useEffect(() => {
-    const handleColorModeChange = async (preferences: Appearance.AppearancePreferences) => {
-      const colorModeStore = await AsyncStorage.getItem(APP_COLOR_MODE);
-      if (colorModeStore === 'system') {
-        await systemStore.setColorModeConfig({
-          mode: Appearance.getColorScheme(),
-          saveSetting: false,
-          backgroundColorStatusBar: colors.background,
-          isSys: true
-        });
-      }
-    };
-    (async () => {
-      const colorModeStore = await AsyncStorage.getItem(APP_COLOR_MODE);
-      if (colorModeStore === 'system') {
-        await systemStore.setColorModeConfig({ mode: 'system', saveSetting: true, backgroundColorStatusBar: colors.background, isSys: true });
-      }
-      if (colorModeStore === 'light') {
-        await systemStore.setColorModeConfig({ mode: 'light', saveSetting: true, backgroundColorStatusBar: colors.background, isSys: false });
-      }
-      if (colorModeStore === 'dark') {
-        await systemStore.setColorModeConfig({ mode: 'dark', saveSetting: true, backgroundColorStatusBar: colors.background, isSys: false });
-      }
-    })();
-
-    Appearance.addChangeListener(delay(handleColorModeChange));
-
-    return () => {
-      Appearance.removeChangeListener(handleColorModeChange);
-    };
-  }, [colors.background, systemStore]);
 
   useEffect(() => {
     const handleLocalizationChange = async () => {
@@ -128,10 +94,10 @@ const App = observer(() => {
     if (systemStore.showBootAnimation || !blueTooth) {
       return <BootAnimation />;
     }
-    console.log('运行几次');
     if (Platform.OS === 'android' && !isLogin) {
       return (
         <WeChatOnePassLogin
+          isComponent={true}
           outApp={async () => {
             await outApp();
           }}

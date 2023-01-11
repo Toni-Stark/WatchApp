@@ -1,20 +1,30 @@
 import React, { useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import BaseView from '../../component/BaseView';
-import RNBootSplash from 'react-native-bootsplash';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useStore } from '../../store';
 import FastImage from 'react-native-fast-image';
+import AsyncStorage from '@react-native-community/async-storage';
+import { USER_AGREEMENT } from '../../common/constants';
 export type Props = {
   outApp: () => void;
   goInApp: (e: any) => void;
+  isComponent?: boolean;
+  navigation?: any;
 };
-export const WeChatOnePassLogin: React.FunctionComponent<Props> = observer(
+export const WeChatOnePassLogin = observer(
   (props: Props): JSX.Element => {
     const baseView = useRef<any>(undefined);
     const { weChatStore } = useStore();
     const [agree, setAgree] = useState(false);
-    RNBootSplash.hide();
+
+    const goInApp = async (e) => {
+      await AsyncStorage.setItem(USER_AGREEMENT, 'Happy every day');
+      const res = await weChatStore.userWeChatLogin({ code: e.code });
+      if (res?.success) {
+        props.navigation.goBack();
+      }
+    };
 
     const currentAgree = () => {
       setAgree(!agree);
@@ -24,7 +34,11 @@ export const WeChatOnePassLogin: React.FunctionComponent<Props> = observer(
         baseView.current.showLoading({ text: '登录中' });
         const result = await weChatStore.checkWeChatInstall();
         if (result) {
-          props.goInApp(result);
+          if (props?.isComponent) {
+            props.goInApp(result);
+          } else {
+            await goInApp(result);
+          }
         }
       } else {
         baseView.current.showToast({ text: '请阅读并同意用户协议', delay: 1 });
