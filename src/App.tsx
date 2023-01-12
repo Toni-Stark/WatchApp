@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { enableScreens } from 'react-native-screens';
@@ -14,7 +14,7 @@ import { BootAnimation } from './screen/BootAnimation';
 import { getStorage, hasAndroidPermission } from './common/tools';
 import { observer, Observer } from 'mobx-react-lite';
 import BluetoothStateManager from 'react-native-bluetooth-state-manager';
-import { WeChatOnePassLogin } from './screen/ModalScreens/WeChatOnePassLogin';
+import RNBootSplash from 'react-native-bootsplash';
 
 const App = observer(() => {
   const { systemStore, blueToothStore, weChatStore } = useStore();
@@ -29,6 +29,12 @@ const App = observer(() => {
   }, []);
 
   useEffect(() => {
+    // (async () => {
+    //   await AsyncStorage.setItem(TOKEN_NAME, '2398472394782387');
+    // })();
+    // (async () => {
+    //   await AsyncStorage.removeItem(TOKEN_NAME);
+    // })();
     getStorage(TOKEN_NAME)
       .then((res) => {
         setIsLogin(!!res);
@@ -56,6 +62,7 @@ const App = observer(() => {
   }, [systemStore]);
 
   useEffect(() => {
+    RNBootSplash.hide();
     (async () => {
       await hasAndroidPermission();
       const rePowered = await BluetoothStateManager.getState();
@@ -66,24 +73,7 @@ const App = observer(() => {
     })();
   }, []);
 
-  const goInApp = async (e) => {
-    await AsyncStorage.setItem(USER_AGREEMENT, 'Happy every day');
-    const res = await weChatStore.userWeChatLogin({ code: e.code });
-    if (res?.success) {
-      setIsLogin(true);
-    }
-  };
   const outApp = async (isClean?: boolean) => {
-    if (!isClean) {
-      await AsyncStorage.removeItem(USER_AGREEMENT);
-      getStorage(USER_AGREEMENT)
-        .then((res) => {
-          setIsLogin(!!res);
-        })
-        .catch(() => {
-          setIsLogin(false);
-        });
-    }
     BackHandler.exitApp();
     BackHandler.exitApp();
     BackHandler.exitApp();
@@ -94,21 +84,22 @@ const App = observer(() => {
     if (systemStore.showBootAnimation || !blueTooth) {
       return <BootAnimation />;
     }
-    if (Platform.OS === 'android' && !isLogin) {
-      return (
-        <WeChatOnePassLogin
-          isComponent={true}
-          outApp={async () => {
-            await outApp();
-          }}
-          goInApp={async (e) => {
-            await goInApp(e);
-          }}
-        />
-      );
-    }
-    return <NavigatorStack />;
+    // if (Platform.OS === 'android' && !isLogin) {
+    //   return (
+    //     <WeChatOnePassLogin
+    //       isComponent={true}
+    //       outApp={async () => {
+    //         await outApp();
+    //       }}
+    //       goInApp={async (e) => {
+    //         await goInApp(e);
+    //       }}
+    //     />
+    //   );
+    // }
+    return <NavigatorStack isRoot={isLogin} />;
   };
+
   return (
     <Observer>
       {() => (

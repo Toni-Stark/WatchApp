@@ -1,6 +1,5 @@
 import React from 'react';
 import { StyleSheet, Text, TextInput, TouchableWithoutFeedback, View } from 'react-native';
-import FastImage from 'react-native-fast-image';
 import { tw } from 'react-native-tailwindcss';
 
 export const HeaderBar = (props) => {
@@ -30,11 +29,14 @@ export const HeaderBar = (props) => {
     </>
   );
 };
+
+let color1 = '#f2f2f2';
+let color2 = '#ffffff';
 const styles = StyleSheet.create({
   header: {
-    borderBottomColor: '#f2f2f2',
+    borderBottomColor: color1,
     borderBottomWidth: 1,
     borderStyle: 'solid'
   },
-  textStyle: { color: '#ffffff', fontSize: 17, fontWeight: 'bold', height: 43, lineHeight: 43 }
+  textStyle: { color: color2, fontSize: 17, fontWeight: 'bold', height: 43, lineHeight: 43 }
 });

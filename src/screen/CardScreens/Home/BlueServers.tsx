@@ -14,7 +14,7 @@ export const BlueServers: ScreenComponent = observer(
     const baseView = useRef<any>(undefined);
     const { blueToothStore } = useStore();
     const [refresh, setRefresh] = useState(false);
-    const [spinner, setSpinner] = useState(false);
+    const [spinner] = useState(false);
     const [context, setContext] = useState([]);
     const [currentId, setCurrentId] = useState('');
 
@@ -114,11 +114,16 @@ export const BlueServers: ScreenComponent = observer(
     );
   }
 );
+
+let color1 = '#9e9e9e';
+let color4 = '#eeeeee';
+let color5 = '#e7e7e7';
+let color6 = '#ffffff';
 export const styles = StyleSheet.create({
   blueItem: {
     alignItems: 'center',
-    backgroundColor: '#eeeeee',
-    borderColor: '#e7e7e7',
+    backgroundColor: color4,
+    borderColor: color5,
     borderRadius: 10,
     borderStyle: 'solid',
     borderWidth: 1,
@@ -138,18 +143,6 @@ export const styles = StyleSheet.create({
   flexView: {
     flex: 1
   },
-  footerBtn: {
-    alignItems: 'center',
-    backgroundColor: '#00D1DE',
-    borderRadius: 5,
-    justifyContent: 'center',
-    margin: 20,
-    paddingVertical: 10
-  },
-  footerText: {
-    color: '#ffffff',
-    fontSize: 16
-  },
   headerLabel: {
     paddingHorizontal: 20,
     paddingVertical: 10,
@@ -160,8 +153,8 @@ export const styles = StyleSheet.create({
   },
   toothItem: {
     alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderColor: '#e7e7e7',
+    backgroundColor: color6,
+    borderColor: color5,
     borderRadius: 10,
     borderStyle: 'solid',
     borderWidth: 1,
@@ -173,16 +166,8 @@ export const styles = StyleSheet.create({
     paddingVertical: 7
   },
   toothMac: {
-    color: '#9e9e9e',
+    color: color1,
     fontSize: 13,
     marginTop: 4
-  },
-  toothPoint: {
-    color: '#00D1DE',
-    fontSize: 16
-  },
-  toothTitle: {
-    color: '#000000',
-    fontSize: 13
   }
 });

@@ -32,11 +32,17 @@ export const StackBar = (props) => {
   );
 };
 
+let color1 = '#00D1DE';
+let color2 = '#f2f2f2';
+let color3 = '#EEF3F4';
+let color4 = '#ffffff';
+let color5 = '#D4D8DA';
+
 const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
-    backgroundColor: '#00D1DE',
-    borderBottomColor: '#f2f2f2',
+    backgroundColor: color1,
+    borderBottomColor: color2,
     borderBottomWidth: 1,
     borderStyle: 'solid',
     flexDirection: 'row',
@@ -53,12 +59,12 @@ const styles = StyleSheet.create({
     width: 28
   },
   input: {
-    backgroundColor: '#EEF3F4',
+    backgroundColor: color3,
     flex: 1,
     paddingVertical: 2
   },
   label: {
-    color: '#ffffff',
+    color: color4,
     fontSize: 14
   },
   labelView: {
@@ -77,14 +83,14 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     paddingHorizontal: 10,
     overflow: 'hidden',
-    borderColor: '#D4D8DA',
+    borderColor: color5,
     borderStyle: 'solid',
     borderWidth: 1,
     marginVertical: 2,
-    backgroundColor: '#EEF3F4'
+    backgroundColor: color3
   },
   title: {
-    color: '#ffffff',
+    color: color4,
     fontSize: 17
   }
 });

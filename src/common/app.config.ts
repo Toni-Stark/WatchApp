@@ -8,15 +8,21 @@ export const appConfig = {
     dev: {
       API_PROTOCOL: 'http://',
       API_HOST: '192.168.10.241',
-      HOST_PORT: '10038/apic/x4oWAQrl2'
+      HOST_PORT: '10038/apic'
       // WEBSOCKET_PATH: 'ws://app.icst-edu.com:50188/communicate'
     },
     prod: {
       API_PROTOCOL: 'http://',
-      API_HOST: 'app.icst-edu.com',
-      HOST_PORT: '50188/api/v2',
-      WEBSOCKET_PATH: 'ws://app.icst-edu.com:50188/communicate'
+      API_HOST: '192.168.10.241',
+      HOST_PORT: '10038/apic'
+      // WEBSOCKET_PATH: 'ws://app.icst-edu.com:50188/communicate'
     }
+    // prod: {
+    //   API_PROTOCOL: 'http://',
+    //   API_HOST: 'app.icst-edu.com',
+    //   HOST_PORT: '50188/api/v2',
+    //   WEBSOCKET_PATH: 'ws://app.icst-edu.com:50188/communicate'
+    // }
   }
 };
 

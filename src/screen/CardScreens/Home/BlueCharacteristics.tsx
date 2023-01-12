@@ -45,9 +45,6 @@ export const BlueCharacteristics: ScreenComponent = observer(
     const connectItem = async (item) => {
       // setSpinner(true);
       let list = getChartStatus(item);
-      console.log('log-----------');
-      console.log(list[0].id);
-      console.log('log-----------');
       switch (list[0].id) {
         case 1:
           props.navigation.navigate('BlueListener', { item: item, type: 1 });
@@ -109,7 +106,6 @@ export const BlueCharacteristics: ScreenComponent = observer(
               renderItem={renderItem}
               keyExtractor={() => Math.ceil(Math.random() * 1000).toString()}
               onRefresh={onRefresh}
-              // ListFooterComponent={<FooterBtn />}
             />
           </View>
           <Spinner visible={spinner} textContent={'连接中...'} />
@@ -118,21 +114,15 @@ export const BlueCharacteristics: ScreenComponent = observer(
     );
   }
 );
+
+let color2 = '#ffffff';
+let color3 = '#e7e7e7';
+let color4 = '#9e9e9e';
+let color5 = '#000000';
+
 export const styles = StyleSheet.create({
   flexView: {
     flex: 1
-  },
-  footerBtn: {
-    alignItems: 'center',
-    backgroundColor: '#00D1DE',
-    borderRadius: 5,
-    justifyContent: 'center',
-    margin: 20,
-    paddingVertical: 10
-  },
-  footerText: {
-    color: '#ffffff',
-    fontSize: 16
   },
   headerLabel: {
     paddingHorizontal: 20,
@@ -141,8 +131,8 @@ export const styles = StyleSheet.create({
   },
   toothItem: {
     alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderColor: '#e7e7e7',
+    backgroundColor: color2,
+    borderColor: color3,
     borderRadius: 10,
     borderStyle: 'solid',
     borderWidth: 1,
@@ -154,16 +144,12 @@ export const styles = StyleSheet.create({
     paddingVertical: 7
   },
   toothMac: {
-    color: '#9e9e9e',
+    color: color4,
     fontSize: 13,
     marginTop: 4
   },
-  toothPoint: {
-    color: '#00D1DE',
-    fontSize: 16
-  },
   toothTitle: {
-    color: '#000000',
+    color: color5,
     fontSize: 13
   }
 });

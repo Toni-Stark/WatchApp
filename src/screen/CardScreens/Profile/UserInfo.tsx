@@ -33,7 +33,7 @@ export const UserInfo: ScreenComponent = observer(
             </View>
           </View>
           <View style={styles.context}>
-            <Text style={styles.textView}>用户13</Text>
+            <Text style={styles.textView}>用户名</Text>
           </View>
         </ScrollView>
       );

@@ -17,9 +17,11 @@ export const PasswordDialog = (props) => {
     </Portal>
   );
 };
+
+let color1 = '#666666';
 const styles = StyleSheet.create({
   textInput: {
-    borderColor: '#666666',
+    borderColor: color1,
     borderRadius: 8,
     borderStyle: 'solid',
     borderWidth: 1,

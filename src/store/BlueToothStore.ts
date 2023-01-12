@@ -9,7 +9,7 @@ import { allDataC, allDataHeartEnd, allDataHeartStart, allDataSign, allDataSleep
 import { RootEnum } from '../common/sign-module';
 import { Api, ApiResult } from '../common/api';
 
-const defaultDevice = {
+export const defaultDevice = {
   '-47': {
     i8: [],
     i9: [],
@@ -163,11 +163,14 @@ export class BlueToothStore {
   @action
   async sendActiveMessage(params) {
     let storeRes = regCutString(params.value);
+    console.log(storeRes, '蓝牙输入状态值');
     let buffer = Buffer.from(stringToByte(storeRes)).toString('base64');
     await this.devicesInfo.writeCharacteristicWithResponseForService(params.serviceUUID, params.uuid, buffer);
   }
   @action
   async sendActiveWithoutMessage(params) {
+    console.log(this.device, '查看蓝牙设备');
+    console.log(this.devicesInfo, '查看蓝牙设备信息');
     let storeRes = regCutString(params.value);
     let buffer = Buffer.from(stringToByte(storeRes)).toString('base64');
     await this.devicesInfo.writeCharacteristicWithoutResponseForService(params.serviceUUID, params.uuid, buffer);

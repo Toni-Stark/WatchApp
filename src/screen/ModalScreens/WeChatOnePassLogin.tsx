@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import BaseView from '../../component/BaseView';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -6,72 +6,100 @@ import { useStore } from '../../store';
 import FastImage from 'react-native-fast-image';
 import AsyncStorage from '@react-native-community/async-storage';
 import { USER_AGREEMENT } from '../../common/constants';
+import RNBootSplash from 'react-native-bootsplash';
+import { NavigatorComponentProps } from '../index';
 export type Props = {
   outApp: () => void;
   goInApp: (e: any) => void;
   isComponent?: boolean;
   navigation?: any;
 };
-export const WeChatOnePassLogin = observer(
-  (props: Props): JSX.Element => {
-    const baseView = useRef<any>(undefined);
-    const { weChatStore } = useStore();
-    const [agree, setAgree] = useState(false);
+export const WeChatOnePassLogin = observer((props: Props) => {
+  const baseView = useRef<any>(undefined);
+  const { weChatStore } = useStore();
+  const [agree, setAgree] = useState(false);
+  RNBootSplash.hide();
 
-    const goInApp = async (e) => {
-      await AsyncStorage.setItem(USER_AGREEMENT, 'Happy every day');
-      const res = await weChatStore.userWeChatLogin({ code: e.code });
-      if (res?.success) {
-        props.navigation.goBack();
-      }
-    };
+  useEffect(() => {
+    console.log('進入頁面');
+  }, []);
 
-    const currentAgree = () => {
-      setAgree(!agree);
-    };
-    const currentLogin = async () => {
-      if (agree) {
-        baseView.current.showLoading({ text: '登录中' });
-        const result = await weChatStore.checkWeChatInstall();
-        if (result) {
-          if (props?.isComponent) {
-            props.goInApp(result);
-          } else {
-            await goInApp(result);
-          }
+  const currentAgree = () => {
+    setAgree(!agree);
+  };
+  const currentLogin = async () => {
+    if (agree) {
+      baseView.current.showLoading({ text: '登录中' });
+      const result: any = await weChatStore.checkWeChatInstall();
+      if (result) {
+        await AsyncStorage.setItem(USER_AGREEMENT, 'Happy every day');
+        const res: any = await weChatStore.userWeChatLogin({ code: result.code });
+        baseView.current.hideLoading();
+        if (res?.success) {
+          return props.navigation.navigate('Main');
         }
-      } else {
-        baseView.current.showToast({ text: '请阅读并同意用户协议', delay: 1 });
+        baseView.current.showToast({ text: res.msg, delay: 1.5 });
       }
-    };
+    } else {
+      baseView.current.showToast({ text: '请阅读并同意用户协议', delay: 1 });
+    }
+  };
 
+  const openUserAgreement = async (e) => {
+    if (e === 1) {
+      props.navigation.navigate('UserAgreement');
+    }
+    if (e === 2) {
+      props.navigation.navigate('PrivacyAgreement');
+    }
+  };
+
+  const currentSwitch = useMemo(() => {
     return (
-      <BaseView useSafeArea={false} ref={baseView}>
-        {/*<StackBar title="用户登录" noTitle={true} />*/}
-        <View style={styles.container}>
-          <View style={styles.titleView}>
-            <Text style={styles.title}>欢迎，请登录</Text>
-            <View style={styles.imageView}>
-              <FastImage style={styles.image} source={require('../../assets/logo.png')} />
-            </View>
-            <TouchableOpacity style={styles.buttonView} onPress={currentLogin}>
-              <FastImage style={styles.wechat} source={require('../../assets/home/white-wechat.png')} />
-              <Text style={styles.buttonText}>微信一键登录</Text>
-            </TouchableOpacity>
+      <View style={styles.container}>
+        <View style={styles.titleView}>
+          <Text style={styles.title}>欢迎，请登录</Text>
+          <View style={styles.imageView}>
+            <FastImage style={styles.image} source={require('../../assets/logo.png')} />
           </View>
-          <View style={styles.user}>
-            <TouchableOpacity style={styles.agree} onPress={currentAgree}>
-              <View style={styles.agreeView}>{agree ? <View style={styles.agreeMain} /> : null}</View>
+          <TouchableOpacity style={styles.buttonView} onPress={currentLogin}>
+            <FastImage style={styles.wechat} source={require('../../assets/home/white-wechat.png')} />
+            <Text style={styles.buttonText}>微信一键登录</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.user}>
+          <TouchableOpacity style={styles.agree} onPress={currentAgree}>
+            <View style={styles.agreeView}>{agree ? <View style={styles.agreeMain} /> : null}</View>
+          </TouchableOpacity>
+          <View style={styles.userText}>
+            <Text>我已阅读并同意</Text>
+            <TouchableOpacity
+              onPress={async () => {
+                await openUserAgreement(1);
+              }}
+            >
+              <Text style={styles.userMain}>《用户协议》</Text>
             </TouchableOpacity>
-            <Text style={styles.userText}>
-              我已阅读并同意<Text style={styles.userMain}>《用户协议》</Text>
-            </Text>
+            <Text>和</Text>
+            <TouchableOpacity
+              onPress={async () => {
+                await openUserAgreement(2);
+              }}
+            >
+              <Text style={styles.userMain}>《隐私政策》</Text>
+            </TouchableOpacity>
           </View>
         </View>
-      </BaseView>
+      </View>
     );
-  }
-);
+  }, [agree]);
+
+  return (
+    <BaseView useSafeArea={false} ref={baseView}>
+      {currentSwitch}
+    </BaseView>
+  );
+});
 const color1 = '#00D1DE';
 const color3 = '#ffffff';
 const color4 = '#0dcd4c';
@@ -154,7 +182,10 @@ const styles = StyleSheet.create({
     color: color6
   },
   userText: {
-    color: color3
+    alignItems: 'center',
+    color: color3,
+    flexDirection: 'row',
+    justifyContent: 'center'
   },
   wechat: {
     height: 35,

@@ -1,20 +1,19 @@
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { CardStyleInterpolators, createStackNavigator, StackNavigationOptions, StackScreenProps } from '@react-navigation/stack';
 import { ActivityIndicator, useTheme } from 'react-native-paper';
 import type { ParamListBase } from '@react-navigation/native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { blue500 } from 'react-native-paper/src/styles/colors';
 import { t } from '../common/tools';
 import { Home } from './Home';
-import { ModalScreens } from './ModalScreens';
+import { ModalScreens, ModalScreensRoot } from './ModalScreens';
 import { CardScreens, ScreensParamList } from './CardScreens';
 import { View } from 'react-native';
 import { observer } from 'mobx-react-lite';
-import RNBootSplash from 'react-native-bootsplash';
 import { Profile } from './Profile';
+import { WeChatOnePassLogin } from './ModalScreens/WeChatOnePassLogin';
 
 const BottomIconSize = 22;
 const RootStack = createStackNavigator();
@@ -98,11 +97,15 @@ const linking = {
   }
 };
 
-export const NavigatorStack = observer(() => {
-  RNBootSplash.hide();
+export const NavigatorStack = observer((props: any) => {
   return (
     <NavigationContainer linking={linking} fallback={renderFallback()}>
       <RootStack.Navigator mode="modal">
+        {!props?.isRoot
+          ? ModalScreensRoot.map((screen) => (
+              <RootStack.Screen name={screen.name} component={screen.component} key={screen.name} options={{ headerShown: false }} />
+            ))
+          : null}
         <RootStack.Screen name="Main" component={MainScreens} options={{ headerShown: false }} />
         {ModalScreens.map((screen) => (
           <RootStack.Screen name={screen.name} component={screen.component} key={screen.name} options={{ headerShown: false }} />

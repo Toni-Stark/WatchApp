@@ -57,16 +57,21 @@ export const BlueToothWhite: ScreenComponent = observer(
     );
   }
 );
+let color1 = '#ffffff';
+let color2 = '#000000';
+let color4 = '#00D1DE';
+let color7 = '#7f7f7f';
+let color3 = '#f2f2f2';
 export const styles = StyleSheet.create({
   content: {
-    color: '#7f7f7f',
+    color: color7,
     fontSize: 12
   },
   context: {
-    color: '#000000'
+    color: color2
   },
   flexView: {
-    borderColor: '#f2f2f2',
+    borderColor: color3,
     borderRadius: 10,
     borderStyle: 'solid',
     borderWidth: 1,
@@ -80,7 +85,7 @@ export const styles = StyleSheet.create({
   },
   submit: {
     alignItems: 'center',
-    backgroundColor: '#00D1DE',
+    backgroundColor: color4,
     justifyContent: 'center',
     width: '15%'
   },
@@ -90,7 +95,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 15
   },
   textSubmit: {
-    color: '#ffffff',
+    color: color1,
     fontSize: 16
   }
 });

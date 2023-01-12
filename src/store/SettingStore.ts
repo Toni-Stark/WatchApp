@@ -1,12 +1,10 @@
 import { action, makeAutoObservable, observable } from 'mobx';
-import { SettingViewItemType } from '../component/SettingView';
 import { Api } from '../common/api';
 
 const BaseUrl = '/auth';
 
 export class SettingStore {
   @observable loading = false;
-  @observable settings: Array<SettingViewItemType> = [];
   @observable initURL: string | undefined = '';
   @observable canJump: boolean = true;
 

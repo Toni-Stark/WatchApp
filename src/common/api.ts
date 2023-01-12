@@ -181,6 +181,7 @@ export class Api {
     // console.log('0-登录失败-准备跳转页面', token);
     if (withToken) {
       // console.log('1-登录失败-准备跳转页面', withToken);
+      console.log(token, '打印token');
       if (token === null) {
         // console.log('2-登录失败-准备跳转页面', this.navigation);
         await this.redirectToLoginScreen();
@@ -212,11 +213,8 @@ export class Api {
       default:
         return { code: 500, msg: '消息格式错误', data: null, success: false, timestamp: Api.getTimeStamp() };
     }
-    console.log(response.data, '返回页面数据');
     if (response.data?.msg !== undefined && isAuthFailed(response.data.code.toString())) {
-      console.log('登录状态有问题');
       const messageToUser = t('message.loginFailed');
-      console.log(messageToUser, '1-登录状态有问题');
       if (withToken) {
         await UserStore.removeToken();
         await this.redirectToLoginScreen();

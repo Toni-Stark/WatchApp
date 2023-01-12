@@ -87,7 +87,7 @@
     "addressDetail": "重庆市九龙坡区石桥铺华宇老街印象5栋-15-1"
   },
   "privacyAgreement": {
-    "agreement": "云海学悦隐私协议"
+    "agreement": "隐私协议"
   },
   "problemFeedback": {
     "fbTitle": "问题反馈",
@@ -95,7 +95,7 @@
     "fbPlaceholder": "请输入您的意见或反馈"
   },
   "userFeedback": {
-    "userAgree": "云海学悦用户协议"
+    "userAgree": "用户协议"
   },
   "checkUpdateView": {
     "download": "正在下载",

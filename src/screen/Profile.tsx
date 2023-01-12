@@ -8,8 +8,7 @@ import { tw } from 'react-native-tailwindcss';
 import { ProfilePlaceholder } from '../component/skeleton/ProfilePlaceholder';
 import { observer } from 'mobx-react-lite';
 import FastImage from 'react-native-fast-image';
-import { RSJournalStore } from '../store/RSJournalStore';
-import { allDataSleep, bloodData } from '../common/watch-module';
+import { mainListen, passRegSign } from '../common/watch-module';
 
 export const Profile: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -24,17 +23,14 @@ export const Profile: ScreenComponent = observer(
       // navigation.navigate('OnePassLogin', {});
       navigation.navigate('UserInfo', {});
     };
-    const navigateToDevice = () => {
+    const navigateToDevice = async () => {
+      // await blueToothStore.successDialog();
+      // await blueToothStore.listenActiveMessage(mainListen);
       navigation.navigate('WatchStyleSetting', {});
+      // blueToothStore.device = defaultDevice;
+      // await blueToothStore.sendActiveMessage(allDataSign);
     };
 
-    const writeText = async () => {
-      // await RSJournalStore.writeDataCache({});
-      await blueToothStore.sendActiveMessage(bloodData);
-    };
-    const readText = async () => {
-      await RSJournalStore.readFilesForDevice();
-    };
     const renderContent = useMemo(() => {
       if (settingStore.loading) {
         return <ProfilePlaceholder />;
@@ -48,7 +44,7 @@ export const Profile: ScreenComponent = observer(
               </View>
               <TouchableOpacity style={styles.loginView} onPress={goLogin}>
                 <View style={styles.headerContent}>
-                  <Text style={styles.userName}>用戶13</Text>
+                  <Text style={styles.userName}>用户名</Text>
                   <View style={styles.userIcons}>
                     <View style={styles.icons}>
                       <Text style={styles.iconText}>已认证</Text>
@@ -72,7 +68,7 @@ export const Profile: ScreenComponent = observer(
                 <View style={styles.labelView}>
                   <View style={styles.startLabel}>
                     <FastImage style={styles.labelIcon} source={require('../assets/home/header-assets.png')} resizeMode={FastImage.resizeMode.cover} />
-                    <Text style={styles.labelText}>F22R</Text>
+                    <Text style={styles.labelText}>已绑定的设备</Text>
                   </View>
                   <FastImage style={styles.deviceIcon} source={require('../assets/home/right-gray.png')} resizeMode={FastImage.resizeMode.cover} />
                 </View>
@@ -114,6 +110,10 @@ export const Profile: ScreenComponent = observer(
   }
 );
 
+let color1 = '#ffffff';
+let color2 = '#00D1DE';
+let color3 = '#e3e3e3';
+let color4 = '#a6a6a6';
 const styles = StyleSheet.create({
   context: {
     flex: 1
@@ -129,18 +129,15 @@ const styles = StyleSheet.create({
     paddingTop: 10
   },
   deviceText: {
-    fontSize: 14,
-    color: '#ffffff'
+    color: color1,
+    fontSize: 14
   },
   header: {
-    backgroundColor: '#00D1DE',
+    backgroundColor: color2,
     height: 150,
     justifyContent: 'center',
     paddingHorizontal: 20,
     paddingTop: 30
-  },
-  loginView: {
-    flex: 1
   },
   headerContent: {
     flexDirection: 'column',
@@ -156,9 +153,9 @@ const styles = StyleSheet.create({
   headerStart: {
     flexDirection: 'row'
   },
-  iconText: { color: '#00D1DE', fontSize: 12 },
+  iconText: { color: color2, fontSize: 12 },
   icons: {
-    backgroundColor: '#ffffff',
+    backgroundColor: color1,
     borderRadius: 9,
     marginRight: 5,
     paddingHorizontal: 5,
@@ -166,7 +163,7 @@ const styles = StyleSheet.create({
   },
   imageView: {
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: color1,
     borderRadius: 50,
     height: 60,
     justifyContent: 'center',
@@ -183,7 +180,7 @@ const styles = StyleSheet.create({
   labelView: {
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderColor: '#e3e3e3',
+    borderColor: color3,
     borderStyle: 'solid',
     borderTopWidth: 1,
     flexDirection: 'row',
@@ -191,8 +188,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 15
   },
+  loginView: {
+    flex: 1
+  },
   mainText: {
-    color: '#a6a6a6',
+    color: color4,
     fontSize: 16,
     marginBottom: 10
   },
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row'
   },
   userName: {
-    color: '#ffffff',
+    color: color1,
     fontSize: 18
   }
 });

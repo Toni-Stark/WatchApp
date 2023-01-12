@@ -55,27 +55,34 @@ export const BlueToothValue: ScreenComponent = observer(
     );
   }
 );
+
+let color1 = '#ffffff';
+let color2 = '#000000';
+let color5 = '#e7e7e7';
+let color6 = '#9e9e9e';
+let color4 = '#00D1DE';
+let color7 = '#7f7f7f';
 export const styles = StyleSheet.create({
   content: {
-    color: '#7f7f7f',
+    color: color7,
     fontSize: 12
   },
   context: {
-    color: '#000000'
+    color: color2
   },
   flexView: {
     flex: 1
   },
   footerBtn: {
     alignItems: 'center',
-    backgroundColor: '#00D1DE',
+    backgroundColor: color4,
     borderRadius: 5,
     justifyContent: 'center',
     margin: 20,
     paddingVertical: 10
   },
   footerText: {
-    color: '#ffffff',
+    color: color1,
     fontSize: 16
   },
   headerLabel: {
@@ -89,8 +96,8 @@ export const styles = StyleSheet.create({
   },
   toothItem: {
     alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderColor: '#e7e7e7',
+    backgroundColor: color1,
+    borderColor: color5,
     borderRadius: 10,
     borderStyle: 'solid',
     borderWidth: 1,
@@ -102,16 +109,16 @@ export const styles = StyleSheet.create({
     paddingVertical: 7
   },
   toothMac: {
-    color: '#9e9e9e',
+    color: color6,
     fontSize: 13,
     marginTop: 4
   },
   toothPoint: {
-    color: '#00D1DE',
+    color: color4,
     fontSize: 16
   },
   toothTitle: {
-    color: '#000000',
+    color: color2,
     fontSize: 13
   }
 });

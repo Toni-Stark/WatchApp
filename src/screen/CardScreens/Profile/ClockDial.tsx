@@ -13,7 +13,7 @@ export const ClockDial: ScreenComponent = observer(
     const { settingStore } = useStore();
     const baseView = useRef<any>(undefined);
     const [switchValue, setSwitchValue] = useState<number>(0);
-    const [switchList, setSwitchList] = useState<any>([
+    const [switchList] = useState<any>([
       {
         name: '表盘一',
         value: 0
@@ -28,9 +28,6 @@ export const ClockDial: ScreenComponent = observer(
       }
     ]);
 
-    const navigateToDevice = () => {
-      console.log('123456');
-    };
     const backScreen = () => {
       navigation.goBack();
     };
@@ -74,41 +71,15 @@ export const ClockDial: ScreenComponent = observer(
 );
 
 const styles = StyleSheet.create({
-  headerStart: {
-    flexDirection: 'row'
-  },
-  moduleView: {
-    padding: 20
-  },
-  mainText: {
-    color: '#a6a6a6',
-    fontSize: 16,
-    marginBottom: 10
-  },
-  labelView: {
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderColor: '#e3e3e3',
-    borderStyle: 'solid',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    paddingVertical: 15
-  },
-  firstBorder: {
-    borderTopWidth: 1
-  },
-  labelIcon: {
-    height: 25,
-    width: 25
-  },
-  labelText: {
-    fontSize: 18,
-    marginLeft: 5
-  },
   agree: {
     padding: 0,
     paddingRight: 5
+  },
+  agreeMain: {
+    backgroundColor: '#0d9fa8',
+    borderRadius: 50,
+    height: 15,
+    width: 15
   },
   agreeView: {
     alignItems: 'center',
@@ -120,10 +91,36 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 23
   },
-  agreeMain: {
-    backgroundColor: '#0d9fa8',
-    borderRadius: 50,
-    height: 15,
-    width: 15
+  firstBorder: {
+    borderTopWidth: 1
+  },
+  headerStart: {
+    flexDirection: 'row'
+  },
+  labelIcon: {
+    height: 25,
+    width: 25
+  },
+  labelText: {
+    fontSize: 18,
+    marginLeft: 5
+  },
+  labelView: {
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderColor: '#e3e3e3',
+    borderStyle: 'solid',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    paddingVertical: 15
+  },
+  mainText: {
+    color: '#a6a6a6',
+    fontSize: 16,
+    marginBottom: 10
+  },
+  moduleView: {
+    padding: 20
   }
 });

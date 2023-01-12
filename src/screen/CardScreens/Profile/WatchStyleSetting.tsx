@@ -35,7 +35,7 @@ export const WatchStyleSetting: ScreenComponent = observer(
     };
 
     const navigateToDevice = (item) => {
-      // navigation.navigate('ClockDial', {});
+      navigation.navigate('ClockDial', {});
     };
     const backScreen = () => {
       navigation.goBack();
@@ -57,14 +57,17 @@ export const WatchStyleSetting: ScreenComponent = observer(
                     navigateToDevice(item);
                   }}
                 >
-                  <View style={[styles.labelView, index === 0 && styles.labelTop, index === switchList.length - 1 && styles.labelBottom]}>
+                  <View style={[styles.labelView, index === 0 && styles.labelTop, styles.labelBottom]}>
                     <View style={styles.startLabel}>
                       <FastImage
                         style={styles.labelIcon}
                         source={require('../../../assets/home/style-setting/watch-icon.png')}
                         resizeMode={FastImage.resizeMode.cover}
                       />
-                      <Text style={styles.labelText}>{item.name}</Text>
+                      <View style={styles.labelContext}>
+                        <Text style={styles.labelText}>{item.name}</Text>
+                        <Text style={styles.evalText}>{item.value}</Text>
+                      </View>
                     </View>
                     {/*<FastImage style={styles.deviceIcon} source={require('../../../assets/home/right-gray.png')} resizeMode={FastImage.resizeMode.cover} />*/}
                   </View>
@@ -129,5 +132,14 @@ const styles = StyleSheet.create({
   deviceIcon: {
     height: 20,
     width: 20
+  },
+  labelContext: {
+    flex: 1,
+    justifyContent: 'space-between'
+  },
+  evalText: {
+    fontSize: 13,
+    marginLeft: 15,
+    marginTop: 5
   }
 });

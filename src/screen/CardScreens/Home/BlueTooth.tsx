@@ -43,10 +43,10 @@ export const BlueTooth: ScreenComponent = observer(
           // 处理错误（扫描会自动停止）
           return;
         }
-        if (device.name && !list.find((item) => item?.name === device.name)) {
+        if (device.name && !list.find((item) => item?.id === device.id)) {
           list.push(device);
           setDevicesList([...list]);
-          if (list.find((item) => item?.name === device.name)) {
+          if (list.find((item) => item?.id === device.id)) {
             timer = setTimeout(() => {
               blueToothStore.manager?.stopDeviceScan();
               clearTimeout(timer);
@@ -137,14 +137,20 @@ export const BlueTooth: ScreenComponent = observer(
     );
   }
 );
+
+let color2 = '#000000';
+let color3 = '#00D1DE';
+let color4 = '#ffffff';
+let color5 = '#e7e7e7';
+let color6 = '#9e9e9e';
 export const styles = StyleSheet.create({
   flexView: {
     flex: 1
   },
   toothItem: {
     alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderBottomColor: '#e7e7e7',
+    backgroundColor: color4,
+    borderBottomColor: color5,
     borderBottomWidth: 1,
     borderStyle: 'solid',
     flexDirection: 'row',
@@ -154,16 +160,16 @@ export const styles = StyleSheet.create({
     width: '100%'
   },
   toothMac: {
-    color: '#9e9e9e',
+    color: color6,
     fontSize: 13,
     marginTop: 4
   },
   toothPoint: {
-    color: '#00D1DE',
+    color: color3,
     fontSize: 16
   },
   toothTitle: {
-    color: '#000000',
+    color: color2,
     fontSize: 16
   }
 });

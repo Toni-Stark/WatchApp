@@ -11,7 +11,7 @@ import BluetoothStateManager from 'react-native-bluetooth-state-manager';
 import { arrCount, arrToByte, eventTimes, getMinTen, hasAndroidPermission } from '../common/tools';
 import { Hexagon } from '../component/home/Hexagon';
 import AsyncStorage from '@react-native-community/async-storage';
-import { DEVICE_DATA, DEVICE_INFO } from '../common/constants';
+import { DEVICE_DATA, DEVICE_INFO, TOKEN_NAME } from '../common/constants';
 import Spinkit from 'react-native-spinkit';
 import { RootEnum } from '../common/sign-module';
 import moment from 'moment';
@@ -21,6 +21,7 @@ import { allDataSleep, bloodData } from '../common/watch-module';
 import { PortalDialog } from '../component/home/PortalDialog';
 import { PasswordDialog } from '../component/home/PasswordDialog';
 import { Api } from '../common/api';
+import RNBootSplash from 'react-native-bootsplash';
 
 let type = 0;
 export const Home: ScreenComponent = observer(
@@ -38,7 +39,7 @@ export const Home: ScreenComponent = observer(
         cap: '步',
         time: ' ',
         fun: async () => {
-          await jumpToMiniProgram();
+          // await jumpToMiniProgram();
         }
       },
       {
@@ -50,7 +51,7 @@ export const Home: ScreenComponent = observer(
         cap: '',
         time: ' ',
         fun: async () => {
-          await blueToothStore.sendActiveMessage(allDataSleep);
+          // await blueToothStore.sendActiveMessage(allDataSleep);
         }
       },
       {
@@ -75,7 +76,7 @@ export const Home: ScreenComponent = observer(
         cap: 'mmHg',
         time: '',
         fun: async () => {
-          await jumpToMiniProgram();
+          // await jumpToMiniProgram();
         }
       },
       {
@@ -86,7 +87,7 @@ export const Home: ScreenComponent = observer(
         value: '',
         cap: '',
         fun: async () => {
-          await jumpToMiniProgram();
+          // await jumpToMiniProgram();
         }
       },
       {
@@ -97,7 +98,7 @@ export const Home: ScreenComponent = observer(
         value: '',
         cap: '°C',
         fun: async () => {
-          await jumpToMiniProgram();
+          // await jumpToMiniProgram();
         }
       }
     ]);
@@ -115,6 +116,7 @@ export const Home: ScreenComponent = observer(
     const [password, setPassword] = useState('');
 
     useEffect(() => {
+      RNBootSplash.hide();
       (async () => {
         const rePowered = await BluetoothStateManager.getState();
         if (rePowered !== 'PoweredOn') return;
@@ -271,6 +273,8 @@ export const Home: ScreenComponent = observer(
       if (device['-47']) {
         const { intValue2, i8, i9, i10, xinlvTime, xueyaTime } = device['-47'];
         list[0].value = `${arrCount(intValue2)}`;
+
+        // list[4].value = (list[0].value > 0 && '97%') || '无';
         list[2].value = i8[i8.length - 1] || 0;
         list[2].time = xinlvTime[i8.length - 1] || '';
         if (i9.length > 0 && i10.length > 0) {
@@ -360,9 +364,9 @@ export const Home: ScreenComponent = observer(
       if (!blueToothStore.devicesInfo) {
         return (
           <TouchableOpacity style={styles.cardStart} onPress={blueToothDetail}>
-            <Text style={styles.tipText}>暂未绑定设备</Text>
+            <Text style={styles.tipText}>暂未连接设备</Text>
             <View style={styles.btnView}>
-              <Text style={styles.btnText}>去绑定</Text>
+              <Text style={styles.btnText}>去连接</Text>
             </View>
           </TouchableOpacity>
         );
@@ -407,7 +411,7 @@ export const Home: ScreenComponent = observer(
               </View>
               <TouchableOpacity style={styles.loginView}>
                 <View style={styles.headerContent}>
-                  <Text style={styles.userName}>用戶13</Text>
+                  <Text style={styles.userName}>用户名</Text>
                 </View>
               </TouchableOpacity>
             </View>
@@ -573,20 +577,20 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 20
   },
-  deviceBanner: {
-    flex: 1
-  },
-  deviceStart: {
-    flexDirection: 'row',
-    marginTop: 40
-  },
   contextView: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center'
   },
+  deviceBanner: {
+    flex: 1
+  },
   deviceContext: {
-    color: '#ffffff'
+    color: color3
+  },
+  deviceStart: {
+    flexDirection: 'row',
+    marginTop: 40
   },
   deviceText: {
     color: color3,
@@ -685,6 +689,10 @@ const styles = StyleSheet.create({
     height: 50,
     width: '100%'
   },
+  loadingView: {
+    flex: 1,
+    paddingHorizontal: 20
+  },
   loginView: {
     flex: 1
   },
@@ -770,9 +778,5 @@ const styles = StyleSheet.create({
   userName: {
     color: color3,
     fontSize: 18
-  },
-  loadingView: {
-    flex: 1,
-    paddingHorizontal: 20
   }
 });

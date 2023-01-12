@@ -230,55 +230,6 @@ export const genRandomString = (len: number) => {
   return rdmString;
 };
 
-export const requestCameraPermission = async (): Promise<boolean> => {
-  if (Platform.OS === 'android') {
-    if ((await check(PERMISSIONS.ANDROID.CAMERA)) !== 'granted') {
-      if ((await request(PERMISSIONS.ANDROID.CAMERA)) !== 'granted') {
-        return Promise.reject('操作需要相机权限');
-      }
-    }
-    if ((await check(PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE)) !== 'granted') {
-      if ((await request(PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE)) !== 'granted') {
-        return Promise.reject('操作需要相册权限');
-      }
-    }
-  } else {
-    if ((await check(PERMISSIONS.IOS.CAMERA)) !== 'granted') {
-      if ((await request(PERMISSIONS.IOS.CAMERA)) !== 'granted') {
-        return Promise.reject('操作需要相机权限');
-      }
-    }
-  }
-  return Promise.resolve(true);
-};
-
-export const requestAudioAndVideoPermission = async (): Promise<boolean> => {
-  if (Platform.OS === 'android') {
-    if ((await check(PERMISSIONS.ANDROID.CAMERA)) !== 'granted') {
-      if ((await request(PERMISSIONS.ANDROID.CAMERA)) !== 'granted') {
-        return Promise.reject('操作需要相机权限');
-      }
-    }
-    if ((await check(PERMISSIONS.ANDROID.RECORD_AUDIO)) !== 'granted') {
-      if ((await request(PERMISSIONS.ANDROID.RECORD_AUDIO)) !== 'granted') {
-        return Promise.reject('操作需要录音权限');
-      }
-    }
-  } else {
-    if ((await check(PERMISSIONS.IOS.CAMERA)) !== 'granted') {
-      if ((await request(PERMISSIONS.IOS.CAMERA)) !== 'granted') {
-        return Promise.reject('操作需要相机权限');
-      }
-    }
-    if ((await check(PERMISSIONS.IOS.MICROPHONE)) !== 'granted') {
-      if ((await request(PERMISSIONS.IOS.MICROPHONE)) !== 'granted') {
-        return Promise.reject('操作需要录音权限');
-      }
-    }
-  }
-  return Promise.resolve(true);
-};
-
 export const getStorage = async (name): Promise<string | null> => {
   return Promise.resolve(await AsyncStorage.getItem(name));
 };
