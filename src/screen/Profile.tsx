@@ -8,7 +8,7 @@ import { tw } from 'react-native-tailwindcss';
 import { ProfilePlaceholder } from '../component/skeleton/ProfilePlaceholder';
 import { observer } from 'mobx-react-lite';
 import FastImage from 'react-native-fast-image';
-import { mainListen, passRegSign } from '../common/watch-module';
+import { allDataC } from '../common/watch-module';
 
 export const Profile: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -24,9 +24,10 @@ export const Profile: ScreenComponent = observer(
       navigation.navigate('UserInfo', {});
     };
     const navigateToDevice = async () => {
+      await blueToothStore.sendActiveMessage(allDataC);
       // await blueToothStore.successDialog();
       // await blueToothStore.listenActiveMessage(mainListen);
-      navigation.navigate('WatchStyleSetting', {});
+      // navigation.navigate('WatchStyleSetting', {});
       // blueToothStore.device = defaultDevice;
       // await blueToothStore.sendActiveMessage(allDataSign);
     };

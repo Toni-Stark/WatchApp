@@ -20,10 +20,6 @@ export const WeChatOnePassLogin = observer((props: Props) => {
   const [agree, setAgree] = useState(false);
   RNBootSplash.hide();
 
-  useEffect(() => {
-    console.log('進入頁面');
-  }, []);
-
   const currentAgree = () => {
     setAgree(!agree);
   };

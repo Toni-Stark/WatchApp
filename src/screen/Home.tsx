@@ -17,7 +17,6 @@ import { RootEnum } from '../common/sign-module';
 import moment from 'moment';
 import BackgroundFetch from 'react-native-background-fetch';
 import LinearGradient from 'react-native-linear-gradient';
-import { allDataSleep, bloodData } from '../common/watch-module';
 import { PortalDialog } from '../component/home/PortalDialog';
 import { PasswordDialog } from '../component/home/PasswordDialog';
 import { Api } from '../common/api';

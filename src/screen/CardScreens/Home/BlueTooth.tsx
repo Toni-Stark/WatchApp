@@ -59,7 +59,7 @@ export const BlueTooth: ScreenComponent = observer(
     };
 
     const connectItem = async (item) => {
-      if (item.name === connectName) {
+      if (item.id === connectName) {
         navigation.navigate('BlueToothDetail', {});
       } else {
         setSpinner(true);
@@ -78,7 +78,7 @@ export const BlueTooth: ScreenComponent = observer(
             blueToothStore.isRoot = RootEnum['连接中'];
             blueToothStore.setDeviceStorage(device);
             blueToothStore.listenActiveMessage(mainListen);
-            setConnectName(item.name);
+            setConnectName(item.id);
             setSpinner(false);
             baseView.current.showToast({ text: '连接成功', delay: 1 });
             setTimeout(() => {
@@ -107,7 +107,7 @@ export const BlueTooth: ScreenComponent = observer(
             <Text style={styles.toothTitle}>{item.name}</Text>
             <Text style={styles.toothMac}>{item.id}</Text>
           </View>
-          {connectName === item.name ? (
+          {connectName === item.id ? (
             <View>
               <Text>详细信息</Text>
             </View>

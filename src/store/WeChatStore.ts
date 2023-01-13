@@ -31,6 +31,7 @@ export class WeChatStore {
           console.warn('isInstalled==', isInstalled);
           WeChat.sendAuthRequest('snsapi_userinfo')
             .then((wechatInfo) => {
+              console.log(wechatInfo);
               resolve(wechatInfo);
             })
             .catch((err) => {

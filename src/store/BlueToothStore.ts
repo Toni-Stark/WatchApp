@@ -20,7 +20,16 @@ export const defaultDevice = {
     intValue3: []
   },
   '-180': {},
-  '-32': {}
+  '-32': {},
+  '-33': {
+    i8: [],
+    i9: [],
+    i10: [],
+    xinlvTime: [],
+    xueyaTime: [],
+    intValue2: [],
+    intValue3: []
+  }
 };
 const defaultData = {
   '1': '',
@@ -78,23 +87,6 @@ export class BlueToothStore {
       }
     })();
   }
-
-  @action
-  async checkBlO2() {
-    // await this.sendActiveMessage(bloodData);
-    await this.sendActiveMessage(allDataSleep);
-  }
-  @action
-  async checkHeart() {
-    if (this.isCheckHeart) {
-      await this.sendActiveMessage(allDataHeartEnd);
-      this.isCheckHeart = false;
-      return;
-    }
-    await this.sendActiveMessage(allDataHeartStart);
-    this.isCheckHeart = true;
-  }
-
   @action
   async setManagerInit() {
     this.manager = new BleManager();
@@ -169,9 +161,8 @@ export class BlueToothStore {
   }
   @action
   async sendActiveWithoutMessage(params) {
-    console.log(this.device, '查看蓝牙设备');
-    console.log(this.devicesInfo, '查看蓝牙设备信息');
     let storeRes = regCutString(params.value);
+    console.log(storeRes, '蓝牙输入状态值1');
     let buffer = Buffer.from(stringToByte(storeRes)).toString('base64');
     await this.devicesInfo.writeCharacteristicWithoutResponseForService(params.serviceUUID, params.uuid, buffer);
   }
@@ -182,15 +173,16 @@ export class BlueToothStore {
       // if (this.listenDevices) {
       //   this.listenDevices?.remove();
       // }
+      console.log('设置蓝牙监听');
       this.listenDevices = this.devicesInfo.monitorCharacteristicForService(params.serviceUUID, params.uuid, (error, characteristic) => {
         if (error) return;
         let value = baseToHex(characteristic.value);
         this.blueRootList = [...this.blueRootList, value];
-        console.log(value);
-        let regValue = ['a1', 'a0', 'd1', 'd0', 'd8', '88', '80', 'd2', 'e0'].includes(value.slice(0, 2));
+        let regValue = ['a1', 'a0', 'd1', 'd0', 'd8', '88', '80', 'd2', 'e0', 'df'].includes(value.slice(0, 2));
         if (regValue) {
           this.devicesModules(value);
         }
+        console.log(value, 'log--------------');
         if (this.backgroundActive) {
           let dateTime = new Date().getTime();
           let timeThan = this.dataChangeTime ? dateTime - this.dataChangeTime : dateTime;
@@ -253,8 +245,12 @@ export class BlueToothStore {
       },
       '-96': (e) => {
         let battery = e.match(/([\d\D]{2})/g);
+        let batteryNum;
+        console.log(e);
+        if (battery[6] === '00') batteryNum = parseInt(battery[4], 16);
+        if (battery[6] !== '00') batteryNum = Math.ceil((parseInt(battery[6], 16) / 100) * 4);
         return {
-          power: parseInt(battery[4], 16)
+          power: batteryNum
         };
       },
       '-47': (e) => {
@@ -291,6 +287,30 @@ export class BlueToothStore {
         data[battery[1]] = battery;
         this.deviceFormData['2'] += e + '\n';
         return data;
+      },
+      '-33': (e) => {
+        if (e.length >= 40) {
+          let list: any = this.device[hex] || {};
+          let message = arrToByte(e.match(/([\d\D]{2})/g), true);
+          let prototype = e.match(/([\d\D]{2})/g);
+          console.log(e, 'log--------------');
+          // console.log(message[106], message[107], '返回监听值');
+          // if (parseInt(message[14]) > 30) {
+          //   list.i8.push(message[14]); //心率
+          //   list.xinlvTime.push(`${getMinTen(message[5])}:${getMinTen(message[19])}`); //心率记录时间
+          // }
+          // if (message[106] && message[107]) {
+          //   message[106] && list.i9.push(message[106]); //血压高
+          //   message[107] && list.i10.push(message[107]); //血压低
+          //   list.xueyaTime.push(`${getMinTen(message[8])}:${getMinTen(message[9])}`);
+          // }
+          // let val1 = parseInt(prototype[18] + prototype[19], 16) / 10;
+          // let val2 = parseInt(prototype[12] + prototype[13], 16);
+          // list.intValue3.push(val1); //卡路里
+          // list.intValue2.push(val2); //运动步数
+        }
+        this.deviceFormData['1'] += e + '\n';
+        return '';
       },
       '-120': (e) => {
         let battery = e.match(/([\d\D]{2})/g);
@@ -388,6 +408,7 @@ export class BlueToothStore {
         withToken: true
       });
       let data = res.data;
+      console.log(data);
       if (bool) {
         if (res.code !== 200) {
           return resolve({ msg: res.msg, success: false });

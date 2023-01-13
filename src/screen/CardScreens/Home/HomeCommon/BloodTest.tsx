@@ -69,8 +69,8 @@ export const styles = StyleSheet.create({
     backgroundColor: '#d50921'
   },
   contextView: {
-    flex: 1,
     alignItems: 'center',
+    flex: 1,
     justifyContent: 'center'
   },
   values: {

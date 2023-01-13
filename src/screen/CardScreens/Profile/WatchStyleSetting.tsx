@@ -8,6 +8,7 @@ import { observer } from 'mobx-react-lite';
 import { ScreenComponent } from '../../index';
 import FastImage from 'react-native-fast-image';
 import { StackBar } from '../../../component/home/StackBar';
+import { allDataC, allDataHeartEnd, allDataSign, allDataSleep, passRegSign } from '../../../common/watch-module';
 
 export const WatchStyleSetting: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -21,7 +22,6 @@ export const WatchStyleSetting: ScreenComponent = observer(
 
     const updateData = async () => {
       await blueToothStore.userDeviceSetting(false).then((res) => {
-        console.log(res, 'logs--matter---');
         if (!res.success) {
           baseView.current.showToast({ text: res.msg, delay: 2 });
           return;
@@ -34,8 +34,10 @@ export const WatchStyleSetting: ScreenComponent = observer(
       });
     };
 
-    const navigateToDevice = (item) => {
-      navigation.navigate('ClockDial', {});
+    const navigateToDevice = async (item) => {
+      // navigation.navigate('ClockDial', {});
+      // blueToothStore.sendActiveMessage(allDataC);
+      console.log('读取心率开始');
     };
     const backScreen = () => {
       navigation.goBack();
