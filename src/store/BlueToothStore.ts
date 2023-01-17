@@ -97,6 +97,15 @@ export class BlueToothStore {
   }
 
   @action
+  async removeBlueToothListen() {
+    this.isRoot = RootEnum['断开连接'];
+    await AsyncStorage.removeItem(DEVICE_INFO);
+    await setTimeout(async () => {
+      await this.closeDevices();
+    }, 1000);
+  }
+
+  @action
   async closeDevices() {
     if (!this.devicesInfo?.id) {
       return;
@@ -137,6 +146,7 @@ export class BlueToothStore {
     this.deviceFormData = defaultData;
     this.refreshing = true;
     if (!this.devicesInfo?.id) {
+      this.refreshing = false;
       return;
     }
     this.refreshInfo = {
@@ -155,14 +165,14 @@ export class BlueToothStore {
   @action
   async sendActiveMessage(params) {
     let storeRes = regCutString(params.value);
-    console.log(storeRes, '蓝牙输入状态值');
+    console.log(storeRes, '111111');
     let buffer = Buffer.from(stringToByte(storeRes)).toString('base64');
     await this.devicesInfo.writeCharacteristicWithResponseForService(params.serviceUUID, params.uuid, buffer);
   }
   @action
   async sendActiveWithoutMessage(params) {
     let storeRes = regCutString(params.value);
-    console.log(storeRes, '蓝牙输入状态值1');
+    console.log(storeRes, '222222222');
     let buffer = Buffer.from(stringToByte(storeRes)).toString('base64');
     await this.devicesInfo.writeCharacteristicWithoutResponseForService(params.serviceUUID, params.uuid, buffer);
   }
@@ -170,10 +180,6 @@ export class BlueToothStore {
   @action
   async listenActiveMessage(params) {
     try {
-      // if (this.listenDevices) {
-      //   this.listenDevices?.remove();
-      // }
-      console.log('设置蓝牙监听');
       this.listenDevices = this.devicesInfo.monitorCharacteristicForService(params.serviceUUID, params.uuid, (error, characteristic) => {
         if (error) return;
         let value = baseToHex(characteristic.value);
@@ -182,16 +188,19 @@ export class BlueToothStore {
         if (regValue) {
           this.devicesModules(value);
         }
-        console.log(value, 'log--------------');
+        if (['bd'].includes(value.slice(0, 2))) {
+          return;
+        }
         if (this.backgroundActive) {
+          console.log(value, '后台任务');
           let dateTime = new Date().getTime();
           let timeThan = this.dataChangeTime ? dateTime - this.dataChangeTime : dateTime;
           if (timeThan > 10000) {
             this.dataChangeTime = dateTime;
-            this.currentDevice = { ...this.device };
+            this.updateDeviceList();
           } else if (timeThan > 1000) {
             this.dataChangeTime = dateTime;
-            this.updateDeviceList();
+            this.currentDevice = { ...this.device };
           }
           return;
         }
@@ -200,7 +209,8 @@ export class BlueToothStore {
           return;
         }
         eventTimes(() => {
-          this.setBasicInfo();
+          // this.setBasicInfo();
+          this.updateDeviceList();
         }, 1000);
       });
     } catch (err) {
@@ -210,9 +220,6 @@ export class BlueToothStore {
 
   @action
   async setBasicInfo() {
-    this.refreshing = false;
-    this.currentDevice = { ...this.device };
-    await this.updateDeviceList();
     // RSJournalStore.writeDataCache(this.logcatDetailed);
   }
 
@@ -229,15 +236,16 @@ export class BlueToothStore {
     //   this.logcatDetailed[hex] = '';
     // }
     // this.logcatDetailed[hex] += val + '\n';
+    console.log(val, '蓝牙数据');
     let params = {
       '-95': (e) => {
         let reg = [0, '0'].includes(e.slice(0, -1));
         if (this.needRegPassword && reg) {
           this.noPasswordTips = true;
         }
-        if (reg) {
-          this.needRegPassword = true;
-        }
+        // if (reg) {
+        //   this.needRegPassword = true;
+        // }
         // let battery = e.match(/([\d\D]{2})/g);
         // return {
         //   power: parseInt(battery[4], 16)
@@ -246,9 +254,8 @@ export class BlueToothStore {
       '-96': (e) => {
         let battery = e.match(/([\d\D]{2})/g);
         let batteryNum;
-        console.log(e);
         if (battery[6] === '00') batteryNum = parseInt(battery[4], 16);
-        if (battery[6] !== '00') batteryNum = Math.ceil((parseInt(battery[6], 16) / 100) * 4);
+        if (battery[6] !== '00') batteryNum = Math.ceil((parseInt(battery[4], 16) / 100) * 4);
         return {
           power: batteryNum
         };
@@ -293,7 +300,7 @@ export class BlueToothStore {
           let list: any = this.device[hex] || {};
           let message = arrToByte(e.match(/([\d\D]{2})/g), true);
           let prototype = e.match(/([\d\D]{2})/g);
-          console.log(e, 'log--------------');
+          // console.log(e, '444444444444');
           // console.log(message[106], message[107], '返回监听值');
           // if (parseInt(message[14]) > 30) {
           //   list.i8.push(message[14]); //心率
@@ -408,16 +415,19 @@ export class BlueToothStore {
         withToken: true
       });
       let data = res.data;
-      console.log(data);
       if (bool) {
         if (res.code !== 200) {
           return resolve({ msg: res.msg, success: false });
         }
-        if (data.device_list.length <= 0) {
-          return resolve({ needBinding: true, name: this.devicesInfo.name });
-        }
-        if (!data.device_list.find((item) => item.device_mac === this.devicesInfo.id)) {
-          return resolve({ needBinding: true, name: this.devicesInfo.name });
+        // console.log('log---------');
+        // console.log(data.device_list, 'log---------');
+        // console.log('log---------');
+        let need = !data.device_list.find((item) => item.device_mac === this.devicesInfo.id) || data.device_list.length <= 0;
+        if (need) {
+          this.bindUserDevice().then((result) => {
+            console.log(result, '绑定设备信息');
+            return resolve({ success: true, data: data.device_list });
+          });
         }
       }
       if (!bool) {
@@ -438,6 +448,7 @@ export class BlueToothStore {
     if (data['3']) await this.updateDeviceData({ type: '3', value: data['3'] });
     if (data['4']) await this.updateDeviceData({ type: '4', value: data['4'] });
     if (data['5']) await this.updateDeviceData({ type: '5', value: data['5'] });
+    this.currentDevice = { ...this.device };
   }
 
   /**
@@ -480,6 +491,27 @@ export class BlueToothStore {
         return resolve({ msg: res.msg, success: false });
       }
       return resolve({ msg: '绑定成功', success: true });
+    });
+  }
+
+  /**
+   * get getDeviceInfo
+   * url: /watch/device/newest-stat
+   */
+  @action
+  async getDeviceInfo(params): Promise<any> {
+    return new Promise(async (resolve, reject) => {
+      const res: ApiResult = await Api.getInstance.post({
+        url: '/watch/device/newest-stat',
+        params: {
+          device_mac: params.id
+        },
+        withToken: true
+      });
+      if (res.code !== 200) {
+        return resolve({ msg: res.msg, success: false });
+      }
+      return resolve({ msg: '更新成功', data: res.data, success: true });
     });
   }
 }

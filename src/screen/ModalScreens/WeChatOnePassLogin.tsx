@@ -16,9 +16,13 @@ export type Props = {
 };
 export const WeChatOnePassLogin = observer((props: Props) => {
   const baseView = useRef<any>(undefined);
-  const { weChatStore } = useStore();
+  const { weChatStore, blueToothStore } = useStore();
   const [agree, setAgree] = useState(false);
-  RNBootSplash.hide();
+
+  useEffect(() => {
+    RNBootSplash.hide();
+    (async () => await blueToothStore.removeBlueToothListen())();
+  }, []);
 
   const currentAgree = () => {
     setAgree(!agree);

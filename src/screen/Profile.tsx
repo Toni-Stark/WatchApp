@@ -8,15 +8,17 @@ import { tw } from 'react-native-tailwindcss';
 import { ProfilePlaceholder } from '../component/skeleton/ProfilePlaceholder';
 import { observer } from 'mobx-react-lite';
 import FastImage from 'react-native-fast-image';
-import { allDataC } from '../common/watch-module';
 
 export const Profile: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
-    const { settingStore, blueToothStore } = useStore();
+    const { settingStore, weChatStore } = useStore();
     const baseView = useRef<any>(undefined);
 
     useEffect(() => {
       settingStore.updateSettings();
+      (async () => {
+        await weChatStore.getUserInfo();
+      })();
     }, [settingStore]);
 
     const goLogin = () => {
@@ -24,10 +26,10 @@ export const Profile: ScreenComponent = observer(
       navigation.navigate('UserInfo', {});
     };
     const navigateToDevice = async () => {
-      await blueToothStore.sendActiveMessage(allDataC);
+      // await blueToothStore.sendActiveMessage(allDataSign);
       // await blueToothStore.successDialog();
       // await blueToothStore.listenActiveMessage(mainListen);
-      // navigation.navigate('WatchStyleSetting', {});
+      navigation.navigate('WatchStyleSetting', {});
       // blueToothStore.device = defaultDevice;
       // await blueToothStore.sendActiveMessage(allDataSign);
     };
@@ -36,31 +38,30 @@ export const Profile: ScreenComponent = observer(
       if (settingStore.loading) {
         return <ProfilePlaceholder />;
       }
+      const { avatar, nickname } = weChatStore.userInfo;
+      let url;
+      if (avatar) url = { uri: avatar };
+      if (!avatar) url = require('../assets/home/header-assets.png');
+      let name = nickname || '微信用户';
+
       return (
         <ScrollView style={[tw.flex1, [{ marginBottom: 60 }]]}>
           <View style={styles.header}>
             <View style={styles.headerStart}>
               <View style={styles.imageView}>
-                <FastImage style={styles.headerImg} source={require('../assets/home/header-assets.png')} resizeMode={FastImage.resizeMode.cover} />
+                <FastImage style={styles.headerImg} source={url} resizeMode={FastImage.resizeMode.cover} />
               </View>
               <TouchableOpacity style={styles.loginView} onPress={goLogin}>
                 <View style={styles.headerContent}>
-                  <Text style={styles.userName}>用户名</Text>
+                  <Text style={styles.userName}>{name}</Text>
                   <View style={styles.userIcons}>
                     <View style={styles.icons}>
                       <Text style={styles.iconText}>已认证</Text>
                     </View>
-                    {/*<View style={styles.icons}>*/}
-                    {/*  <Text style={styles.iconText}>桐君阁药房</Text>*/}
-                    {/*</View>*/}
                   </View>
                 </View>
               </TouchableOpacity>
             </View>
-            {/*<View style={styles.deviceLabel}>*/}
-            {/*  <Text style={[styles.deviceText]}>设备绑定</Text>*/}
-            {/*  <FastImage style={styles.deviceIcon} source={require('../assets/home/right.png')} resizeMode={FastImage.resizeMode.cover} />*/}
-            {/*</View>*/}
           </View>
           <View style={styles.context}>
             <View style={styles.moduleView}>
@@ -76,32 +77,9 @@ export const Profile: ScreenComponent = observer(
               </TouchableOpacity>
             </View>
           </View>
-          {/*<View style={styles.context}>*/}
-          {/*  <View style={styles.moduleView}>*/}
-          {/*    <Text style={styles.mainText}>添加数据</Text>*/}
-          {/*    <TouchableOpacity onPress={writeText}>*/}
-          {/*      <View style={styles.labelView}>*/}
-          {/*        <View style={styles.startLabel}>*/}
-          {/*          <FastImage style={styles.labelIcon} source={require('../assets/home/header-assets.png')} resizeMode={FastImage.resizeMode.cover} />*/}
-          {/*          <Text style={styles.labelText}>添加一条数据</Text>*/}
-          {/*        </View>*/}
-          {/*        <FastImage style={styles.deviceIcon} source={require('../assets/home/right-gray.png')} resizeMode={FastImage.resizeMode.cover} />*/}
-          {/*      </View>*/}
-          {/*    </TouchableOpacity>*/}
-          {/*    <TouchableOpacity onPress={readText}>*/}
-          {/*      <View style={styles.labelView}>*/}
-          {/*        <View style={styles.startLabel}>*/}
-          {/*          <FastImage style={styles.labelIcon} source={require('../assets/home/header-assets.png')} resizeMode={FastImage.resizeMode.cover} />*/}
-          {/*          <Text style={styles.labelText}>查看数据</Text>*/}
-          {/*        </View>*/}
-          {/*        <FastImage style={styles.deviceIcon} source={require('../assets/home/right-gray.png')} resizeMode={FastImage.resizeMode.cover} />*/}
-          {/*      </View>*/}
-          {/*    </TouchableOpacity>*/}
-          {/*  </View>*/}
-          {/*</View>*/}
         </ScrollView>
       );
-    }, [settingStore.loading]);
+    }, [settingStore.loading, weChatStore.userInfo]);
 
     return (
       <BaseView ref={baseView} style={[tw.flex1, [{ backgroundColor: 'blue' }]]}>
@@ -148,8 +126,8 @@ const styles = StyleSheet.create({
     paddingVertical: 2
   },
   headerImg: {
-    height: 50,
-    width: 50
+    height: 60,
+    width: 60
   },
   headerStart: {
     flexDirection: 'row'
@@ -168,6 +146,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     height: 60,
     justifyContent: 'center',
+    overflow: 'hidden',
     width: 60
   },
   labelIcon: {

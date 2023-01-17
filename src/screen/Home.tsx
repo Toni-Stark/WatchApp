@@ -11,7 +11,7 @@ import BluetoothStateManager from 'react-native-bluetooth-state-manager';
 import { arrCount, arrToByte, eventTimes, getMinTen, hasAndroidPermission } from '../common/tools';
 import { Hexagon } from '../component/home/Hexagon';
 import AsyncStorage from '@react-native-community/async-storage';
-import { DEVICE_DATA, DEVICE_INFO, TOKEN_NAME } from '../common/constants';
+import { DEVICE_DATA, DEVICE_INFO, TOKEN_NAME, USER_CONFIG } from '../common/constants';
 import Spinkit from 'react-native-spinkit';
 import { RootEnum } from '../common/sign-module';
 import moment from 'moment';
@@ -27,7 +27,6 @@ export const Home: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
     const { blueToothStore, weChatStore } = useStore();
     const baseView = useRef<any>(undefined);
-    const [target, setTarget] = useState(102);
     const [contentList, setContentList] = useState<any>([
       {
         title: '运动',
@@ -38,7 +37,7 @@ export const Home: ScreenComponent = observer(
         cap: '步',
         time: ' ',
         fun: async () => {
-          // await jumpToMiniProgram();
+          await jumpToMiniProgram();
         }
       },
       {
@@ -51,6 +50,7 @@ export const Home: ScreenComponent = observer(
         time: ' ',
         fun: async () => {
           // await blueToothStore.sendActiveMessage(allDataSleep);
+          await jumpToMiniProgram();
         }
       },
       {
@@ -63,7 +63,8 @@ export const Home: ScreenComponent = observer(
         time: '',
         fun: async () => {
           // await blueToothStore.sendActiveMessage(bloodData);
-          await naviToCommon('HeartTest');
+          // await naviToCommon('HeartTest');
+          await jumpToMiniProgram();
         }
       },
       {
@@ -75,7 +76,7 @@ export const Home: ScreenComponent = observer(
         cap: 'mmHg',
         time: '',
         fun: async () => {
-          // await jumpToMiniProgram();
+          await jumpToMiniProgram();
         }
       },
       {
@@ -86,7 +87,7 @@ export const Home: ScreenComponent = observer(
         value: '',
         cap: '',
         fun: async () => {
-          // await jumpToMiniProgram();
+          await jumpToMiniProgram();
         }
       },
       {
@@ -97,7 +98,7 @@ export const Home: ScreenComponent = observer(
         value: '',
         cap: '°C',
         fun: async () => {
-          // await jumpToMiniProgram();
+          await jumpToMiniProgram();
         }
       }
     ]);
@@ -117,6 +118,9 @@ export const Home: ScreenComponent = observer(
     useEffect(() => {
       RNBootSplash.hide();
       (async () => {
+        // let res = await AsyncStorage.getItem(USER_CONFIG);
+        // console.log('storage', res);
+        await weChatStore.getUserInfo();
         const rePowered = await BluetoothStateManager.getState();
         if (rePowered !== 'PoweredOn') return;
         let deviceInfo: string | null = await AsyncStorage.getItem(DEVICE_INFO);
@@ -139,10 +143,7 @@ export const Home: ScreenComponent = observer(
           eventTimes(() => blueToothStore.successDialog(), 1000);
           // await blueToothStore.listenActiveMessage(mainListen);
           blueToothStore.userDeviceSetting(true).then((res) => {
-            if (res.needBinding) {
-              setVisContext(`绑定设备： ${res.name}`);
-              setVisDialog(true);
-            }
+            console.log(res);
           });
         }
       })();
@@ -215,8 +216,8 @@ export const Home: ScreenComponent = observer(
 
     const initBackgroundFetch = async () => {
       type = 1;
-      console.log('初始化后台任务', moment(new Date()).format('YYYY-MM-DD HH:mm:ss'));
       try {
+        console.log('root');
         // await blueToothStore.manager.cancelDeviceConnection(blueToothStore.devicesInfo.id);
         await BackgroundFetch.configure(
           configureOptions,
@@ -244,7 +245,7 @@ export const Home: ScreenComponent = observer(
     useEffect(() => {
       (async () => {
         let data = await AsyncStorage.getItem(DEVICE_DATA);
-        data && currentSetContentList(JSON.parse(data));
+        data && (await currentSetList(JSON.parse(data)));
         await setBackgroundServer();
       })();
     }, []);
@@ -253,12 +254,21 @@ export const Home: ScreenComponent = observer(
     }, [navigation]);
 
     useEffect(() => {
-      console.log('页面数据变化');
+      console.log('页面数据变化', blueToothStore.devicesInfo);
       eventTimes(() => {
-        setTarget(102);
-        currentSetContentList(blueToothStore.currentDevice);
+        // currentSetContentList(blueToothStore.currentDevice);
+        if (blueToothStore?.devicesInfo?.id) {
+          blueToothStore.getDeviceInfo({ id: blueToothStore.devicesInfo.id }).then((res) => {
+            if (res.success) {
+              currentSetList(res.data).then((upload) => {
+                console.log(upload, '更新过一次数据了');
+                blueToothStore.refreshing = false;
+              });
+            }
+          });
+        }
       }, 500);
-    }, [blueToothStore.currentDevice]);
+    }, [blueToothStore, blueToothStore.currentDevice]);
 
     const updateMenuState = () => {
       console.log('打开分享链接');
@@ -309,9 +319,19 @@ export const Home: ScreenComponent = observer(
         }
       }
       setContentList([...list]);
-      let circle = list[0].value < 9000 ? 102 - Math.ceil((list[0].value / 9000) * 102) : 102;
-      setTarget(circle);
       await AsyncStorage.setItem(DEVICE_DATA, JSON.stringify(device));
+    };
+
+    const currentSetList = async (params) => {
+      let list: any = contentList;
+      list[0].value = params?.step_num || 0;
+      list[1].value = params?.sleep_time || 0;
+      list[2].value = params?.heart_rate || 0;
+      list[3].value = params?.blood_pressure || 0;
+      list[4].value = params?.blood_oxygen ? params.blood_oxygen + '%' : 0;
+      list[5].value = params?.real_temp || 0;
+      setContentList([...list]);
+      await AsyncStorage.setItem(DEVICE_DATA, JSON.stringify(params));
     };
 
     const blueToothDetail = useCallback(async () => {
@@ -339,11 +359,7 @@ export const Home: ScreenComponent = observer(
     }, []);
 
     const closeBlueTooth = async () => {
-      blueToothStore.isRoot = RootEnum['断开连接'];
-      await AsyncStorage.removeItem(DEVICE_INFO);
-      await setTimeout(async () => {
-        await blueToothStore.closeDevices();
-      }, 1000);
+      await blueToothStore.removeBlueToothListen();
     };
 
     const currentDeviceView = useMemo(() => {
@@ -391,9 +407,15 @@ export const Home: ScreenComponent = observer(
           </TouchableOpacity>
         </View>
       );
-    }, [blueToothDetail, blueToothStore.devicesInfo, blueToothStore.refreshInfo.deviceID, blueToothStore.refreshing]);
+    }, [blueToothDetail, blueToothStore.devicesInfo, blueToothStore.currentDevice, blueToothStore.refreshInfo.deviceID, blueToothStore.refreshing]);
 
     const currentDeviceBanner = useMemo(() => {
+      const { avatar, nickname } = weChatStore.userInfo;
+      let url;
+      if (avatar) url = { uri: avatar };
+      if (!avatar) url = require('../assets/home/header-assets.png');
+      let name = nickname || '微信用户';
+
       return (
         <View style={styles.card}>
           <LinearGradient
@@ -406,11 +428,11 @@ export const Home: ScreenComponent = observer(
           >
             <View style={styles.headerStart}>
               <View style={styles.imageView}>
-                <FastImage style={styles.headerImg} source={require('../assets/home/header-assets.png')} resizeMode={FastImage.resizeMode.cover} />
+                <FastImage style={styles.headerImg} source={url} resizeMode={FastImage.resizeMode.cover} />
               </View>
               <TouchableOpacity style={styles.loginView}>
                 <View style={styles.headerContent}>
-                  <Text style={styles.userName}>用户名</Text>
+                  <Text style={styles.userName}>{name}</Text>
                 </View>
               </TouchableOpacity>
             </View>
@@ -418,7 +440,15 @@ export const Home: ScreenComponent = observer(
           </LinearGradient>
         </View>
       );
-    }, [blueToothDetail, blueToothStore.devicesInfo, openBlueTooth, blueToothStore.currentDevice, blueToothStore.refreshInfo, blueToothStore.refreshing]);
+    }, [
+      weChatStore.userInfo,
+      blueToothDetail,
+      blueToothStore.devicesInfo,
+      openBlueTooth,
+      blueToothStore.currentDevice,
+      blueToothStore.refreshInfo,
+      blueToothStore.refreshing
+    ]);
 
     const currentResult = useMemo(() => {
       return (
@@ -497,7 +527,7 @@ export const Home: ScreenComponent = observer(
           {currentResult}
         </ScrollView>
       );
-    }, [refreshing, onRefresh, target, contentList, currentResult]);
+    }, [refreshing, onRefresh, contentList, currentResult, weChatStore.userInfo]);
 
     return (
       <BaseView ref={baseView} style={[tw.flex1]}>
@@ -632,8 +662,8 @@ const styles = StyleSheet.create({
     paddingVertical: 2
   },
   headerImg: {
-    height: 50,
-    width: 50
+    height: 60,
+    width: 60
   },
   headerStart: {
     flexDirection: 'row'
@@ -656,6 +686,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     height: 60,
     justifyContent: 'center',
+    overflow: 'hidden',
     width: 60
   },
   labelColor: {

@@ -75,7 +75,7 @@ export class Api {
       while (this.navigation.canGoBack()) {
         this.navigation.goBack();
       }
-      this.navigation.navigate('WeChatOnePassLogin');
+      this.navigation.replace('WeChatOnePassLogin');
     }
   }
 

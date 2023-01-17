@@ -5,16 +5,16 @@ export const appConfig = {
   wideScreenDevices: ['rk3399_nextclass'],
 
   server: {
-    prod: {
+    dev: {
       API_PROTOCOL: 'http://',
       API_HOST: '192.168.10.241',
       HOST_PORT: '10038/apic'
       // WEBSOCKET_PATH: 'ws://app.icst-edu.com:50188/communicate'
     },
-    dev: {
+    prod: {
       API_PROTOCOL: 'https://',
       API_HOST: 'c.api.drug.360zhishu.cn',
-      HOST_PORT: '/apic'
+      HOST_PORT: ''
       // WEBSOCKET_PATH: 'ws://app.icst-edu.com:50188/communicate'
     }
     // prod: {
@@ -27,7 +27,7 @@ export const appConfig = {
 };
 
 export const SERVER_URL = __DEV__
-  ? `${appConfig.server.dev.API_PROTOCOL}${appConfig.server.dev.API_HOST}${appConfig.server.dev.HOST_PORT}`
-  : `${appConfig.server.prod.API_PROTOCOL}${appConfig.server.prod.API_HOST}:${appConfig.server.prod.HOST_PORT}`;
+  ? `${appConfig.server.dev.API_PROTOCOL}${appConfig.server.dev.API_HOST}:${appConfig.server.dev.HOST_PORT}`
+  : `${appConfig.server.prod.API_PROTOCOL}${appConfig.server.prod.API_HOST}${appConfig.server.prod.HOST_PORT}`;
 // export const SERVER_URL = 'https://m.api.drug.360zhishu.cn';
 // export const SERVER_WEBSOCKET_URL = __DEV__ ? `${appConfig.server.dev.WEBSOCKET_PATH}` : `${appConfig.server.prod.WEBSOCKET_PATH}`;

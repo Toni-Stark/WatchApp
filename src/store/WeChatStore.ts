@@ -13,9 +13,17 @@ export class WeChatStore {
 
   @observable showBootAnimation: boolean = true;
   @observable weChatIsRoot: boolean = false;
+  @observable userInfo: any = {};
 
   constructor() {
     makeAutoObservable(this);
+  }
+
+  @action
+  async getUserInfo() {
+    let res: any = await AsyncStorage.getItem(USER_CONFIG);
+    console.log(typeof res, '3456789098765434567890');
+    if (res) this.userInfo = JSON.parse(res);
   }
 
   /**
@@ -52,7 +60,7 @@ export class WeChatStore {
     return new Promise(async (resolve, reject) => {
       await this.registerMiniProgram();
       await WeChat.launchMiniProgram({
-        userName: 'gh_d3efb6420559',
+        userName: 'gh_86ca0d9e5a9a',
         miniProgramType: 0,
         path: 'pages/index/index'
       });
@@ -99,6 +107,7 @@ export class WeChatStore {
       }
       await AsyncStorage.setItem(TOKEN_NAME, res.data.token);
       await AsyncStorage.setItem(USER_CONFIG, JSON.stringify(res.data));
+      this.userInfo = res.data;
       return resolve({ msg: '登录成功', success: true });
     });
   }
