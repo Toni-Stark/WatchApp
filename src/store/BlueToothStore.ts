@@ -364,6 +364,7 @@ export class BlueToothStore {
         // 处理错误（扫描会自动停止）
         return;
       }
+      console.log(device.name);
       if (device.name && device?.id !== params.deviceID) {
         isDevice = false;
         eventTimer(() => {
@@ -388,9 +389,11 @@ export class BlueToothStore {
               return callback({ type: '1', delay: 1 });
             })
             .then((devices) => {
+              console.log('连接成功');
               this.manager?.stopDeviceScan();
               this.devicesInfo = devices;
               this.listenActiveMessage(mainListen);
+              this.successDialog();
               return callback({ type: '2', delay: 1 });
             })
             .catch((err) => {

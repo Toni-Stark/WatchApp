@@ -147,7 +147,7 @@ export const Home: ScreenComponent = observer(
           });
         }
       })();
-    }, [blueToothStore?.devicesInfo, AsyncStorage, blueToothStore.isRoot]);
+    }, [blueToothStore.isRoot]);
 
     useEffect(() => {
       if (blueToothStore.noPasswordTips && blueToothStore.needRegPassword) {
