@@ -31,6 +31,7 @@ export const WeChatOnePassLogin = observer((props: Props) => {
     if (agree) {
       baseView.current.showLoading({ text: '登录中' });
       const result: any = await weChatStore.checkWeChatInstall();
+      console.log(result);
       if (result) {
         await AsyncStorage.setItem(USER_AGREEMENT, 'Happy every day');
         const res: any = await weChatStore.userWeChatLogin({ code: result.code });

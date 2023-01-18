@@ -22,7 +22,6 @@ export class WeChatStore {
   @action
   async getUserInfo() {
     let res: any = await AsyncStorage.getItem(USER_CONFIG);
-    console.log(typeof res, '3456789098765434567890');
     if (res) this.userInfo = JSON.parse(res);
   }
 
@@ -39,10 +38,11 @@ export class WeChatStore {
           console.warn('isInstalled==', isInstalled);
           WeChat.sendAuthRequest('snsapi_userinfo')
             .then((wechatInfo) => {
-              console.log(wechatInfo);
+              console.log(wechatInfo, 'result==========');
               resolve(wechatInfo);
             })
             .catch((err) => {
+              console.log(err, 'error==========');
               reject(err);
             });
         })
@@ -123,6 +123,7 @@ export class WeChatStore {
       params: { openid, mobile_code, login_type },
       withToken: false
     });
+    console.log(res);
     if (res.code !== 200) {
       return { msg: res.msg, success: false };
     }

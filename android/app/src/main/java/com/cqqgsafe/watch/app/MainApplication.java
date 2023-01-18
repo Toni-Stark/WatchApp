@@ -1,4 +1,4 @@
-package com.namemmrgip5e;
+package com.cqqgsafe.watch;
 
 import android.app.Application;
 import android.content.Context;

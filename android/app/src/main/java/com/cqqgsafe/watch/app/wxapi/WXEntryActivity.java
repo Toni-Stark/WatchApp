@@ -1,4 +1,4 @@
-package com.namemmrgip5e.wxapi;
+package com.cqqgsafe.watch.wxapi;
 
 import android.app.Activity;
 import android.os.Bundle;
