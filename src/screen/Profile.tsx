@@ -8,10 +8,13 @@ import { tw } from 'react-native-tailwindcss';
 import { ProfilePlaceholder } from '../component/skeleton/ProfilePlaceholder';
 import { observer } from 'mobx-react-lite';
 import FastImage from 'react-native-fast-image';
+import { RootEnum } from '../common/sign-module';
+import AsyncStorage from '@react-native-community/async-storage';
+import { DEVICE_INFO } from '../common/constants';
 
 export const Profile: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
-    const { settingStore, weChatStore } = useStore();
+    const { settingStore, weChatStore, blueToothStore } = useStore();
     const baseView = useRef<any>(undefined);
 
     useEffect(() => {
@@ -29,9 +32,27 @@ export const Profile: ScreenComponent = observer(
       // await blueToothStore.sendActiveMessage(allDataSign);
       // await blueToothStore.successDialog();
       // await blueToothStore.listenActiveMessage(mainListen);
-      navigation.navigate('WatchStyleSetting', {});
+      // navigation.navigate('WatchStyleSetting', {});
       // blueToothStore.device = defaultDevice;
       // await blueToothStore.sendActiveMessage(allDataSign);
+      let store: any = await AsyncStorage.getItem(DEVICE_INFO);
+      let device = JSON.parse(store);
+      device
+        .connect()
+        .then((res) => {
+          blueToothStore.manager?.stopDeviceScan();
+          blueToothStore.isRoot = RootEnum['连接中'];
+          if (res.id) {
+            return res.discoverAllServicesAndCharacteristics();
+          }
+        })
+        .then((devices) => {
+          console.log(devices);
+        });
+    };
+    const logOut = () => {
+      console.log('退出登录');
+      navigation.replace('WeChatOnePassLogin');
     };
 
     const renderContent = useMemo(() => {
@@ -56,12 +77,15 @@ export const Profile: ScreenComponent = observer(
                   <Text style={styles.userName}>{name}</Text>
                   <View style={styles.userIcons}>
                     <View style={styles.icons}>
-                      <Text style={styles.iconText}>已认证</Text>
+                      <Text style={styles.iconText}>已绑定</Text>
                     </View>
                   </View>
                 </View>
               </TouchableOpacity>
             </View>
+            <TouchableOpacity style={styles.logView} onPress={logOut}>
+              <Text style={styles.logText}>退出登录</Text>
+            </TouchableOpacity>
           </View>
           <View style={styles.context}>
             <View style={styles.moduleView}>
@@ -112,9 +136,10 @@ const styles = StyleSheet.create({
     fontSize: 14
   },
   header: {
+    alignItems: 'center',
     backgroundColor: color2,
+    flexDirection: 'row',
     height: 150,
-    justifyContent: 'center',
     paddingHorizontal: 20,
     paddingTop: 30
   },
@@ -123,14 +148,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
     marginLeft: 10,
-    paddingVertical: 2
+    paddingVertical: 2,
+    height: 80
   },
   headerImg: {
     height: 60,
     width: 60
   },
   headerStart: {
-    flexDirection: 'row'
+    alignItems: 'center',
+    flexDirection: 'row',
+    height: 70,
+    width: '80%'
   },
   iconText: { color: color2, fontSize: 12 },
   icons: {
@@ -190,5 +219,9 @@ const styles = StyleSheet.create({
   userName: {
     color: color1,
     fontSize: 18
+  },
+  logView: {},
+  logText: {
+    color: '#ffffff'
   }
 });

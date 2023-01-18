@@ -1,6 +1,6 @@
 import { action, makeAutoObservable, observable } from 'mobx';
 import AsyncStorage from '@react-native-community/async-storage';
-import { DEVICE_DATA, DEVICE_INFO } from '../common/constants';
+import { DEVICE_DATA, DEVICE_INFO, TOKEN_NAME } from '../common/constants';
 import { arrToByte, baseToHex, eventTimer, eventTimes, getMinTen, regCutString, stringToByte } from '../common/tools';
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
@@ -75,6 +75,7 @@ export class BlueToothStore {
 
   @observable backgroundActive = false;
   @observable dataChangeTime: any = '';
+  @observable dataNowTime: any = moment(new Date()).format('YYYY-MM-DD hh:mm');
 
   constructor() {
     makeAutoObservable(this);
@@ -100,9 +101,15 @@ export class BlueToothStore {
   async removeBlueToothListen() {
     this.isRoot = RootEnum['断开连接'];
     await AsyncStorage.removeItem(DEVICE_INFO);
+    await AsyncStorage.removeItem(TOKEN_NAME);
     await setTimeout(async () => {
       await this.closeDevices();
     }, 1000);
+  }
+
+  @action
+  async updateGetDataTime() {
+    this.dataNowTime = moment(new Date()).format('YYYY-MM-DD hh:mm');
   }
 
   @action

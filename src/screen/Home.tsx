@@ -262,9 +262,10 @@ export const Home: ScreenComponent = observer(
             if (res.success) {
               currentSetList(res.data).then((upload) => {
                 console.log(upload, '更新过一次数据了');
-                blueToothStore.refreshing = false;
+                blueToothStore.updateGetDataTime().then();
               });
             }
+            blueToothStore.refreshing = false;
           });
         }
       }, 500);
@@ -370,7 +371,7 @@ export const Home: ScreenComponent = observer(
             <View style={[tw.flexRow, tw.itemsCenter, tw.justifyAround, tw.p2, tw.flex1]}>
               <Spinkit type="Circle" size={30} color="white" />
               <View style={styles.loadingView}>
-                <Text style={[styles.labelColor, styles.labelRe]}>搜索设备: {blueToothStore.refreshInfo.name}</Text>
+                <Text style={[styles.labelColor, styles.labelRe]}>正在读取数据...</Text>
               </View>
             </View>
           </TouchableOpacity>
@@ -389,7 +390,6 @@ export const Home: ScreenComponent = observer(
       return (
         <View style={styles.deviceStart}>
           <View style={styles.deviceBanner}>
-            <Text style={styles.tipText}>设备名称: {blueToothStore.devicesInfo.name}</Text>
             <View style={styles.deviceView}>
               <Text style={styles.deviceText}>电量</Text>
               <View style={styles.battery}>
@@ -401,6 +401,7 @@ export const Home: ScreenComponent = observer(
                 ))}
               </View>
             </View>
+            <Text style={styles.evalText}>数据记录时间：{blueToothStore.dataNowTime}</Text>
           </View>
           <TouchableOpacity style={styles.contextView} onPress={closeBlueTooth}>
             <Text style={styles.deviceContext}>断开连接</Text>
@@ -410,12 +411,8 @@ export const Home: ScreenComponent = observer(
     }, [blueToothDetail, blueToothStore.devicesInfo, blueToothStore.currentDevice, blueToothStore.refreshInfo.deviceID, blueToothStore.refreshing]);
 
     const currentDeviceBanner = useMemo(() => {
-      const { avatar, nickname } = weChatStore.userInfo;
-      let url;
-      if (avatar) url = { uri: avatar };
-      if (!avatar) url = require('../assets/home/header-assets.png');
-      let name = nickname || '微信用户';
-
+      let device = blueToothStore.devicesInfo;
+      console.log(device);
       return (
         <View style={styles.card}>
           <LinearGradient
@@ -428,11 +425,15 @@ export const Home: ScreenComponent = observer(
           >
             <View style={styles.headerStart}>
               <View style={styles.imageView}>
-                <FastImage style={styles.headerImg} source={url} resizeMode={FastImage.resizeMode.cover} />
+                <FastImage style={styles.headerImg} source={require('../assets/home/header-assets.png')} resizeMode={FastImage.resizeMode.cover} />
               </View>
               <TouchableOpacity style={styles.loginView}>
                 <View style={styles.headerContent}>
-                  <Text style={styles.userName}>{name}</Text>
+                  <Text style={styles.userName}>{device?.name || '蓝牙手表App'}</Text>
+                  <Text style={styles.deviceMac}>
+                    MAC:
+                    {device?.id ? device.id : <Text style={styles.evalValue}> 设备MAC地址</Text>}
+                  </Text>
                 </View>
               </TouchableOpacity>
             </View>
@@ -542,6 +543,7 @@ export const Home: ScreenComponent = observer(
 const color1 = '#00D1DE';
 const color3 = '#ffffff';
 const color5 = '#cecece';
+const color6 = 'rgba(255,255,255,0.84)';
 const color7 = '#3d3d3d';
 const color8 = '#00bac4';
 const color9 = '#FF002F';
@@ -617,6 +619,10 @@ const styles = StyleSheet.create({
   deviceContext: {
     color: color3
   },
+  deviceMac: {
+    color: color3,
+    fontSize: 16
+  },
   deviceStart: {
     flexDirection: 'row',
     marginTop: 40
@@ -638,10 +644,18 @@ const styles = StyleSheet.create({
   endValue: {
     fontSize: 19
   },
+  evalText: {
+    color: color3,
+    fontSize: 15
+  },
   evalTitle: {
     color: color3,
     marginTop: 2,
     textAlign: 'center'
+  },
+  evalValue: {
+    color: color6,
+    fontSize: 16
   },
   footerText: {
     marginTop: 3
@@ -657,13 +671,13 @@ const styles = StyleSheet.create({
   headerContent: {
     flexDirection: 'column',
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     marginLeft: 10,
     paddingVertical: 2
   },
   headerImg: {
-    height: 60,
-    width: 60
+    height: 50,
+    width: 50
   },
   headerStart: {
     flexDirection: 'row'
@@ -807,6 +821,7 @@ const styles = StyleSheet.create({
   },
   userName: {
     color: color3,
-    fontSize: 18
+    fontSize: 18,
+    fontWeight: 'bold'
   }
 });
