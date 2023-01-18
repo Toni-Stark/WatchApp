@@ -11,7 +11,7 @@ import { StackBar } from '../../../component/home/StackBar';
 
 export const UserInfo: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
-    const { settingStore } = useStore();
+    const { settingStore, weChatStore } = useStore();
     const baseView = useRef<any>(undefined);
 
     const navigateToDevice = () => {
@@ -22,6 +22,10 @@ export const UserInfo: ScreenComponent = observer(
     };
 
     const renderContent = useMemo(() => {
+      let info = weChatStore.userInfo;
+      let avatar = info?.avatar ? { uri: info.avatar } : require('../../../assets/logo.png');
+      let name = info.nickname;
+      console.log(typeof info);
       if (settingStore.loading) {
         return <ProfilePlaceholder />;
       }
@@ -29,15 +33,15 @@ export const UserInfo: ScreenComponent = observer(
         <ScrollView style={[tw.flex1, [{ marginBottom: 60 }]]}>
           <View style={styles.moduleView}>
             <View style={styles.fastView}>
-              <FastImage style={styles.labelIcon} source={require('../../../assets/logo.png')} resizeMode={FastImage.resizeMode.cover} />
+              <FastImage style={styles.labelIcon} source={avatar} resizeMode={FastImage.resizeMode.cover} />
             </View>
           </View>
           <View style={styles.context}>
-            <Text style={styles.textView}>用户名</Text>
+            <Text style={styles.textView}>{name}</Text>
           </View>
         </ScrollView>
       );
-    }, [settingStore.loading]);
+    }, [settingStore.loading, weChatStore.userInfo]);
 
     return (
       <BaseView ref={baseView} style={[tw.flex1, [{ backgroundColor: 'blue' }]]}>
@@ -49,34 +53,35 @@ export const UserInfo: ScreenComponent = observer(
 );
 const color1 = '#00D1DE';
 const styles = StyleSheet.create({
-  headerStart: {
-    flexDirection: 'row'
-  },
-  moduleView: {
-    padding: 20,
-    height: 250,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 50
-  },
-  fastView: {
-    backgroundColor: '#f8f8f8',
-    padding: 20,
-    borderRadius: 200
-  },
   context: {
     flex: 1,
     alignItems: 'center'
   },
-  textView: {
-    fontSize: 26,
-    color: color1,
-    fontWeight: 'bold'
+  deviceIcon: {
+    height: 20,
+    width: 20
   },
-  mainText: {
-    color: '#a6a6a6',
-    fontSize: 16,
-    marginBottom: 10
+  fastView: {
+    backgroundColor: '#f8f8f8',
+    padding: 20,
+    width: 120,
+    height: 120,
+    borderRadius: 200,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden'
+  },
+  headerStart: {
+    flexDirection: 'row'
+  },
+  labelIcon: {
+    height: 130,
+    width: 130
+  },
+  labelText: {
+    fontSize: 18,
+    marginLeft: 15
   },
   labelView: {
     alignItems: 'center',
@@ -89,20 +94,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 15
   },
+  mainText: {
+    color: '#a6a6a6',
+    fontSize: 16,
+    marginBottom: 10
+  },
+  moduleView: {
+    padding: 20,
+    height: 250,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 50
+  },
   startLabel: {
     alignItems: 'center',
     flexDirection: 'row'
   },
-  labelIcon: {
-    height: 100,
-    width: 100
-  },
-  labelText: {
-    fontSize: 18,
-    marginLeft: 15
-  },
-  deviceIcon: {
-    height: 20,
-    width: 20
+  textView: {
+    fontSize: 26,
+    color: color1,
+    fontWeight: 'bold'
   }
 });

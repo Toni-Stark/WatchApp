@@ -1,16 +1,15 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { enableScreens } from 'react-native-screens';
 import * as RNLocalize from 'react-native-localize';
 import AsyncStorage from '@react-native-community/async-storage';
-import { BackHandler, Platform, StatusBar } from 'react-native';
+import { BackHandler, StatusBar } from 'react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { NavigatorStack } from './screen';
 import { APP_LANGUAGE, TOKEN_NAME, USER_AGREEMENT } from './common/constants';
 import { darkTheme, theme } from './common/theme';
 import { useStore } from './store';
-import { BootAnimation } from './screen/BootAnimation';
 import { getStorage, hasAndroidPermission } from './common/tools';
 import { observer, Observer } from 'mobx-react-lite';
 import BluetoothStateManager from 'react-native-bluetooth-state-manager';
@@ -30,7 +29,7 @@ const App = observer(() => {
 
   useEffect(() => {
     // (async () => {
-    //   await AsyncStorage.setItem(TOKEN_NAME, '2398472394782387');
+    //   await AsyncStorage.setItem(TOKEN_NAME, '464bfc11d681375820a135b5d344402b');
     // })();
     // (async () => {
     //   await AsyncStorage.removeItem(TOKEN_NAME);
@@ -81,9 +80,9 @@ const App = observer(() => {
   };
 
   const showScreens = () => {
-    if (systemStore.showBootAnimation || !blueTooth) {
-      return <BootAnimation />;
-    }
+    // if (systemStore.showBootAnimation || !blueTooth) {
+    //   return <BootAnimation />;
+    // }
     // if (Platform.OS === 'android' && !isLogin) {
     //   return (
     //     <WeChatOnePassLogin

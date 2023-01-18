@@ -183,6 +183,7 @@ export class Api {
       // console.log('1-登录失败-准备跳转页面', withToken);
       if (token === null) {
         // console.log('2-登录失败-准备跳转页面', this.navigation);
+        console.log(response, 'store-------');
         await this.redirectToLoginScreen();
         return { code: 401, msg: t('message.loginFailed'), data: null, success: false, timestamp: Api.getTimeStamp() };
       } else {
@@ -212,6 +213,7 @@ export class Api {
       default:
         return { code: 500, msg: '消息格式错误', data: null, success: false, timestamp: Api.getTimeStamp() };
     }
+    console.log(response, 'tokenstore');
     if (response.data?.msg !== undefined && isAuthFailed(response.data.code.toString())) {
       const messageToUser = t('message.loginFailed');
       if (withToken) {

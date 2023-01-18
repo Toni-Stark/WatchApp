@@ -37,7 +37,6 @@ export const WatchStyleSetting: ScreenComponent = observer(
     const navigateToDevice = async (item) => {
       // navigation.navigate('ClockDial', {});
       // blueToothStore.sendActiveMessage(allDataC);
-      console.log('读取心率开始');
     };
     const backScreen = () => {
       navigation.goBack();

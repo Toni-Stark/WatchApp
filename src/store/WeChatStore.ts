@@ -1,9 +1,10 @@
 import { action, makeAutoObservable, observable } from 'mobx';
 import * as WeChat from 'react-native-wechat-lib';
-import { Alert } from 'react-native';
+import { Alert, ToastAndroid } from 'react-native';
 import { Api, ApiResult, ErrorLog } from '../common/api';
 import { TOKEN_NAME, USER_CONFIG } from '../common/constants';
 import AsyncStorage from '@react-native-community/async-storage';
+import { appConfig } from '../common/app.config';
 
 export type AppColorModeType = 'light' | 'dark' | 'system';
 export type AppLanguageType = 'zh' | 'en' | 'system';
@@ -35,14 +36,11 @@ export class WeChatStore {
       this.registerMiniProgram();
       WeChat.isWXAppInstalled()
         .then((isInstalled) => {
-          console.warn('isInstalled==', isInstalled);
           WeChat.sendAuthRequest('snsapi_userinfo')
             .then((wechatInfo) => {
-              console.log(wechatInfo, 'result==========');
               resolve(wechatInfo);
             })
             .catch((err) => {
-              console.log(err, 'error==========');
               reject(err);
             });
         })
@@ -75,7 +73,7 @@ export class WeChatStore {
   async registerMiniProgram() {
     if (this.weChatIsRoot) return true;
     return new Promise(async (resolve, reject) => {
-      const result = await WeChat.registerApp('wxab3f4cef2e3c2c6a', 'universalLink');
+      const result = await WeChat.registerApp(appConfig.WX_APP_ID, 'universalLink');
       if (!result) {
         return Alert.alert('请检查app微信服务', '请检查app微信服务，否则系统部分功能将无法使用');
       }

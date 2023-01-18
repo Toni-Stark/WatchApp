@@ -32,23 +32,9 @@ export const Profile: ScreenComponent = observer(
       // await blueToothStore.sendActiveMessage(allDataSign);
       // await blueToothStore.successDialog();
       // await blueToothStore.listenActiveMessage(mainListen);
-      // navigation.navigate('WatchStyleSetting', {});
+      navigation.navigate('WatchStyleSetting', {});
       // blueToothStore.device = defaultDevice;
       // await blueToothStore.sendActiveMessage(allDataSign);
-      let store: any = await AsyncStorage.getItem(DEVICE_INFO);
-      let device = JSON.parse(store);
-      device
-        .connect()
-        .then((res) => {
-          blueToothStore.manager?.stopDeviceScan();
-          blueToothStore.isRoot = RootEnum['连接中'];
-          if (res.id) {
-            return res.discoverAllServicesAndCharacteristics();
-          }
-        })
-        .then((devices) => {
-          console.log(devices);
-        });
     };
     const logOut = () => {
       console.log('退出登录');
@@ -158,7 +144,7 @@ const styles = StyleSheet.create({
   headerStart: {
     alignItems: 'center',
     flexDirection: 'row',
-    height: 70,
+    height: 60,
     width: '80%'
   },
   iconText: { color: color2, fontSize: 12 },

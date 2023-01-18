@@ -16,7 +16,7 @@ export const BlueTooth: ScreenComponent = observer(
     const baseView = useRef<any>(undefined);
     const { blueToothStore } = useStore();
     const [devicesList, setDevicesList] = useState<any>([]);
-    const [refresh, setRefresh] = useState(false);
+    const [refresh, setRefresh] = useState(true);
     const [spinner, setSpinner] = useState(false);
     const [connectName, setConnectName] = useState('');
 
@@ -30,11 +30,11 @@ export const BlueTooth: ScreenComponent = observer(
 
     const onRefresh = () => {
       setDevicesList([]);
+      setRefresh(true);
       refreshDeviceScan();
     };
 
     const refreshDeviceScan = () => {
-      setRefresh(true);
       let list: any = [];
       let timer: any = null;
       // let manager = new BleManager();
@@ -52,7 +52,7 @@ export const BlueTooth: ScreenComponent = observer(
               clearTimeout(timer);
               timer = null;
               setRefresh(false);
-            }, 3000);
+            }, 5000);
           }
         }
       });
@@ -93,7 +93,8 @@ export const BlueTooth: ScreenComponent = observer(
     };
 
     useEffect(() => {
-      blueToothStore.manager?.stopDeviceScan();
+      // blueToothStore.manager?.stopDeviceScan();
+      setRefresh(true);
       refreshDeviceScan();
       return () => {
         blueToothStore.manager.stopDeviceScan();
@@ -129,6 +130,7 @@ export const BlueTooth: ScreenComponent = observer(
               renderItem={renderItem}
               keyExtractor={(item) => (item.id + Math.ceil(Math.random() * 1000)).toString()}
               onRefresh={onRefresh}
+              ListFooterComponent={<View style={styles.footerView}>{refresh ? <Text style={styles.footerText}>搜索中....</Text> : null}</View>}
             />
           </View>
           <Spinner visible={spinner} textContent={'连接中...'} />
@@ -146,6 +148,14 @@ let color6 = '#9e9e9e';
 export const styles = StyleSheet.create({
   flexView: {
     flex: 1
+  },
+  footerText: {
+    fontSize: 16
+  },
+  footerView: {
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 10
   },
   toothItem: {
     alignItems: 'center',

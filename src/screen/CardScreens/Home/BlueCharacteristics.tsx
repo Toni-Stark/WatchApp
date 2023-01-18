@@ -36,7 +36,6 @@ export const BlueCharacteristics: ScreenComponent = observer(
       let characteristicId = blueToothStore.servicesDevices[params.index].uuid;
       blueToothStore.manager.characteristicsForDevice(deviceId, characteristicId).then((data) => {
         console.log('拿到特征值');
-        console.log(data);
         blueToothStore.characteristics = data;
       });
       setSpinner(false);

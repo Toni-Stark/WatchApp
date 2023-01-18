@@ -140,6 +140,7 @@ export const Home: ScreenComponent = observer(
         }
         let bool = [RootEnum['初次进入'], RootEnum['连接中']].includes(blueToothStore.isRoot);
         if (blueToothStore?.devicesInfo && bool) {
+          console.log('reading...');
           eventTimes(() => blueToothStore.successDialog(), 1000);
           // await blueToothStore.listenActiveMessage(mainListen);
           blueToothStore.userDeviceSetting(true).then((res) => {
@@ -147,7 +148,7 @@ export const Home: ScreenComponent = observer(
           });
         }
       })();
-    }, [blueToothStore.isRoot]);
+    }, [blueToothStore.isRoot, blueToothStore.devicesInfo]);
 
     useEffect(() => {
       if (blueToothStore.noPasswordTips && blueToothStore.needRegPassword) {
@@ -254,14 +255,12 @@ export const Home: ScreenComponent = observer(
     }, [navigation]);
 
     useEffect(() => {
-      console.log('页面数据变化', blueToothStore.devicesInfo);
       eventTimes(() => {
         // currentSetContentList(blueToothStore.currentDevice);
         if (blueToothStore?.devicesInfo?.id) {
           blueToothStore.getDeviceInfo({ id: blueToothStore.devicesInfo.id }).then((res) => {
             if (res.success) {
               currentSetList(res.data).then((upload) => {
-                console.log(upload, '更新过一次数据了');
                 blueToothStore.updateGetDataTime().then();
               });
             }
@@ -324,11 +323,14 @@ export const Home: ScreenComponent = observer(
     };
 
     const currentSetList = async (params) => {
+      console.log(params);
       let list: any = contentList;
       list[0].value = params?.step_num || 0;
       list[1].value = params?.sleep_time || 0;
       list[2].value = params?.heart_rate || 0;
+      list[2].time = params?.heart_rate_last_time || '';
       list[3].value = params?.blood_pressure || 0;
+      list[3].time = params?.blood_pressure_last_time || '';
       list[4].value = params?.blood_oxygen ? params.blood_oxygen + '%' : 0;
       list[5].value = params?.real_temp || 0;
       setContentList([...list]);
@@ -360,7 +362,7 @@ export const Home: ScreenComponent = observer(
     }, []);
 
     const closeBlueTooth = async () => {
-      await blueToothStore.removeBlueToothListen();
+      await blueToothStore.removeBlueToothListen(true);
     };
 
     const currentDeviceView = useMemo(() => {
@@ -412,7 +414,6 @@ export const Home: ScreenComponent = observer(
 
     const currentDeviceBanner = useMemo(() => {
       let device = blueToothStore.devicesInfo;
-      console.log(device);
       return (
         <View style={styles.card}>
           <LinearGradient

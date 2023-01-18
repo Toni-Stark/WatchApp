@@ -7108,13 +7108,6 @@ react-native-calendars@^1.403.0:
     react-native-swipe-gestures "^1.0.5"
     xdate "^0.8.0"
 
-react-native-camera@3.21.0:
-  version "3.21.0"
-  resolved "https://registry.npm.taobao.org/react-native-camera/download/react-native-camera-3.21.0.tgz#d8d5149c6bf5d84174093065e08e78b81d785e5d"
-  integrity sha1-2NUUnGv12EF0CTBl4I54uB14Xl0=
-  dependencies:
-    prop-types "^15.6.2"
-
 react-native-date-picker@^3.2.7:
   version "3.2.7"
   resolved "https://registry.yarnpkg.com/react-native-date-picker/-/react-native-date-picker-3.2.7.tgz#1708c2fc712c09ce6eaca007635a036dba4ca107"

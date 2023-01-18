@@ -98,10 +98,10 @@ export class BlueToothStore {
   }
 
   @action
-  async removeBlueToothListen() {
+  async removeBlueToothListen(bool?: boolean) {
     this.isRoot = RootEnum['断开连接'];
     await AsyncStorage.removeItem(DEVICE_INFO);
-    await AsyncStorage.removeItem(TOKEN_NAME);
+    if (!bool) await AsyncStorage.removeItem(TOKEN_NAME);
     await setTimeout(async () => {
       await this.closeDevices();
     }, 1000);
@@ -162,24 +162,26 @@ export class BlueToothStore {
     };
     await this.clearDevice();
     await this.setDeviceStorage(this.devicesInfo);
-    await this.sendActiveMessage(passRegSign(pass));
-    await this.sendActiveMessage(allDataSign);
-    await this.sendActiveMessage(batterySign);
-    await this.sendActiveMessage(allDataSleep);
-    await this.sendActiveMessage(allDataC);
+    try {
+      await this.sendActiveMessage(passRegSign(pass));
+      await this.sendActiveMessage(allDataSign);
+      await this.sendActiveMessage(batterySign);
+      await this.sendActiveMessage(allDataSleep);
+      await this.sendActiveMessage(allDataC);
+    } catch (err) {
+      console.log(err, 'error');
+    }
   }
 
   @action
   async sendActiveMessage(params) {
     let storeRes = regCutString(params.value);
-    console.log(storeRes, '111111');
     let buffer = Buffer.from(stringToByte(storeRes)).toString('base64');
     await this.devicesInfo.writeCharacteristicWithResponseForService(params.serviceUUID, params.uuid, buffer);
   }
   @action
   async sendActiveWithoutMessage(params) {
     let storeRes = regCutString(params.value);
-    console.log(storeRes, '222222222');
     let buffer = Buffer.from(stringToByte(storeRes)).toString('base64');
     await this.devicesInfo.writeCharacteristicWithoutResponseForService(params.serviceUUID, params.uuid, buffer);
   }
@@ -199,7 +201,6 @@ export class BlueToothStore {
           return;
         }
         if (this.backgroundActive) {
-          console.log(value, '后台任务');
           let dateTime = new Date().getTime();
           let timeThan = this.dataChangeTime ? dateTime - this.dataChangeTime : dateTime;
           if (timeThan > 10000) {
@@ -371,7 +372,6 @@ export class BlueToothStore {
         // 处理错误（扫描会自动停止）
         return;
       }
-      console.log(device.name);
       if (device.name && device?.id !== params.deviceID) {
         isDevice = false;
         eventTimer(() => {
@@ -435,7 +435,6 @@ export class BlueToothStore {
         let need = !data.device_list.find((item) => item.device_mac === this.devicesInfo.id) || data.device_list.length <= 0;
         if (need) {
           this.bindUserDevice().then((result) => {
-            console.log(result, '绑定设备信息');
             return resolve({ success: true, data: data.device_list });
           });
         }

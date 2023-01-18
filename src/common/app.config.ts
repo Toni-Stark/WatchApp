@@ -1,7 +1,7 @@
 export const appConfig = {
   VERSION: 'v1.1.0',
 
-  WX_APP_ID: 'wx5187261694ac09fe',
+  WX_APP_ID: 'wx6e851600f23bb12d',
   wideScreenDevices: ['rk3399_nextclass'],
 
   server: {
