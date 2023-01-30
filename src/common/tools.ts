@@ -71,6 +71,16 @@ export const eventTimes = (callback: Function, time = 1000) => {
     callback();
   }, time);
 };
+let timerObject: any = {};
+export const dateTimes = (callback: Function, time = 1000, tag) => {
+  if (timerObject.hasOwnProperty(tag) && timerObject[tag]) {
+    clearTimeout(timerObject[tag]);
+  }
+  timerObject[tag] = null;
+  timerObject[tag] = setTimeout(() => {
+    callback();
+  }, time);
+};
 
 let times: any = null;
 export const eventTimer = (callback: Function, time = 1000) => {

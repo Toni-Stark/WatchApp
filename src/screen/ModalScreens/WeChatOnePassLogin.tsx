@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import BaseView from '../../component/BaseView';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableHighlight, TouchableOpacity, View } from 'react-native';
 import { useStore } from '../../store';
 import FastImage from 'react-native-fast-image';
 import AsyncStorage from '@react-native-community/async-storage';
 import { USER_AGREEMENT } from '../../common/constants';
 import RNBootSplash from 'react-native-bootsplash';
-import { NavigatorComponentProps } from '../index';
+import LinearGradient from 'react-native-linear-gradient';
 export type Props = {
   outApp: () => void;
   goInApp: (e: any) => void;
@@ -36,7 +36,7 @@ export const WeChatOnePassLogin = observer((props: Props) => {
         const res: any = await weChatStore.userWeChatLogin({ code: result.code });
         baseView.current.hideLoading();
         if (res?.success) {
-          return props.navigation.navigate('Main');
+          return props.navigation.replace('Main');
         }
         baseView.current.showToast({ text: res.msg, delay: 1.5 });
       }
@@ -57,14 +57,31 @@ export const WeChatOnePassLogin = observer((props: Props) => {
   const currentSwitch = useMemo(() => {
     return (
       <View style={styles.container}>
-        <View style={styles.titleView}>
+        <LinearGradient
+          colors={['#66b8ae', '#4dada3', '#34a092', '#157b6e']}
+          style={styles.titleView}
+          start={{ x: 0.0, y: 0 }}
+          end={{ x: 0, y: 1.0 }}
+          locations={[0.1, 0.4, 0.8, 1]}
+        >
           <Text style={styles.title}>欢迎，请登录</Text>
           <View style={styles.imageView}>
             <FastImage style={styles.image} source={require('../../assets/logo.png')} />
           </View>
+        </LinearGradient>
+        <View style={styles.buttonFooter}>
           <TouchableOpacity style={styles.buttonView} onPress={currentLogin}>
-            <FastImage style={styles.wechat} source={require('../../assets/home/white-wechat.png')} />
-            <Text style={styles.buttonText}>微信一键登录</Text>
+            <LinearGradient
+              // colors={['#5ba49b', '#44978d', '#2c8a7e', '#157d70']}
+              colors={['#66b8ae', '#4dada3', '#34a092', '#157b6e']}
+              style={styles.buttonCenter}
+              start={{ x: 0.0, y: 0 }}
+              end={{ x: 1.5, y: 1.5 }}
+              locations={[0.1, 0.4, 0.8, 1]}
+            >
+              <FastImage style={styles.wechat} source={require('../../assets/home/wechat1.png')} />
+              <Text style={styles.buttonText}>微信一键登录</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
         <View style={styles.user}>
@@ -72,7 +89,7 @@ export const WeChatOnePassLogin = observer((props: Props) => {
             <View style={styles.agreeView}>{agree ? <View style={styles.agreeMain} /> : null}</View>
           </TouchableOpacity>
           <View style={styles.userText}>
-            <Text>我已阅读并同意</Text>
+            <Text style={styles.agreeText}>我已阅读并同意</Text>
             <TouchableOpacity
               onPress={async () => {
                 await openUserAgreement(1);
@@ -80,7 +97,7 @@ export const WeChatOnePassLogin = observer((props: Props) => {
             >
               <Text style={styles.userMain}>《用户协议》</Text>
             </TouchableOpacity>
-            <Text>和</Text>
+            <Text style={styles.agreeText}>和</Text>
             <TouchableOpacity
               onPress={async () => {
                 await openUserAgreement(2);
@@ -100,10 +117,11 @@ export const WeChatOnePassLogin = observer((props: Props) => {
     </BaseView>
   );
 });
-const color1 = '#00D1DE';
+// const color1 = '#00D1DE';
+const color1 = '#46b2a5';
 const color3 = '#ffffff';
-const color4 = '#0dcd4c';
-const color6 = '#ea97b9';
+const color4 = '#f8f7f2';
+const color6 = '#d51313';
 
 const styles = StyleSheet.create({
   agree: {
@@ -111,14 +129,14 @@ const styles = StyleSheet.create({
     paddingRight: 5
   },
   agreeMain: {
-    backgroundColor: color3,
+    backgroundColor: color1,
     borderRadius: 50,
     height: 8,
     width: 8
   },
   agreeView: {
     alignItems: 'center',
-    borderColor: color3,
+    borderColor: color1,
     borderRadius: 50,
     borderStyle: 'solid',
     borderWidth: 1,
@@ -127,22 +145,30 @@ const styles = StyleSheet.create({
     width: 13
   },
   buttonText: {
-    color: color3,
+    color: color4,
     fontSize: 17
   },
-  buttonView: {
-    alignItems: 'center',
-    backgroundColor: color4,
-    borderRadius: 30,
-    flexDirection: 'row',
-    height: 45,
-    justifyContent: 'center',
-    marginTop: 50,
-    width: '82%'
+  buttonFooter: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center'
   },
+  buttonView: {
+    marginTop: 100,
+    width: '82%',
+    height: 45
+  },
+  buttonCenter: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    borderRadius: 30
+  },
+  buttonViewChild: {},
   container: {
     alignItems: 'center',
-    backgroundColor: color1,
+    backgroundColor: color4,
     flex: 1,
     justifyContent: 'space-between'
   },
@@ -152,7 +178,7 @@ const styles = StyleSheet.create({
   },
   imageView: {
     alignItems: 'center',
-    backgroundColor: color3,
+    backgroundColor: color4,
     borderRadius: 100,
     height: 90,
     justifyContent: 'center',
@@ -161,14 +187,17 @@ const styles = StyleSheet.create({
     width: 90
   },
   title: {
-    color: color3,
+    color: color4,
     fontSize: 25
   },
   titleView: {
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 150,
-    width: '100%'
+    backgroundColor: color1,
+    borderBottomLeftRadius: 440,
+    borderBottomRightRadius: 440,
+    height: '45%',
+    paddingTop: 100,
+    width: '175%'
   },
   user: {
     alignItems: 'center',
@@ -176,10 +205,14 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 15,
     flexDirection: 'row',
     height: 80,
-    justifyContent: 'center'
+    justifyContent: 'center',
+    paddingBottom: 30
   },
   userMain: {
     color: color6
+  },
+  agreeText: {
+    color: color1
   },
   userText: {
     alignItems: 'center',
@@ -188,9 +221,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   wechat: {
-    height: 35,
+    height: 28,
     marginLeft: -30,
     marginRight: 10,
-    width: 35
+    width: 28
   }
 });

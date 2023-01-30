@@ -43,6 +43,7 @@ export const BlueTooth: ScreenComponent = observer(
           // 处理错误（扫描会自动停止）
           return;
         }
+        console.log(device.name);
         if (device.name && !list.find((item) => item?.id === device.id)) {
           list.push(device);
           setDevicesList([...list]);

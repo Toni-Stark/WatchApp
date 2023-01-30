@@ -8,7 +8,6 @@ import { observer } from 'mobx-react-lite';
 import { ScreenComponent } from '../../index';
 import FastImage from 'react-native-fast-image';
 import { StackBar } from '../../../component/home/StackBar';
-import { allDataC, allDataHeartEnd, allDataSign, allDataSleep, passRegSign } from '../../../common/watch-module';
 
 export const WatchStyleSetting: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {

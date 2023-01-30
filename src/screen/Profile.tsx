@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Text } from 'react-native-paper';
 import { View, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import BaseView from '../component/BaseView';
@@ -8,14 +8,23 @@ import { tw } from 'react-native-tailwindcss';
 import { ProfilePlaceholder } from '../component/skeleton/ProfilePlaceholder';
 import { observer } from 'mobx-react-lite';
 import FastImage from 'react-native-fast-image';
-import { RootEnum } from '../common/sign-module';
-import AsyncStorage from '@react-native-community/async-storage';
-import { DEVICE_INFO } from '../common/constants';
 
 export const Profile: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
-    const { settingStore, weChatStore, blueToothStore } = useStore();
+    const { settingStore, weChatStore } = useStore();
     const baseView = useRef<any>(undefined);
+    const [list, setList] = useState<any>([
+      {
+        title: '我的设备',
+        icon: require('../assets/home/header-assets.png'),
+        tag: 'device'
+      },
+      {
+        title: '绑定信息',
+        icon: require('../assets/home/binding.png'),
+        tag: 'info'
+      }
+    ]);
 
     useEffect(() => {
       settingStore.updateSettings();
@@ -28,13 +37,21 @@ export const Profile: ScreenComponent = observer(
       // navigation.navigate('OnePassLogin', {});
       navigation.navigate('UserInfo', {});
     };
-    const navigateToDevice = async () => {
+    const navigateToDevice = async (data) => {
       // await blueToothStore.sendActiveMessage(allDataSign);
       // await blueToothStore.successDialog();
       // await blueToothStore.listenActiveMessage(mainListen);
-      navigation.navigate('WatchStyleSetting', {});
       // blueToothStore.device = defaultDevice;
       // await blueToothStore.sendActiveMessage(allDataSign);
+      console.log(data);
+      switch (data.tag) {
+        case 'device':
+          navigation.navigate('WatchStyleSetting', {});
+          break;
+        case 'info':
+          navigation.navigate('BindingInfo', {});
+          break;
+      }
     };
     const logOut = () => {
       console.log('退出登录');
@@ -76,15 +93,17 @@ export const Profile: ScreenComponent = observer(
           <View style={styles.context}>
             <View style={styles.moduleView}>
               <Text style={styles.mainText}>我的设备</Text>
-              <TouchableOpacity onPress={navigateToDevice}>
-                <View style={styles.labelView}>
-                  <View style={styles.startLabel}>
-                    <FastImage style={styles.labelIcon} source={require('../assets/home/header-assets.png')} resizeMode={FastImage.resizeMode.cover} />
-                    <Text style={styles.labelText}>已绑定的设备</Text>
+              {list.map((item, index) => (
+                <TouchableOpacity key={index} onPress={() => navigateToDevice(item)}>
+                  <View style={[styles.labelView, index === 0 ? styles.topBorder : null]}>
+                    <View style={styles.startLabel}>
+                      <FastImage style={styles.labelIcon} source={item.icon} resizeMode={FastImage.resizeMode.center} />
+                      <Text style={styles.labelText}>{item.title}</Text>
+                    </View>
+                    <FastImage style={styles.deviceIcon} source={require('../assets/home/right-gray.png')} resizeMode={FastImage.resizeMode.cover} />
                   </View>
-                  <FastImage style={styles.deviceIcon} source={require('../assets/home/right-gray.png')} resizeMode={FastImage.resizeMode.cover} />
-                </View>
-              </TouchableOpacity>
+                </TouchableOpacity>
+              ))}
             </View>
           </View>
         </ScrollView>
@@ -177,11 +196,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: color3,
     borderStyle: 'solid',
-    borderTopWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 10,
     paddingVertical: 15
+  },
+  topBorder: {
+    borderTopWidth: 1
   },
   loginView: {
     flex: 1

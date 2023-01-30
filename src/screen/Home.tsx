@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, ScrollView, AppState, RefreshControl } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, ScrollView, AppState, RefreshControl, StatusBar } from 'react-native';
 import BaseView from '../component/BaseView';
 import { useStore } from '../store';
 import { ScreenComponent } from './index';
@@ -21,6 +21,9 @@ import { PortalDialog } from '../component/home/PortalDialog';
 import { PasswordDialog } from '../component/home/PasswordDialog';
 import { Api } from '../common/api';
 import RNBootSplash from 'react-native-bootsplash';
+import { defaultDataLog } from '../store/BlueToothStore';
+import { StatusText } from '../component/home/StatusText';
+import { BlueToothDeviceName } from './CardScreens/Home/BlueToothDeviceName';
 
 let type = 0;
 export const Home: ScreenComponent = observer(
@@ -114,9 +117,12 @@ export const Home: ScreenComponent = observer(
     const [visDialog, setVisDialog] = useState(false);
     const [visContext, setVisContext] = useState('');
     const [password, setPassword] = useState('');
+    const [dataLogCat, setDataLogCat] = useState(defaultDataLog);
 
     useEffect(() => {
-      RNBootSplash.hide();
+      setTimeout(() => {
+        RNBootSplash.hide();
+      }, 2000);
       (async () => {
         // let res = await AsyncStorage.getItem(USER_CONFIG);
         // console.log('storage', res);
@@ -361,9 +367,28 @@ export const Home: ScreenComponent = observer(
       await blueToothStore.successDialog().then(() => setRefreshing(false));
     }, []);
 
+    const onRefreshing = async () => {
+      if (!blueToothStore?.devicesInfo) {
+        baseView.current.showToast({ text: '请连接设备', delay: 1.5 });
+      }
+      if (blueToothStore.refreshing) {
+        console.log('数据更新中');
+        return;
+      }
+      await blueToothStore.successDialog();
+    };
+
     const closeBlueTooth = async () => {
       await blueToothStore.removeBlueToothListen(true);
     };
+
+    const addEval = () => {
+      navigation.navigate('BlueToothDeviceName');
+    };
+
+    useEffect(() => {
+      setDataLogCat({ ...blueToothStore.dataLogCat });
+    }, [blueToothStore.dataLogCat]);
 
     const currentDeviceView = useMemo(() => {
       let isTrue = blueToothStore.currentDevice['-96']?.power || 0;
@@ -372,9 +397,7 @@ export const Home: ScreenComponent = observer(
           <TouchableOpacity style={styles.modalModule} onPress={blueToothDetail}>
             <View style={[tw.flexRow, tw.itemsCenter, tw.justifyAround, tw.p2, tw.flex1]}>
               <Spinkit type="Circle" size={30} color="white" />
-              <View style={styles.loadingView}>
-                <Text style={[styles.labelColor, styles.labelRe]}>正在读取数据...</Text>
-              </View>
+              <StatusText dataLogCat={dataLogCat} />
             </View>
           </TouchableOpacity>
         );
@@ -410,7 +433,15 @@ export const Home: ScreenComponent = observer(
           </TouchableOpacity>
         </View>
       );
-    }, [blueToothDetail, blueToothStore.devicesInfo, blueToothStore.currentDevice, blueToothStore.refreshInfo.deviceID, blueToothStore.refreshing]);
+    }, [
+      dataLogCat,
+      blueToothStore.currentDevice,
+      blueToothStore.refreshing,
+      blueToothStore.devicesInfo,
+      blueToothStore.dataNowTime,
+      closeBlueTooth,
+      blueToothDetail
+    ]);
 
     const currentDeviceBanner = useMemo(() => {
       let device = blueToothStore.devicesInfo;
@@ -430,7 +461,16 @@ export const Home: ScreenComponent = observer(
               </View>
               <TouchableOpacity style={styles.loginView}>
                 <View style={styles.headerContent}>
-                  <Text style={styles.userName}>{device?.name || '蓝牙手表App'}</Text>
+                  {device?.name ? (
+                    <View style={styles.userView}>
+                      <Text style={styles.userName}>{`${device?.name}-父亲`}</Text>
+                      <TouchableWithoutFeedback onPress={addEval}>
+                        <Text style={styles.evalName}>添加备注</Text>
+                      </TouchableWithoutFeedback>
+                    </View>
+                  ) : (
+                    <Text style={styles.userName}>蓝牙手表App</Text>
+                  )}
                   <Text style={styles.deviceMac}>
                     MAC:
                     {device?.id ? device.id : <Text style={styles.evalValue}> 设备MAC地址</Text>}
@@ -446,6 +486,7 @@ export const Home: ScreenComponent = observer(
       weChatStore.userInfo,
       blueToothDetail,
       blueToothStore.devicesInfo,
+      dataLogCat,
       openBlueTooth,
       blueToothStore.currentDevice,
       blueToothStore.refreshInfo,
@@ -455,7 +496,18 @@ export const Home: ScreenComponent = observer(
     const currentResult = useMemo(() => {
       return (
         <View style={styles.resultView}>
-          <Text style={styles.resultText}>今日实时数据</Text>
+          <View style={styles.refreshView}>
+            <Text style={styles.resultText}>今日实时数据</Text>
+            {blueToothStore.refreshing ? (
+              <View style={styles.refreshButton}>
+                <Spinkit type="Circle" size={15} color="white" />
+              </View>
+            ) : (
+              <TouchableOpacity style={styles.refreshButton} onPress={onRefreshing}>
+                <Text style={styles.buttonText}>更新数据</Text>
+              </TouchableOpacity>
+            )}
+          </View>
           <View style={styles.tableList}>
             {contentList.map((item) => {
               return (
@@ -529,10 +581,11 @@ export const Home: ScreenComponent = observer(
           {currentResult}
         </ScrollView>
       );
-    }, [refreshing, onRefresh, contentList, currentResult, weChatStore.userInfo]);
+    }, [refreshing, onRefresh, contentList, currentResult, weChatStore.userInfo, dataLogCat]);
 
     return (
       <BaseView ref={baseView} style={[tw.flex1]}>
+        <StatusBar backgroundColor="#00D1DE" barStyle={'light-content'} hidden={false} />
         <HeaderBar openLayout={() => updateMenuState()} />
         {renderContext}
         <PortalDialog visible={visDialog} open={openApi} delay={delayApi} context={visContext} />
@@ -585,6 +638,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingHorizontal: 20,
     paddingVertical: 6
+  },
+  buttonText: {
+    color: color3
   },
   cap: {
     fontSize: 12
@@ -704,14 +760,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     width: 60
   },
-  labelColor: {
-    color: color3
-  },
   labelData: {
     fontSize: 15
-  },
-  labelRe: {
-    fontSize: 18
   },
   labelText: {
     fontSize: 13
@@ -734,10 +784,6 @@ const styles = StyleSheet.create({
     height: 50,
     width: '100%'
   },
-  loadingView: {
-    flex: 1,
-    paddingHorizontal: 20
-  },
   loginView: {
     flex: 1
   },
@@ -749,6 +795,20 @@ const styles = StyleSheet.create({
   },
   modalModule: {
     flex: 1
+  },
+  refreshButton: {
+    alignItems: 'center',
+    backgroundColor: color1,
+    borderRadius: 4,
+    height: 27,
+    justifyContent: 'center',
+    padding: 5,
+    width: 70
+  },
+  refreshView: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between'
   },
   resultText: {
     fontSize: 18
@@ -821,8 +881,18 @@ const styles = StyleSheet.create({
     width: 0
   },
   userName: {
+    alignItems: 'center',
     color: color3,
     fontSize: 18,
     fontWeight: 'bold'
+  },
+  evalName: {
+    color: color3,
+    fontSize: 14
+  },
+  userView: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between'
   }
 });

@@ -61,7 +61,9 @@ const App = observer(() => {
   }, [systemStore]);
 
   useEffect(() => {
-    RNBootSplash.hide();
+    setTimeout(() => {
+      RNBootSplash.hide();
+    }, 2000);
     (async () => {
       await hasAndroidPermission();
       const rePowered = await BluetoothStateManager.getState();
@@ -103,7 +105,7 @@ const App = observer(() => {
     <Observer>
       {() => (
         <SafeAreaProvider>
-          <StatusBar backgroundColor="#00D1DE" barStyle={'light-content'} hidden={false} />
+          <StatusBar backgroundColor="#66b8ae" barStyle={'light-content'} hidden={false} />
           <PaperProvider theme={systemStore.colorMode === 'dark' ? darkTheme : theme}>{showScreens()}</PaperProvider>
         </SafeAreaProvider>
       )}

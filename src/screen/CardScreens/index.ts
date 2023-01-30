@@ -15,6 +15,8 @@ import { ClockDial } from './Profile/ClockDial';
 import { BloodTest } from './Home/HomeCommon/BloodTest';
 import { HeartTest } from './Home/HomeCommon/HeartTest';
 import { UserInfo } from './Profile/UserInfo';
+import { BindingInfo } from './Profile/BindingInfo';
+import { BlueToothDeviceName } from './Home/BlueToothDeviceName';
 
 export type ScreensParamList = {
   Login: { message?: string };
@@ -36,5 +38,7 @@ export const CardScreens: Array<ScreenList> = [
   { name: 'ClockDial', component: ClockDial },
   { name: 'BloodTest', component: BloodTest },
   { name: 'HeartTest', component: HeartTest },
-  { name: 'UserInfo', component: UserInfo }
+  { name: 'UserInfo', component: UserInfo },
+  { name: 'BindingInfo', component: BindingInfo },
+  { name: 'BlueToothDeviceName', component: BlueToothDeviceName }
 ];

@@ -1,11 +1,11 @@
 import { action, makeAutoObservable, observable } from 'mobx';
 import AsyncStorage from '@react-native-community/async-storage';
 import { DEVICE_DATA, DEVICE_INFO, TOKEN_NAME } from '../common/constants';
-import { arrToByte, baseToHex, eventTimer, eventTimes, getMinTen, regCutString, stringToByte } from '../common/tools';
+import { arrToByte, baseToHex, dateTimes, eventTimer, eventTimes, getMinTen, regCutString, stringToByte } from '../common/tools';
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
 import moment from 'moment';
-import { allDataC, allDataHeartEnd, allDataHeartStart, allDataSign, allDataSleep, batterySign, mainListen, passRegSign } from '../common/watch-module';
+import { allDataC, allDataSign, allDataSleep, batterySign, mainListen, passRegSign } from '../common/watch-module';
 import { RootEnum } from '../common/sign-module';
 import { Api, ApiResult } from '../common/api';
 
@@ -37,6 +37,14 @@ const defaultData = {
   '3': '',
   '4': '',
   '5': ''
+};
+export const defaultDataLog = {
+  power: null,
+  list: null,
+  battery: null,
+  'new-date': null,
+  temperature: null,
+  'heart-jump': null
 };
 
 export class BlueToothStore {
@@ -76,6 +84,7 @@ export class BlueToothStore {
   @observable backgroundActive = false;
   @observable dataChangeTime: any = '';
   @observable dataNowTime: any = moment(new Date()).format('YYYY-MM-DD hh:mm');
+  @observable dataLogCat: any = defaultDataLog;
 
   constructor() {
     makeAutoObservable(this);
@@ -110,6 +119,7 @@ export class BlueToothStore {
   @action
   async updateGetDataTime() {
     this.dataNowTime = moment(new Date()).format('YYYY-MM-DD hh:mm');
+    this.dataLogCat = defaultDataLog;
   }
 
   @action
@@ -193,6 +203,7 @@ export class BlueToothStore {
         if (error) return;
         let value = baseToHex(characteristic.value);
         this.blueRootList = [...this.blueRootList, value];
+        console.log(value, '蓝牙日志');
         let regValue = ['a1', 'a0', 'd1', 'd0', 'd8', '88', '80', 'd2', 'e0', 'df'].includes(value.slice(0, 2));
         if (regValue) {
           this.devicesModules(value);
@@ -244,7 +255,6 @@ export class BlueToothStore {
     //   this.logcatDetailed[hex] = '';
     // }
     // this.logcatDetailed[hex] += val + '\n';
-    console.log(val, '蓝牙数据');
     let params = {
       '-95': (e) => {
         let reg = [0, '0'].includes(e.slice(0, -1));
@@ -264,6 +274,15 @@ export class BlueToothStore {
         let batteryNum;
         if (battery[6] === '00') batteryNum = parseInt(battery[4], 16);
         if (battery[6] !== '00') batteryNum = Math.ceil((parseInt(battery[4], 16) / 100) * 4);
+        this.dataLogCat = { ...this.dataLogCat, power: true };
+        dateTimes(
+          () => {
+            console.log('获取电量数据完成');
+            this.dataLogCat = { ...this.dataLogCat, power: false };
+          },
+          1000,
+          'power'
+        );
         return {
           power: batteryNum
         };
@@ -294,6 +313,15 @@ export class BlueToothStore {
         list.intValue2.push(val1); //步数
         list.intValue3.push(val2); //运动量
         this.deviceFormData['1'] += e + '\n';
+        this.dataLogCat = { ...this.dataLogCat, list: true };
+        dateTimes(
+          () => {
+            console.log('获取日常数据完成');
+            this.dataLogCat = { ...this.dataLogCat, list: false };
+          },
+          1000,
+          'list'
+        );
         return list;
       },
       '-32': (e) => {
@@ -301,35 +329,41 @@ export class BlueToothStore {
         let data: any = this.device[hex] || {};
         data[battery[1]] = battery;
         this.deviceFormData['2'] += e + '\n';
+        this.dataLogCat = { ...this.dataLogCat, battery: true };
+        dateTimes(
+          () => {
+            console.log('获取温度数据完成');
+            this.dataLogCat.battery = false;
+            this.dataLogCat = { ...this.dataLogCat, battery: false };
+          },
+          1000,
+          'battery'
+        );
         return data;
       },
       '-33': (e) => {
-        if (e.length >= 40) {
-          let list: any = this.device[hex] || {};
-          let message = arrToByte(e.match(/([\d\D]{2})/g), true);
-          let prototype = e.match(/([\d\D]{2})/g);
-          // console.log(e, '444444444444');
-          // console.log(message[106], message[107], '返回监听值');
-          // if (parseInt(message[14]) > 30) {
-          //   list.i8.push(message[14]); //心率
-          //   list.xinlvTime.push(`${getMinTen(message[5])}:${getMinTen(message[19])}`); //心率记录时间
-          // }
-          // if (message[106] && message[107]) {
-          //   message[106] && list.i9.push(message[106]); //血压高
-          //   message[107] && list.i10.push(message[107]); //血压低
-          //   list.xueyaTime.push(`${getMinTen(message[8])}:${getMinTen(message[9])}`);
-          // }
-          // let val1 = parseInt(prototype[18] + prototype[19], 16) / 10;
-          // let val2 = parseInt(prototype[12] + prototype[13], 16);
-          // list.intValue3.push(val1); //卡路里
-          // list.intValue2.push(val2); //运动步数
-        }
+        this.dataLogCat = { ...this.dataLogCat, 'new-date': true };
+        dateTimes(
+          () => {
+            this.dataLogCat = { ...this.dataLogCat, 'new-date': false };
+          },
+          1000,
+          'new-date'
+        );
         this.deviceFormData['1'] += e + '\n';
         return '';
       },
       '-120': (e) => {
         let battery = e.match(/([\d\D]{2})/g);
         this.deviceFormData['3'] += e + '\n';
+        this.dataLogCat = { ...this.dataLogCat, temperature: true };
+        dateTimes(
+          () => {
+            this.dataLogCat = { ...this.dataLogCat, temperature: false };
+          },
+          1000,
+          'temperature'
+        );
         if (battery[12] === '00' || battery[11] === '00') {
           return {
             temperature: this.device['-120']?.temperature
@@ -347,6 +381,15 @@ export class BlueToothStore {
       '-48': (e) => {
         let battery = e.match(/([\d\D]{2})/g);
         if (battery[1]) {
+          this.dataLogCat = { ...this.dataLogCat, 'heart-jump': true };
+          dateTimes(
+            () => {
+              console.log('获取详细心率数据完成');
+              this.dataLogCat = { ...this.dataLogCat, 'heart-jump': false };
+            },
+            1000,
+            'heart-jump'
+          );
           return {
             heartJump: parseInt(battery[1], 16),
             time: moment().format('YYYY-MM-DD HH:mm:ss')
