@@ -25,9 +25,10 @@ export const WatchStyleSetting: ScreenComponent = observer(
           baseView.current.showToast({ text: res.msg, delay: 2 });
           return;
         }
+        console.log(res.data, '设备信息');
         let data: any = [];
         res.data.map((item, index) => {
-          data.push({ name: item.device_name, value: item.device_mac });
+          data.push({ name: `${item.device_name}${item.note ? '-' + item.note : ''}`, value: item.device_mac });
         });
         setSwitchList(data);
       });

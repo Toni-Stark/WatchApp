@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import BaseView from '../../component/BaseView';
-import { StyleSheet, Text, TouchableHighlight, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useStore } from '../../store';
 import FastImage from 'react-native-fast-image';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -134,6 +134,9 @@ const styles = StyleSheet.create({
     height: 8,
     width: 8
   },
+  agreeText: {
+    color: color1
+  },
   agreeView: {
     alignItems: 'center',
     borderColor: color1,
@@ -144,26 +147,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 13
   },
+  buttonCenter: {
+    alignItems: 'center',
+    borderRadius: 30,
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center'
+  },
+  buttonFooter: {
+    alignItems: 'center',
+    flex: 1,
+    width: '100%'
+  },
   buttonText: {
     color: color4,
     fontSize: 17
   },
-  buttonFooter: {
-    flex: 1,
-    width: '100%',
-    alignItems: 'center'
-  },
   buttonView: {
+    height: 45,
     marginTop: 100,
-    width: '82%',
-    height: 45
-  },
-  buttonCenter: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-    borderRadius: 30
+    width: '82%'
   },
   buttonViewChild: {},
   container: {
@@ -173,22 +176,24 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between'
   },
   image: {
-    height: 70,
-    width: 70
+    height: 80,
+    width: 80
   },
   imageView: {
     alignItems: 'center',
     backgroundColor: color4,
     borderRadius: 100,
-    height: 90,
+    height: 110,
     justifyContent: 'center',
+    marginTop: 30,
     marginVertical: 20,
     padding: 20,
-    width: 90
+    width: 110
   },
   title: {
     color: color4,
-    fontSize: 25
+    fontSize: 28,
+    fontWeight: 'bold'
   },
   titleView: {
     alignItems: 'center',
@@ -210,9 +215,6 @@ const styles = StyleSheet.create({
   },
   userMain: {
     color: color6
-  },
-  agreeText: {
-    color: color1
   },
   userText: {
     alignItems: 'center',

@@ -9,6 +9,8 @@ export const OSS_CONFIG = 'O_OSS_CONFIG';
 export const DEVICE_INFO = 'DEVICE_INFO';
 export const BLUE_STATUS = 'BLUE_STATUS';
 export const DEVICE_DATA = 'DEVICE_DATA';
+export const DEVICE_CONFIG = 'DEVICE_CONFIG';
+export const UPDATE_TIME = 'UPDATE_TIME';
 
 export const USER_CONFIG = 'USER_CONFIG';
 export const TEST_TOKEN = 'TEST_TOKEN';

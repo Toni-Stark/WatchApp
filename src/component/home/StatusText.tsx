@@ -2,8 +2,12 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 export const StatusText = (props) => {
-  const { dataLogCat } = props;
+  const { dataLogCat, info } = props;
   let isNull = true;
+  let isOut = false;
+  if (info) {
+    isOut = true;
+  }
   for (let i in dataLogCat) {
     if (dataLogCat.hasOwnProperty(i) && dataLogCat[i] !== null) {
       isNull = false;
@@ -12,7 +16,8 @@ export const StatusText = (props) => {
 
   return (
     <View style={styles.loadingView}>
-      {isNull ? <Text style={[styles.labelColor, styles.labelReady]}>正在读取数据...</Text> : null}
+      {isOut && isNull ? <Text style={[styles.labelColor, styles.labelReady]}>正在读取数据...</Text> : null}
+      {/*{!isOut && isNull ? <Text style={[styles.labelColor, styles.labelReady]}>正在重连设备...</Text> : null}*/}
       {/*<Text style={[styles.labelColor, styles.labelRe]}>: {blueToothStore.dataLogCat.power ? '读取中' : '已完成'}</Text>*/}
       {dataLogCat.power !== null ? <Text style={[styles.labelColor, styles.labelRe]}>设备电量：{dataLogCat.power ? '读取中' : '已完成'}</Text> : null}
       {dataLogCat.list !== null ? <Text style={[styles.labelColor, styles.labelRe]}>实时数据：{dataLogCat.list ? '读取中' : '已完成'}</Text> : null}

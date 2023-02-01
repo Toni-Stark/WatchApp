@@ -1,6 +1,6 @@
 import { action, makeAutoObservable, observable } from 'mobx';
 import AsyncStorage from '@react-native-community/async-storage';
-import { DEVICE_DATA, DEVICE_INFO, TOKEN_NAME } from '../common/constants';
+import { DEVICE_CONFIG, DEVICE_DATA, DEVICE_INFO, TOKEN_NAME, UPDATE_TIME } from '../common/constants';
 import { arrToByte, baseToHex, dateTimes, eventTimer, eventTimes, getMinTen, regCutString, stringToByte } from '../common/tools';
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
@@ -70,6 +70,7 @@ export class BlueToothStore {
   @observable currentDevice: any = this.device;
   @observable logcatDetailed: any = {};
   @observable refreshing: boolean = false;
+  @observable refreshBtn: boolean = false;
   @observable refreshInfo: any = {};
   @observable hadBackgroundFetch: boolean = false;
   @observable hadStateListener: boolean = false;
@@ -85,6 +86,9 @@ export class BlueToothStore {
   @observable dataChangeTime: any = '';
   @observable dataNowTime: any = moment(new Date()).format('YYYY-MM-DD hh:mm');
   @observable dataLogCat: any = defaultDataLog;
+  @observable evalName: string = '';
+  @observable isConnected: boolean = false;
+  @observable readyDevice: any = undefined;
 
   constructor() {
     makeAutoObservable(this);
@@ -123,21 +127,37 @@ export class BlueToothStore {
   }
 
   @action
-  async closeDevices() {
+  async closeDevices(callback?: Function, bool?: boolean) {
     if (!this.devicesInfo?.id) {
       return;
     }
-    this.needRegPassword = false;
-    this.noPasswordTips = false;
-    await this.manager.cancelDeviceConnection(this.devicesInfo.id);
-    this.devicesInfo = undefined;
-    this.manager = undefined;
-    await this.clearDevice();
     this.currentDevice = this.device;
-    this.refreshing = false;
+    this.refreshBtn = false;
     this.refreshInfo = {};
-    this.manager = new BleManager();
     this.deviceFormData = defaultData;
+
+    try {
+      this.needRegPassword = false;
+      this.isConnected = false;
+      this.noPasswordTips = false;
+      if (!bool) await this.manager.cancelDeviceConnection(this.devicesInfo.id);
+      this.manager = undefined;
+      this.devicesInfo = undefined;
+      this.manager = new BleManager();
+      this.refreshing = false;
+      await this.clearDevice();
+    } catch (err) {
+      this.device = defaultDevice;
+      this.manager = new BleManager();
+      this.refreshing = false;
+      await AsyncStorage.removeItem(DEVICE_INFO);
+      return callback && callback({ text: '已断开连接', delay: 1.5 });
+
+      // await this.connectDevice(this.devicesInfo, (res) => {
+      //   console.log(res, '重连结果');
+      //   return callback && callback(res);
+      // });
+    }
   }
 
   @action
@@ -159,13 +179,13 @@ export class BlueToothStore {
     await AsyncStorage.setItem(DEVICE_INFO, JSON.stringify(deviceInfo));
   }
   @action
-  async successDialog(pass?: string) {
+  async successDialog({ pass, callback }: { pass?: string; callback?: Function }) {
     this.deviceFormData = defaultData;
-    this.refreshing = true;
     if (!this.devicesInfo?.id) {
       this.refreshing = false;
       return;
     }
+    this.refreshing = true;
     this.refreshInfo = {
       deviceID: this.devicesInfo.id,
       time: moment(new Date()).format('YYYY-MM-DD')
@@ -180,6 +200,9 @@ export class BlueToothStore {
       await this.sendActiveMessage(allDataC);
     } catch (err) {
       console.log(err, 'error');
+      await this.closeDevices((res) => {
+        return callback && callback(res);
+      }, true);
     }
   }
 
@@ -406,53 +429,75 @@ export class BlueToothStore {
   }
 
   @action
+  async connectDevice(device, callback) {
+    device
+      .connect()
+      .then((res) => {
+        this.manager?.stopDeviceScan();
+        this.isRoot = RootEnum['连接中'];
+        if (res.id) {
+          return res.discoverAllServicesAndCharacteristics();
+        }
+        return callback({ type: '1', delay: 1 });
+      })
+      .then((devices) => {
+        this.manager?.stopDeviceScan();
+        this.devicesInfo = devices;
+        this.isConnected = true;
+        // AsyncStorage.setItem(DEVICE_CONFIG, JSON.stringify(device));
+        this.listenActiveMessage(mainListen);
+        this.successDialog({});
+        return callback({ type: '2', delay: 1 });
+      })
+      .catch((err) => {
+        this.closeDevices();
+        return callback({ type: '1', delay: 1 });
+      });
+  }
+
+  @action
   async reConnectDevice(params, callback) {
     this.refreshInfo = { ...params };
     this.refreshing = true;
     let isDevice = false;
-    this.manager.startDeviceScan(null, null, (error, device) => {
-      if (error) {
-        // 处理错误（扫描会自动停止）
-        return;
-      }
-      if (device.name && device?.id !== params.deviceID) {
-        isDevice = false;
-        eventTimer(() => {
-          console.log('停止搜索');
-          this.manager?.stopDeviceScan();
+    // let deviceConfig = await AsyncStorage.getItem(DEVICE_CONFIG);
+    // console.log(deviceConfig, 'log----------------');
+    try {
+      this.manager.startDeviceScan(null, null, (error, device) => {
+        if (error) {
+          // 处理错误（扫描会自动停止）
           this.refreshing = false;
-          !isDevice && callback({ type: '3', delay: 1 });
-        }, 10000);
-        return;
-      } else {
-        isDevice = true;
-        if (device.id === params.deviceID) {
-          this.manager?.stopDeviceScan();
-          device
-            .connect()
-            .then((res) => {
-              this.manager?.stopDeviceScan();
-              this.isRoot = RootEnum['连接中'];
-              if (res.id) {
-                return res.discoverAllServicesAndCharacteristics();
-              }
-              return callback({ type: '1', delay: 1 });
-            })
-            .then((devices) => {
-              console.log('连接成功');
-              this.manager?.stopDeviceScan();
-              this.devicesInfo = devices;
-              this.listenActiveMessage(mainListen);
-              this.successDialog();
-              return callback({ type: '2', delay: 1 });
-            })
-            .catch((err) => {
-              this.closeDevices();
-              return callback({ type: '1', delay: 1 });
-            });
+          return;
         }
-      }
-    });
+        console.log(device.name);
+        if (device.name && device?.id !== params.deviceID) {
+          isDevice = false;
+          eventTimer(
+            () => {
+              this.manager?.stopDeviceScan();
+              this.refreshing = false;
+              if (isDevice) {
+                callback({ type: '5', delay: 1 });
+              } else {
+                callback({ type: '3', delay: 1 });
+              }
+            },
+            3000,
+            false
+          );
+          return;
+        } else {
+          isDevice = true;
+          if (device.id === params.deviceID) {
+            eventTimer(() => {}, 0, true);
+            this.manager?.stopDeviceScan();
+            return this.connectDevice(device, callback);
+          }
+        }
+      });
+    } catch (err) {
+      this.refreshing = false;
+    }
   }
 
   /**
@@ -472,15 +517,13 @@ export class BlueToothStore {
         if (res.code !== 200) {
           return resolve({ msg: res.msg, success: false });
         }
-        // console.log('log---------');
-        // console.log(data.device_list, 'log---------');
-        // console.log('log---------');
         let need = !data.device_list.find((item) => item.device_mac === this.devicesInfo.id) || data.device_list.length <= 0;
         if (need) {
           this.bindUserDevice().then((result) => {
             return resolve({ success: true, data: data.device_list });
           });
         }
+        this.readyDevice = data.device_list.find((item) => item.device_mac === this.devicesInfo.id);
       }
       if (!bool) {
         return resolve({ success: true, data: data.device_list });
@@ -501,6 +544,7 @@ export class BlueToothStore {
     if (data['4']) await this.updateDeviceData({ type: '4', value: data['4'] });
     if (data['5']) await this.updateDeviceData({ type: '5', value: data['5'] });
     this.currentDevice = { ...this.device };
+    await AsyncStorage.setItem(UPDATE_TIME, moment().format('YYYY-MM-DD HH:mm'));
   }
 
   /**
@@ -564,6 +608,24 @@ export class BlueToothStore {
         return resolve({ msg: res.msg, success: false });
       }
       return resolve({ msg: '更新成功', data: res.data, success: true });
+    });
+  }
+  /**
+   * get settingNote
+   * url: /apic/watch/device/set-note
+   */
+  @action
+  async settingNote(params): Promise<any> {
+    return new Promise(async (resolve, reject) => {
+      const res: ApiResult = await Api.getInstance.post({
+        url: '/watch/device/set-note',
+        params: params,
+        withToken: true
+      });
+      if (res.code !== 200) {
+        return resolve({ msg: res.msg, success: false });
+      }
+      return resolve({ msg: '设置成功', data: res.data, success: true });
     });
   }
 }

@@ -83,7 +83,12 @@ export const dateTimes = (callback: Function, time = 1000, tag) => {
 };
 
 let times: any = null;
-export const eventTimer = (callback: Function, time = 1000) => {
+export const eventTimer = (callback: Function, time = 1000, stop) => {
+  if (stop) {
+    clearTimeout(times);
+    times = null;
+    return;
+  }
   if (times !== null) return;
   times = setTimeout(() => {
     callback();
