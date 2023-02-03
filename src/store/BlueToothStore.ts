@@ -1,7 +1,7 @@
-import { action, makeAutoObservable, observable } from 'mobx';
+import { action, get, makeAutoObservable, observable } from 'mobx';
 import AsyncStorage from '@react-native-community/async-storage';
 import { DEVICE_CONFIG, DEVICE_DATA, DEVICE_INFO, TOKEN_NAME, UPDATE_TIME } from '../common/constants';
-import { arrToByte, baseToHex, dateTimes, eventTimer, eventTimes, getMinTen, regCutString, stringToByte } from '../common/tools';
+import { arrToByte, baseToHex, dateTimes, eventTimer, eventTimes, getCircularReplacer, getMinTen, regCutString, stringToByte } from '../common/tools';
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
 import moment from 'moment';
@@ -161,6 +161,22 @@ export class BlueToothStore {
   }
 
   @action
+  getEvalName() {
+    let name = this.readyDevice?.device_name || this.refreshInfo.name;
+    if (this.evalName) {
+      name = name + '-' + this.evalName;
+    } else {
+      if (this.readyDevice?.note) {
+        name = name + '-' + this.readyDevice?.note;
+      } else if (this.refreshInfo?.note) {
+        name = name + '-' + this.refreshInfo?.note;
+      }
+    }
+    console.log(this.readyDevice, this.refreshInfo, this.evalName, '设备信息');
+    return name;
+  }
+
+  @action
   async getMsgUpload() {
     try {
       await this.sendActiveMessage(allDataSleep);
@@ -188,6 +204,7 @@ export class BlueToothStore {
     this.refreshing = true;
     this.refreshInfo = {
       deviceID: this.devicesInfo.id,
+      name: this.devicesInfo.name,
       time: moment(new Date()).format('YYYY-MM-DD')
     };
     await this.clearDevice();
@@ -444,7 +461,6 @@ export class BlueToothStore {
         this.manager?.stopDeviceScan();
         this.devicesInfo = devices;
         this.isConnected = true;
-        // AsyncStorage.setItem(DEVICE_CONFIG, JSON.stringify(device));
         this.listenActiveMessage(mainListen);
         this.successDialog({});
         return callback({ type: '2', delay: 1 });
@@ -458,18 +474,16 @@ export class BlueToothStore {
   @action
   async reConnectDevice(params, callback) {
     this.refreshInfo = { ...params };
+    console.log('重连');
     this.refreshing = true;
     let isDevice = false;
-    // let deviceConfig = await AsyncStorage.getItem(DEVICE_CONFIG);
-    // console.log(deviceConfig, 'log----------------');
     try {
-      this.manager.startDeviceScan(null, null, (error, device) => {
+      this.manager.startDeviceScan(null, { scanMode: 2 }, (error, device) => {
         if (error) {
           // 处理错误（扫描会自动停止）
           this.refreshing = false;
           return;
         }
-        console.log(device.name);
         if (device.name && device?.id !== params.deviceID) {
           isDevice = false;
           eventTimer(
@@ -482,7 +496,7 @@ export class BlueToothStore {
                 callback({ type: '3', delay: 1 });
               }
             },
-            3000,
+            20000,
             false
           );
           return;
@@ -513,6 +527,8 @@ export class BlueToothStore {
         withToken: true
       });
       let data = res.data;
+      console.log(res, '绑定信息');
+
       if (bool) {
         if (res.code !== 200) {
           return resolve({ msg: res.msg, success: false });

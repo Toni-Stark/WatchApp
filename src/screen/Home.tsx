@@ -128,7 +128,6 @@ export const Home: ScreenComponent = observer(
         const rePowered = await BluetoothStateManager.getState();
         if (rePowered !== 'PoweredOn') return;
         let deviceInfo: string | null = await AsyncStorage.getItem(DEVICE_INFO);
-        console.log(!blueToothStore?.devicesInfo, deviceInfo && JSON.parse(deviceInfo));
         if (!blueToothStore?.devicesInfo) {
           if (deviceInfo && JSON.parse(deviceInfo)) {
             await blueToothStore.reConnectDevice(JSON.parse(deviceInfo), (res) => {
@@ -395,7 +394,7 @@ export const Home: ScreenComponent = observer(
               blueToothStore.updateGetDataTime().then();
             });
           }
-          baseView.current.showToast({ text: '更新成功', delay: 1.5 });
+          baseView.current.showToast({ text: res.msg, delay: 1.5 });
           blueToothStore.refreshBtn = false;
         });
       }
@@ -415,19 +414,14 @@ export const Home: ScreenComponent = observer(
 
     const currentDeviceView = useMemo(() => {
       let isTrue = blueToothStore.currentDevice['-96']?.power || 0;
-      let name = blueToothStore.readyDevice?.device_name || blueToothStore.refreshInfo.name;
-      if (blueToothStore.readyDevice?.note) {
-        name = name + '-' + blueToothStore.readyDevice?.note;
-      } else if (blueToothStore.refreshInfo?.note) {
-        name = name + '-' + blueToothStore.refreshInfo?.note;
-      }
+
       if (blueToothStore.refreshing) {
         return (
           <TouchableOpacity style={styles.modalModule} onPress={blueToothDetail}>
             {!blueToothStore?.devicesInfo ? (
               <View style={styles.refreCard}>
                 <View style={styles.refreshContent}>
-                  <Text style={styles.refreCardTitle}>设备名称：{name}</Text>
+                  <Text style={styles.refreCardTitle}>设备名称：{blueToothStore.getEvalName()}</Text>
                   <Text style={styles.refreCardMac}>MAC：{blueToothStore.refreshInfo.deviceID}</Text>
                   <Text style={styles.refreCardTime}>上次连接时间：{blueToothStore.refreshInfo.time}</Text>
                 </View>
@@ -483,17 +477,12 @@ export const Home: ScreenComponent = observer(
       blueToothStore.devicesInfo,
       blueToothStore.dataNowTime,
       blueToothDetail,
-      blueToothStore.devicesInfo
+      blueToothStore.evalName
     ]);
 
     const currentDeviceBanner = useMemo(() => {
       let device = blueToothStore.devicesInfo;
-      let name = blueToothStore.readyDevice?.device_name || blueToothStore.refreshInfo.name;
-      if (blueToothStore.readyDevice?.note) {
-        name = name + '-' + blueToothStore.readyDevice?.note;
-      } else if (blueToothStore.refreshInfo?.note) {
-        name = name + '-' + blueToothStore.refreshInfo?.note;
-      }
+      // console.log(blueToothStore.getEvalName(), 'infoDevice');
       return (
         <View style={styles.card}>
           <LinearGradient
@@ -517,7 +506,7 @@ export const Home: ScreenComponent = observer(
                 <View style={styles.headerContent}>
                   {device?.name ? (
                     <View style={styles.userView}>
-                      <Text style={styles.userName}>{name}</Text>
+                      <Text style={styles.userName}>{blueToothStore.getEvalName()}</Text>
                       <TouchableWithoutFeedback onPress={addEval}>
                         <Text style={styles.evalName}>{blueToothStore.evalName ? '修改' : '添加'}备注</Text>
                       </TouchableWithoutFeedback>
@@ -550,7 +539,7 @@ export const Home: ScreenComponent = observer(
         <View style={styles.resultView}>
           <View style={styles.refreshView}>
             <Text style={styles.resultText}>今日实时数据</Text>
-            {blueToothStore.refreshing || blueToothStore.refreshBtn ? (
+            {blueToothStore.refreshBtn ? (
               <View style={styles.refreshButton}>
                 <Spinkit type="Circle" size={15} color="white" />
               </View>

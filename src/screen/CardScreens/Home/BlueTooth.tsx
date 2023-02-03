@@ -40,7 +40,7 @@ export const BlueTooth: ScreenComponent = observer(
       let list: any = [];
       let timer: any = null;
       // let manager = new BleManager();
-      blueToothStore.manager.startDeviceScan(null, null, (error, device) => {
+      blueToothStore.manager.startDeviceScan(null, { scanMode: 2 }, (error, device) => {
         if (error) {
           // 处理错误（扫描会自动停止）
           return;

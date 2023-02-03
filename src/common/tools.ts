@@ -97,6 +97,20 @@ export const eventTimer = (callback: Function, time = 1000, stop) => {
   }, time);
 };
 
+// 完善JSON序列化方法
+export const getCircularReplacer = () => {
+  const seen = new WeakSet();
+  return (key, value) => {
+    if (typeof value === 'object' && value !== null) {
+      if (seen.has(value)) {
+        return;
+      }
+      seen.add(value);
+    }
+    return value;
+  };
+};
+
 // 10进制16进制转换
 export const strToHex = (num): string => {
   if (num > -128 && num < 0) return (256 + num).toString(16);

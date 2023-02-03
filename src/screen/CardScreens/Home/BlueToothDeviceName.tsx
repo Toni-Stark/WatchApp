@@ -35,9 +35,9 @@ export const BlueToothDeviceName: ScreenComponent = observer(
       let result = await blueToothStore.settingNote(params);
       baseView.current.hideLoading();
       if (result.success) {
-        blueToothStore.evalName = text;
         res.note = text;
         await AsyncStorage.setItem(DEVICE_INFO, JSON.stringify(res));
+        blueToothStore.evalName = text;
         baseView.current.showToast({ text: result.msg, delay: 1.5 });
         setTimeout(() => {
           navigation.goBack();

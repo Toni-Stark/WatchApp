@@ -121,7 +121,6 @@ export class WeChatStore {
       params: { openid, mobile_code, login_type },
       withToken: false
     });
-    console.log(res);
     if (res.code !== 200) {
       return { msg: res.msg, success: false };
     }
