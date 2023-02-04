@@ -90,11 +90,11 @@ export class WeChatStore {
     return new Promise(async (resolve, reject) => {
       const res: ApiResult = await Api.getInstance.post({
         url: '/member/member/check-login',
-        params: { code, type },
+        params: { auth_code: code, type },
         withToken: false
       });
       if (res.code === 402) {
-        let data: Partial<ErrorLog> = await this.userGetLogin({ openid: res.data.openid, mobile_code: code });
+        let data: Partial<ErrorLog> = await this.userGetLogin({ type: type, auth_code: code });
         if (data?.success) {
           return resolve({ msg: '登录成功', success: true });
         }
@@ -115,10 +115,10 @@ export class WeChatStore {
    * url: /member/member/login
    */
   @action
-  async userGetLogin({ openid, mobile_code, login_type = 'App' }): Promise<Partial<ErrorLog>> {
+  async userGetLogin({ auth_code, type = 'App' }): Promise<Partial<ErrorLog>> {
     const res: ApiResult = await Api.getInstance.post({
       url: '/member/member/login',
-      params: { openid, mobile_code, login_type },
+      params: { auth_code, type },
       withToken: false
     });
     if (res.code !== 200) {
