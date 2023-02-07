@@ -25,7 +25,6 @@ export const WatchStyleSetting: ScreenComponent = observer(
           baseView.current.showToast({ text: res.msg, delay: 2 });
           return;
         }
-        console.log(res.data, '设备信息');
         let data: any = [];
         res.data.map((item, index) => {
           data.push({ name: `${item.device_name}${item.note ? '-' + item.note : ''}`, value: item.device_mac });
@@ -75,6 +74,7 @@ export const WatchStyleSetting: ScreenComponent = observer(
                 </TouchableOpacity>
               );
             })}
+            {switchList.length <= 0 ? <Text style={styles.placeText}>未绑定设备</Text> : null}
           </View>
         </ScrollView>
       );
@@ -90,6 +90,9 @@ export const WatchStyleSetting: ScreenComponent = observer(
 );
 
 const styles = StyleSheet.create({
+  placeText: {
+    fontSize: 17
+  },
   headerStart: {
     flexDirection: 'row'
   },

@@ -89,6 +89,7 @@ export class BlueToothStore {
   @observable evalName: string = '';
   @observable isConnected: boolean = false;
   @observable readyDevice: any = undefined;
+  @observable activeDeviceConnect: boolean = false;
 
   constructor() {
     makeAutoObservable(this);
@@ -141,6 +142,7 @@ export class BlueToothStore {
       this.isConnected = false;
       this.noPasswordTips = false;
       if (!bool) await this.manager.cancelDeviceConnection(this.devicesInfo.id);
+      this.activeDeviceConnect = false;
       this.manager = undefined;
       this.devicesInfo = undefined;
       this.manager = new BleManager();
@@ -148,13 +150,13 @@ export class BlueToothStore {
       await this.clearDevice();
     } catch (err) {
       this.device = defaultDevice;
+      this.activeDeviceConnect = false;
       this.manager = new BleManager();
       this.refreshing = false;
       await AsyncStorage.removeItem(DEVICE_INFO);
       return callback && callback({ text: '已断开连接', delay: 1.5 });
 
       // await this.connectDevice(this.devicesInfo, (res) => {
-      //   console.log(res, '重连结果');
       //   return callback && callback(res);
       // });
     }
@@ -172,17 +174,23 @@ export class BlueToothStore {
         name = name + '-' + this.refreshInfo?.note;
       }
     }
-    console.log(this.readyDevice, this.refreshInfo, this.evalName, '设备信息');
     return name;
   }
 
   @action
   async getMsgUpload() {
     try {
-      await this.sendActiveMessage(allDataSleep);
+      await this.backDeviceData();
     } catch (err) {
       console.log(err);
     }
+  }
+
+  @action
+  async backDeviceData() {
+    await this.sendActiveMessage(batterySign);
+    await this.sendActiveMessage(allDataSleep);
+    await this.sendActiveMessage(allDataC);
   }
 
   @action
@@ -196,7 +204,6 @@ export class BlueToothStore {
   }
   @action
   async successDialog({ pass, callback }: { pass?: string; callback?: Function }) {
-    this.deviceFormData = defaultData;
     if (!this.devicesInfo?.id) {
       this.refreshing = false;
       return;
@@ -243,10 +250,9 @@ export class BlueToothStore {
         if (error) return;
         let value = baseToHex(characteristic.value);
         this.blueRootList = [...this.blueRootList, value];
-        console.log(value, '蓝牙日志');
         let regValue = ['a1', 'a0', 'd1', 'd0', 'd8', '88', '80', 'd2', 'e0', 'df'].includes(value.slice(0, 2));
         if (regValue) {
-          this.devicesModules(value);
+          this.devicesModules(value, this.backgroundActive);
         }
         if (['bd'].includes(value.slice(0, 2))) {
           return;
@@ -254,7 +260,7 @@ export class BlueToothStore {
         if (this.backgroundActive) {
           let dateTime = new Date().getTime();
           let timeThan = this.dataChangeTime ? dateTime - this.dataChangeTime : dateTime;
-          if (timeThan > 10000) {
+          if (timeThan > 7000) {
             this.dataChangeTime = dateTime;
             this.updateDeviceList();
           } else if (timeThan > 1000) {
@@ -289,12 +295,28 @@ export class BlueToothStore {
   }
 
   @action
-  async devicesModules(val) {
+  async devicesModules(val, bool) {
     let hex = parseInt(val.slice(0, 2), 16) - 256;
     // if (!this.logcatDetailed[hex]) {
     //   this.logcatDetailed[hex] = '';
     // }
     // this.logcatDetailed[hex] += val + '\n';
+    if (bool) {
+      switch (hex) {
+        case -47:
+          this.deviceFormData['1'] += val + '\n';
+          break;
+        case -32:
+          this.deviceFormData['2'] += val + '\n';
+          break;
+        case -33:
+          this.deviceFormData['1'] += val + '\n';
+          break;
+        case -120:
+          this.deviceFormData['3'] += val + '\n';
+          break;
+      }
+    }
     let params = {
       '-95': (e) => {
         let reg = [0, '0'].includes(e.slice(0, -1));
@@ -314,15 +336,17 @@ export class BlueToothStore {
         let batteryNum;
         if (battery[6] === '00') batteryNum = parseInt(battery[4], 16);
         if (battery[6] !== '00') batteryNum = Math.ceil((parseInt(battery[4], 16) / 100) * 4);
-        this.dataLogCat = { ...this.dataLogCat, power: true };
-        dateTimes(
-          () => {
-            console.log('获取电量数据完成');
-            this.dataLogCat = { ...this.dataLogCat, power: false };
-          },
-          1000,
-          'power'
-        );
+        if (!bool) {
+          this.dataLogCat = { ...this.dataLogCat, power: true };
+          dateTimes(
+            () => {
+              console.log('获取电量数据完成');
+              this.dataLogCat = { ...this.dataLogCat, power: false };
+            },
+            1000,
+            'power'
+          );
+        }
         return {
           power: batteryNum
         };
@@ -352,58 +376,66 @@ export class BlueToothStore {
         let val2 = parseInt(prototype[12] + prototype[13], 16);
         list.intValue2.push(val1); //步数
         list.intValue3.push(val2); //运动量
-        this.deviceFormData['1'] += e + '\n';
-        this.dataLogCat = { ...this.dataLogCat, list: true };
-        dateTimes(
-          () => {
-            console.log('获取日常数据完成');
-            this.dataLogCat = { ...this.dataLogCat, list: false };
-          },
-          1000,
-          'list'
-        );
+        if (!bool) {
+          this.deviceFormData['1'] += val + '\n';
+          this.dataLogCat = { ...this.dataLogCat, list: true };
+          dateTimes(
+            () => {
+              console.log('获取日常数据完成');
+              this.dataLogCat = { ...this.dataLogCat, list: false };
+            },
+            1000,
+            'list'
+          );
+        }
         return list;
       },
       '-32': (e) => {
         let battery = e.match(/([\d\D]{2})/g);
         let data: any = this.device[hex] || {};
         data[battery[1]] = battery;
-        this.deviceFormData['2'] += e + '\n';
-        this.dataLogCat = { ...this.dataLogCat, battery: true };
-        dateTimes(
-          () => {
-            console.log('获取温度数据完成');
-            this.dataLogCat.battery = false;
-            this.dataLogCat = { ...this.dataLogCat, battery: false };
-          },
-          1000,
-          'battery'
-        );
+        if (!bool) {
+          this.deviceFormData['2'] += e + '\n';
+          this.dataLogCat = { ...this.dataLogCat, battery: true };
+          dateTimes(
+            () => {
+              console.log('获取温度数据完成');
+              this.dataLogCat.battery = false;
+              this.dataLogCat = { ...this.dataLogCat, battery: false };
+            },
+            1000,
+            'battery'
+          );
+        }
         return data;
       },
       '-33': (e) => {
-        this.dataLogCat = { ...this.dataLogCat, 'new-date': true };
-        dateTimes(
-          () => {
-            this.dataLogCat = { ...this.dataLogCat, 'new-date': false };
-          },
-          1000,
-          'new-date'
-        );
-        this.deviceFormData['1'] += e + '\n';
+        if (!bool) {
+          this.deviceFormData['1'] += e + '\n';
+          this.dataLogCat = { ...this.dataLogCat, 'new-date': true };
+          dateTimes(
+            () => {
+              this.dataLogCat = { ...this.dataLogCat, 'new-date': false };
+            },
+            1000,
+            'new-date'
+          );
+        }
         return '';
       },
       '-120': (e) => {
         let battery = e.match(/([\d\D]{2})/g);
-        this.deviceFormData['3'] += e + '\n';
-        this.dataLogCat = { ...this.dataLogCat, temperature: true };
-        dateTimes(
-          () => {
-            this.dataLogCat = { ...this.dataLogCat, temperature: false };
-          },
-          1000,
-          'temperature'
-        );
+        if (!bool) {
+          this.deviceFormData['3'] += e + '\n';
+          this.dataLogCat = { ...this.dataLogCat, temperature: true };
+          dateTimes(
+            () => {
+              this.dataLogCat = { ...this.dataLogCat, temperature: false };
+            },
+            1000,
+            'temperature'
+          );
+        }
         if (battery[12] === '00' || battery[11] === '00') {
           return {
             temperature: this.device['-120']?.temperature
@@ -421,15 +453,17 @@ export class BlueToothStore {
       '-48': (e) => {
         let battery = e.match(/([\d\D]{2})/g);
         if (battery[1]) {
-          this.dataLogCat = { ...this.dataLogCat, 'heart-jump': true };
-          dateTimes(
-            () => {
-              console.log('获取详细心率数据完成');
-              this.dataLogCat = { ...this.dataLogCat, 'heart-jump': false };
-            },
-            1000,
-            'heart-jump'
-          );
+          if (!bool) {
+            this.dataLogCat = { ...this.dataLogCat, 'heart-jump': true };
+            dateTimes(
+              () => {
+                console.log('获取详细心率数据完成');
+                this.dataLogCat = { ...this.dataLogCat, 'heart-jump': false };
+              },
+              1000,
+              'heart-jump'
+            );
+          }
           return {
             heartJump: parseInt(battery[1], 16),
             time: moment().format('YYYY-MM-DD HH:mm:ss')
@@ -441,6 +475,7 @@ export class BlueToothStore {
       this.needRegPassword = false;
       this.noPasswordTips = false;
     }
+
     this.device = { ...this.device, [hex]: params[hex](val) };
     return this.device;
   }
@@ -461,6 +496,7 @@ export class BlueToothStore {
         this.manager?.stopDeviceScan();
         this.devicesInfo = devices;
         this.isConnected = true;
+        this.activeDeviceConnect = true;
         this.listenActiveMessage(mainListen);
         this.successDialog({});
         return callback({ type: '2', delay: 1 });
@@ -472,9 +508,19 @@ export class BlueToothStore {
   }
 
   @action
+  async regDeviceConnect() {
+    let result = await this.manager.isDeviceConnected(this.devicesInfo.id);
+    if (result) {
+      this.activeDeviceConnect = true;
+      return true;
+    }
+    this.activeDeviceConnect = false;
+    return false;
+  }
+
+  @action
   async reConnectDevice(params, callback) {
     this.refreshInfo = { ...params };
-    console.log('重连');
     this.refreshing = true;
     let isDevice = false;
     try {

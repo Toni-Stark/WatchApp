@@ -11,14 +11,12 @@ import BluetoothStateManager from 'react-native-bluetooth-state-manager';
 import { arrCount, arrToByte, eventTimes, getMinTen, hasAndroidPermission } from '../common/tools';
 import { Hexagon } from '../component/home/Hexagon';
 import AsyncStorage from '@react-native-community/async-storage';
-import { DEVICE_CONFIG, DEVICE_DATA, DEVICE_INFO, TOKEN_NAME, UPDATE_TIME, USER_CONFIG } from '../common/constants';
+import { DEVICE_DATA, DEVICE_INFO, UPDATE_TIME } from '../common/constants';
 import Spinkit from 'react-native-spinkit';
 import { RootEnum } from '../common/sign-module';
 import moment from 'moment';
 import BackgroundFetch from 'react-native-background-fetch';
 import LinearGradient from 'react-native-linear-gradient';
-import { PortalDialog } from '../component/home/PortalDialog';
-import { PasswordDialog } from '../component/home/PasswordDialog';
 import { Api } from '../common/api';
 import RNBootSplash from 'react-native-bootsplash';
 import { defaultDataLog } from '../store/BlueToothStore';
@@ -88,6 +86,7 @@ export const Home: ScreenComponent = observer(
         image: require('../assets/home/xueo2.png'),
         value: '',
         cap: '',
+        time: '',
         fun: async () => {
           await jumpToMiniProgram();
         }
@@ -99,6 +98,19 @@ export const Home: ScreenComponent = observer(
         image: require('../assets/home/tiwen.png'),
         value: '',
         cap: '°C',
+        time: '',
+        fun: async () => {
+          await jumpToMiniProgram();
+        }
+      },
+      {
+        title: '血糖',
+        evalTitle: '最近',
+        colors: ['#f7ffff', '#eafffe', '#e1fffd'],
+        image: require('../assets/home/bloodC.png'),
+        value: '',
+        cap: 'mmol/L',
+        time: '',
         fun: async () => {
           await jumpToMiniProgram();
         }
@@ -118,6 +130,7 @@ export const Home: ScreenComponent = observer(
     const [password, setPassword] = useState('');
     const [dataLogCat, setDataLogCat] = useState(defaultDataLog);
     const [lastTime, setLastTime] = useState('');
+    const [isRefresh, setIsRefresh] = useState(false);
 
     useEffect(() => {
       setTimeout(() => {
@@ -161,6 +174,16 @@ export const Home: ScreenComponent = observer(
       }
     }, [blueToothStore.noPasswordTips]);
 
+    useEffect(() => {
+      const unsubscribe = navigation.addListener('focus', async () => {
+        if (isRefresh) {
+          await onRefreshing(true);
+        }
+      });
+
+      return unsubscribe;
+    }, [navigation]);
+
     const openApi = async () => {
       await blueToothStore.bindUserDevice().then((res) => {
         baseView.current.showToast({ text: res.msg, delay: 2 });
@@ -180,11 +203,28 @@ export const Home: ScreenComponent = observer(
       setPassword(text);
     };
 
+    const reConnectData = async () => {
+      if (blueToothStore.devicesInfo) {
+        console.log(blueToothStore.activeDeviceConnect, '蓝牙连接状态');
+        if (blueToothStore.activeDeviceConnect) {
+          await blueToothStore.successDialog({});
+        }
+      }
+    };
+
     const setBackgroundServer = async () => {
+      let timer: any = null;
       if (hasBack) return;
+      clearInterval(timer);
+      timer = null;
+      timer = setInterval(() => {
+        reConnectData();
+      }, 300000);
       AppState.addEventListener('change', async (e) => {
         if (!blueToothStore.devicesInfo?.id) return;
         if (e === 'background') {
+          clearInterval(timer);
+          timer = null;
           await setHasBack(true);
           if (type) return;
           blueToothStore.backgroundActive = true;
@@ -192,7 +232,25 @@ export const Home: ScreenComponent = observer(
         }
         if (e === 'active') {
           blueToothStore.backgroundActive = false;
-          await removeBackgroundFetch();
+          clearInterval(timer);
+          timer = null;
+          timer = setInterval(() => {
+            reConnectData();
+          }, 300000);
+        }
+        let result = await blueToothStore.regDeviceConnect();
+        if (!result) {
+          setRefreshing(true);
+          await blueToothStore
+            .successDialog({
+              callback: (res) => {
+                setRefreshing(false);
+                baseView.current.showToast(res);
+              }
+            })
+            .then((res) => {
+              setRefreshing(false);
+            });
         }
       });
     };
@@ -210,9 +268,6 @@ export const Home: ScreenComponent = observer(
         blueToothStore.getMsgUpload().then(() => {
           resolve();
         });
-        // blueToothStore.userDeviceSetting(false).then((res) => {
-        //   console.log(res, '-----------------logs');
-        // });
       });
     };
 
@@ -220,7 +275,6 @@ export const Home: ScreenComponent = observer(
       type = 1;
       try {
         console.log('root');
-        // await blueToothStore.manager.cancelDeviceConnection(blueToothStore.devicesInfo.id);
         await BackgroundFetch.configure(
           configureOptions,
           async (taskId) => {
@@ -236,14 +290,6 @@ export const Home: ScreenComponent = observer(
       } catch (err) {
         console.log(err);
       }
-    };
-
-    const removeBackgroundFetch = async () => {
-      console.log('清除后台服务');
-      type = 0;
-      await BackgroundFetch.stop();
-      await updateTime();
-      // await onRefreshing();
     };
 
     useEffect(() => {
@@ -339,8 +385,13 @@ export const Home: ScreenComponent = observer(
       list[3].value = params?.blood_pressure || 0;
       list[3].time = params?.blood_pressure_last_time || '';
       list[4].value = params?.blood_oxygen ? params.blood_oxygen + '%' : 0;
+      list[4].time = params?.blood_oxygen_last_time || '';
       list[5].value = params?.real_temp || 0;
+      list[5].time = params?.temp_last_time || '';
+      list[6].value = params?.blood_glucose || 0;
+      list[6].time = params?.blood_glucose_last_time ? params?.blood_glucose_last_time : '';
       setContentList([...list]);
+      setIsRefresh(true);
       await AsyncStorage.setItem(DEVICE_DATA, JSON.stringify(params));
       await updateTime();
     };
@@ -378,12 +429,9 @@ export const Home: ScreenComponent = observer(
         });
     }, []);
 
-    const onRefreshing = async () => {
+    const onRefreshing = async (bool?: boolean) => {
       if (!blueToothStore?.devicesInfo) {
-        baseView.current.showToast({ text: '请连接设备', delay: 1.5 });
-      }
-      if (blueToothStore.refreshing) {
-        console.log('数据更新中');
+        if (!bool) baseView.current.showToast({ text: '请连接设备', delay: 1.5 });
         return;
       }
       if (blueToothStore?.devicesInfo?.id) {
@@ -394,7 +442,7 @@ export const Home: ScreenComponent = observer(
               blueToothStore.updateGetDataTime().then();
             });
           }
-          baseView.current.showToast({ text: res.msg, delay: 1.5 });
+          if (!bool) baseView.current.showToast({ text: res.msg, delay: 1.5 });
           blueToothStore.refreshBtn = false;
         });
       }
@@ -482,11 +530,9 @@ export const Home: ScreenComponent = observer(
 
     const currentDeviceBanner = useMemo(() => {
       let device = blueToothStore.devicesInfo;
-      // console.log(blueToothStore.getEvalName(), 'infoDevice');
       return (
         <View style={styles.card}>
           <LinearGradient
-            // colors={['#0078FF', '#0081FF', '#005eff', '#0090ff', '#008EFF']}
             colors={['#00bac4', '#06d1dc', '#00dbe5', '#00D1DE']}
             style={styles.cardLinear}
             start={{ x: 0.0, y: 0.25 }}
@@ -544,7 +590,12 @@ export const Home: ScreenComponent = observer(
                 <Spinkit type="Circle" size={15} color="white" />
               </View>
             ) : (
-              <TouchableOpacity style={styles.refreshButton} onPress={onRefreshing}>
+              <TouchableOpacity
+                style={styles.refreshButton}
+                onPress={async () => {
+                  await onRefreshing(false);
+                }}
+              >
                 <Text style={styles.buttonText}>更新数据</Text>
               </TouchableOpacity>
             )}
@@ -556,11 +607,6 @@ export const Home: ScreenComponent = observer(
                   key={Math.ceil(Math.random() * 1000000).toString()}
                   style={[styles.tableItem]}
                   onPress={async () => {
-                    // await AsyncStorage.removeItem(TOKEN_NAME);
-                    // let data = await AsyncStorage.getItem(USER_CONFIG);
-                    // console.log(data, '123345');
-                    // await blueToothStore.userDeviceSetting();
-                    // return;
                     if (!blueToothStore.refreshing && blueToothStore.devicesInfo) {
                       return item.fun && item.fun();
                     }
@@ -575,29 +621,19 @@ export const Home: ScreenComponent = observer(
                     locations={[0, 0.5, 0.6]}
                   >
                     <Text style={[styles.endTitle]}>{item.title}</Text>
-                    {item.time ? (
-                      <View style={styles.timeHeader}>
-                        <Text style={[styles.timeTitle]}>
-                          {item.evalTitle}: {item.time}
+                    <View style={styles.timeHeader}>
+                      <Text style={[styles.timeTitle]}>
+                        {item.evalTitle}: {item.time}
+                      </Text>
+
+                      <View style={styles.tableStart}>
+                        <Text style={[styles.endValue]}>
+                          {item.value || 0}
+                          <Text style={styles.cap}> {item.cap}</Text>
                         </Text>
-                        <View style={styles.tableStart}>
-                          <Text style={[styles.endValue]}>
-                            {item.value || 0}
-                            <Text style={styles.cap}> {item.cap}</Text>
-                          </Text>
-                        </View>
                       </View>
-                    ) : (
-                      <View style={styles.tableHeader}>
-                        <View style={styles.tableStart}>
-                          <Text style={[styles.headerTitle]}>{item.evalTitle}: </Text>
-                          <Text style={[styles.endValue]}>
-                            {item.value || 0}
-                            <Text style={styles.cap}> {item.cap}</Text>
-                          </Text>
-                        </View>
-                      </View>
-                    )}
+                    </View>
+
                     <View style={styles.iconPosi}>
                       <Hexagon border={true} color={item.colors[0]}>
                         <FastImage style={styles.imageIcon} source={item.image} />
@@ -614,10 +650,7 @@ export const Home: ScreenComponent = observer(
 
     const renderContext = useMemo(() => {
       return (
-        <ScrollView
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-          contentContainerStyle={[tw.flex1, [{ backgroundColor: '#f2f2f2', marginBottom: 60 }]]}
-        >
+        <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />} contentContainerStyle={{ backgroundColor: '#f2f2f2' }}>
           {currentDeviceBanner}
           {currentResult}
         </ScrollView>
@@ -625,12 +658,13 @@ export const Home: ScreenComponent = observer(
     }, [refreshing, onRefresh, contentList, currentResult, weChatStore.userInfo, dataLogCat, blueToothStore.evalName]);
 
     return (
-      <BaseView ref={baseView} style={[tw.flex1]}>
+      <BaseView ref={baseView} style={[tw.flex1]} useSafeArea={true}>
         <StatusBar backgroundColor="#00D1DE" barStyle={'light-content'} hidden={false} />
         <HeaderBar openLayout={() => updateMenuState()} />
         {renderContext}
-        <PortalDialog visible={visDialog} open={openApi} delay={delayApi} context={visContext} />
-        <PasswordDialog visible={blueToothStore.needRegPassword} open={passApi} input={bindTextInput} />
+        <View style={{ height: 60 }}></View>
+        {/*<PortalDialog visible={visDialog} open={openApi} delay={delayApi} context={visContext} />*/}
+        {/*<PasswordDialog visible={blueToothStore.needRegPassword} open={passApi} input={bindTextInput} />*/}
       </BaseView>
     );
   }
@@ -892,6 +926,7 @@ const styles = StyleSheet.create({
     width: '100%'
   },
   refreshView: {
+    height: 28,
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between'
@@ -902,7 +937,6 @@ const styles = StyleSheet.create({
   resultView: {
     backgroundColor: color3,
     borderRadius: 15,
-    flex: 1,
     margin: 10,
     paddingHorizontal: 10,
     paddingVertical: 10
@@ -934,13 +968,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    overflow: 'scroll',
     paddingVertical: 10
   },
   tableStart: {
     alignItems: 'flex-end',
-    flexDirection: 'row',
-    flex: 1,
-    paddingTop: 15
+    flexDirection: 'column'
+    // paddingTop: 15
   },
   timeHeader: {
     alignItems: 'flex-start',
@@ -948,8 +982,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between'
   },
   timeTitle: {
+    flexDirection: 'row',
     fontSize: 12,
-    paddingVertical: 10
+    paddingVertical: 6
   },
   tipText: {
     color: color3,
