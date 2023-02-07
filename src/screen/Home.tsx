@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, ScrollView, AppState, RefreshControl, StatusBar } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, ScrollView, AppState, RefreshControl, StatusBar, BackHandler } from 'react-native';
 import BaseView from '../component/BaseView';
 import { useStore } from '../store';
 import { ScreenComponent } from './index';
@@ -25,7 +25,7 @@ import { StatusText } from '../component/home/StatusText';
 let type = 0;
 export const Home: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
-    const { blueToothStore, weChatStore } = useStore();
+    const { blueToothStore, weChatStore, settingStore } = useStore();
     const baseView = useRef<any>(undefined);
     const [contentList, setContentList] = useState<any>([
       {
@@ -126,16 +126,20 @@ export const Home: ScreenComponent = observer(
     }); // 默认后台运行配置项
     const [refreshing, setRefreshing] = useState(false);
     const [visDialog, setVisDialog] = useState(false);
-    const [visContext, setVisContext] = useState('');
     const [password, setPassword] = useState('');
     const [dataLogCat, setDataLogCat] = useState(defaultDataLog);
     const [lastTime, setLastTime] = useState('');
     const [isRefresh, setIsRefresh] = useState(false);
 
+    const regDeviceUpdate = async () => {
+      await settingStore.getDeviceUpdate();
+    };
+
     useEffect(() => {
-      setTimeout(() => {
-        RNBootSplash.hide();
-      }, 2000);
+      regDeviceUpdate().then();
+      // setTimeout(() => {
+      //   RNBootSplash.hide();
+      // }, 2000);
       (async () => {
         await weChatStore.getUserInfo();
         const rePowered = await BluetoothStateManager.getState();
@@ -299,10 +303,11 @@ export const Home: ScreenComponent = observer(
         await setBackgroundServer();
       })();
     }, []);
+
     useEffect(() => {
       Api.getInstance.setUpNavigation(navigation);
     }, [navigation]);
-    // useEffect(() => {}, [blueToothStore.evalName]);
+
     useEffect(() => {
       eventTimes(() => {
         // currentSetContentList(blueToothStore.currentDevice);
@@ -322,6 +327,7 @@ export const Home: ScreenComponent = observer(
     const updateMenuState = () => {
       console.log('打开分享链接');
     };
+
     const openBlueTooth = useCallback(() => {
       navigation.navigate('BlueToothDetail', {});
     }, [navigation]);
@@ -454,6 +460,13 @@ export const Home: ScreenComponent = observer(
 
     const addEval = () => {
       navigation.navigate('BlueToothDeviceName');
+    };
+
+    const outApp = async () => {
+      // BackHandler.exitApp();
+      // BackHandler.exitApp();
+      // BackHandler.exitApp();
+      // BackHandler.exitApp();
     };
 
     useEffect(() => {
@@ -658,11 +671,11 @@ export const Home: ScreenComponent = observer(
     }, [refreshing, onRefresh, contentList, currentResult, weChatStore.userInfo, dataLogCat, blueToothStore.evalName]);
 
     return (
-      <BaseView ref={baseView} style={[tw.flex1]} useSafeArea={true}>
+      <BaseView ref={baseView} style={[tw.flex1]} useSafeArea={true} needUpdate={settingStore.needUpdate} onSubmit={settingStore.updateIng} onDismiss={outApp}>
         <StatusBar backgroundColor="#00D1DE" barStyle={'light-content'} hidden={false} />
         <HeaderBar openLayout={() => updateMenuState()} />
         {renderContext}
-        <View style={{ height: 60 }}></View>
+        <View style={{ height: 60 }} />
         {/*<PortalDialog visible={visDialog} open={openApi} delay={delayApi} context={visContext} />*/}
         {/*<PasswordDialog visible={blueToothStore.needRegPassword} open={passApi} input={bindTextInput} />*/}
       </BaseView>

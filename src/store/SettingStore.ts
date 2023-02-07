@@ -1,5 +1,9 @@
 import { action, makeAutoObservable, observable } from 'mobx';
 import { Api } from '../common/api';
+import { util } from 'protobufjs';
+import { versionThanOld } from '../common/tools';
+import { appConfig } from '../common/app.config';
+import { Platform } from 'react-native';
 
 const BaseUrl = '/auth';
 
@@ -7,6 +11,7 @@ export class SettingStore {
   @observable loading = false;
   @observable initURL: string | undefined = '';
   @observable canJump: boolean = true;
+  @observable needUpdate: boolean = false;
 
   constructor() {
     makeAutoObservable(this);
@@ -44,5 +49,28 @@ export class SettingStore {
       return Promise.resolve(true);
     } else {
     }
+  }
+
+  @action
+  async updateIng() {
+    return new Promise((resolve, reject) => {});
+  }
+
+  @action
+  async getDeviceUpdate() {
+    return new Promise((resolve, reject) => {
+      if (Platform.OS === 'ios') {
+        resolve(true);
+        return;
+      }
+      if (Platform.OS === 'android') {
+        setTimeout(() => {
+          let data = { version: '1.0.1' };
+          let bool: boolean = versionThanOld(data?.version, appConfig.VERSION);
+          this.needUpdate = bool;
+          resolve(bool);
+        }, 3000);
+      }
+    });
   }
 }

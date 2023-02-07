@@ -4,21 +4,21 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { enableScreens } from 'react-native-screens';
 import * as RNLocalize from 'react-native-localize';
 import AsyncStorage from '@react-native-community/async-storage';
-import { BackHandler, StatusBar } from 'react-native';
+import { BackHandler, Platform, StatusBar } from 'react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { NavigatorStack } from './screen';
-import { APP_LANGUAGE, TOKEN_NAME, USER_AGREEMENT } from './common/constants';
+import { APP_LANGUAGE, TOKEN_NAME } from './common/constants';
 import { darkTheme, theme } from './common/theme';
 import { useStore } from './store';
-import { getStorage, hasAndroidPermission } from './common/tools';
+import { getStorage, hasAndroidPermission, versionThanOld } from './common/tools';
 import { observer, Observer } from 'mobx-react-lite';
 import BluetoothStateManager from 'react-native-bluetooth-state-manager';
+import { appConfig } from './common/app.config';
 import RNBootSplash from 'react-native-bootsplash';
 
 const App = observer(() => {
-  const { systemStore, blueToothStore, weChatStore } = useStore();
+  const { systemStore, blueToothStore, settingStore } = useStore();
   const [isLogin, setIsLogin] = useState<boolean>(false);
-  const [blueTooth, setBlueTooth] = useState<boolean>(false);
 
   useEffect(() => {
     (async () => {
@@ -28,12 +28,6 @@ const App = observer(() => {
   }, []);
 
   useEffect(() => {
-    // (async () => {
-    //   await AsyncStorage.setItem(TOKEN_NAME, '464bfc11d681375820a135b5d344402b');
-    // })();
-    // (async () => {
-    //   await AsyncStorage.removeItem(TOKEN_NAME);
-    // })();
     getStorage(TOKEN_NAME)
       .then((res) => {
         setIsLogin(!!res);
@@ -70,16 +64,8 @@ const App = observer(() => {
       if (rePowered === 'PoweredOn') {
         await blueToothStore.setManagerInit();
       }
-      setBlueTooth(true);
     })();
   }, []);
-
-  const outApp = async (isClean?: boolean) => {
-    BackHandler.exitApp();
-    BackHandler.exitApp();
-    BackHandler.exitApp();
-    BackHandler.exitApp();
-  };
 
   const showScreens = () => {
     // if (systemStore.showBootAnimation || !blueTooth) {

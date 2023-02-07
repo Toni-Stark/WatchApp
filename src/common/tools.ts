@@ -30,6 +30,19 @@ export const isBlank = (str: string) => {
   return str === null || str === undefined || str.trim() === '';
 };
 
+export const versionThanOld = (newVersion, oldVersion) => {
+  let newList = newVersion.split('.');
+  let oldList = oldVersion.split('.');
+  console.log(newVersion, oldVersion);
+  let than = false;
+  for (let i = 0; i < oldList.length; i++) {
+    if (!than) {
+      than = newList[i] > oldList[i];
+    }
+  }
+  return than;
+};
+
 export type ChartStatus = {
   text: string;
   id: number;

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { forwardRef, ForwardRefExoticComponent, useImperativeHandle, useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button, Modal, Portal, Snackbar, Text, useTheme } from 'react-native-paper';
+import { Button, Dialog, Modal, Portal, Snackbar, Text, useTheme } from 'react-native-paper';
 import { Platform, StyleProp, View, ViewStyle, ScrollView } from 'react-native';
 import { useDimensions } from '@react-native-community/hooks';
 import { tw } from 'react-native-tailwindcss';
@@ -15,6 +15,9 @@ interface BaseViewProps {
   style?: StyleProp<ViewStyle>;
   error?: boolean;
   onRefresh?: () => void;
+  onSubmit?: () => void;
+  onDismiss?: () => void;
+  needUpdate?: boolean;
   children: React.ReactNode;
 }
 
@@ -22,7 +25,7 @@ const BaseView: ForwardRefExoticComponent<BaseViewProps> = forwardRef(
   (props, ref): JSX.Element => {
     const { colors } = useTheme();
     const { window } = useDimensions();
-    const { useSafeArea = true, scroll = false, style = {}, error = false, onRefresh = null } = props;
+    const { useSafeArea = true, scroll = false, style = {}, error = false, onRefresh = null, needUpdate = false } = props;
     const styleCopy = { backgroundColor: colors.background, height: window.height };
     Object.assign(styleCopy, style);
     const [showLoading, setShowLoading] = useState(false);
@@ -139,6 +142,30 @@ const BaseView: ForwardRefExoticComponent<BaseViewProps> = forwardRef(
       }
     };
 
+    const globalUpdateDialog = () => {
+      let dismiss = () => {
+        if (props?.onDismiss) {
+          props.onDismiss();
+        }
+      };
+      let submit = () => {
+        if (props?.onSubmit) {
+          props.onSubmit();
+        }
+      };
+
+      return (
+        <Portal>
+          <Dialog visible={needUpdate} onDismiss={() => dismiss()}>
+            <Dialog.Actions>
+              <Button onPress={() => dismiss()}>Cancel</Button>
+              <Button onPress={() => submit()}>Ok</Button>
+            </Dialog.Actions>
+          </Dialog>
+        </Portal>
+      );
+    };
+
     const renderContent = () => {
       if (error) {
         return (
@@ -169,18 +196,19 @@ const BaseView: ForwardRefExoticComponent<BaseViewProps> = forwardRef(
           {renderLoading()}
           {renderToast()}
           {renderMessage()}
+          {globalUpdateDialog()}
         </SafeAreaView>
       );
-    } else {
-      return (
-        <View style={{ ...styleCopy }}>
-          {renderContent()}
-          {renderLoading()}
-          {renderToast()}
-          {renderMessage()}
-        </View>
-      );
     }
+    return (
+      <View style={{ ...styleCopy }}>
+        {renderContent()}
+        {renderLoading()}
+        {renderToast()}
+        {renderMessage()}
+        {globalUpdateDialog()}
+      </View>
+    );
   }
 );
 
