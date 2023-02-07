@@ -53,7 +53,9 @@ export class SettingStore {
 
   @action
   async updateIng() {
-    return new Promise((resolve, reject) => {});
+    return new Promise((resolve, reject) => {
+      console.log('更新中');
+    });
   }
 
   @action

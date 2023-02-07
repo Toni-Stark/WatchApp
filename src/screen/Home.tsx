@@ -18,7 +18,6 @@ import moment from 'moment';
 import BackgroundFetch from 'react-native-background-fetch';
 import LinearGradient from 'react-native-linear-gradient';
 import { Api } from '../common/api';
-import RNBootSplash from 'react-native-bootsplash';
 import { defaultDataLog } from '../store/BlueToothStore';
 import { StatusText } from '../component/home/StatusText';
 
@@ -463,10 +462,10 @@ export const Home: ScreenComponent = observer(
     };
 
     const outApp = async () => {
-      // BackHandler.exitApp();
-      // BackHandler.exitApp();
-      // BackHandler.exitApp();
-      // BackHandler.exitApp();
+      BackHandler.exitApp();
+      BackHandler.exitApp();
+      BackHandler.exitApp();
+      BackHandler.exitApp();
     };
 
     useEffect(() => {
@@ -671,7 +670,15 @@ export const Home: ScreenComponent = observer(
     }, [refreshing, onRefresh, contentList, currentResult, weChatStore.userInfo, dataLogCat, blueToothStore.evalName]);
 
     return (
-      <BaseView ref={baseView} style={[tw.flex1]} useSafeArea={true} needUpdate={settingStore.needUpdate} onSubmit={settingStore.updateIng} onDismiss={outApp}>
+      <BaseView
+        ref={baseView}
+        style={[tw.flex1]}
+        useSafeArea={true}
+        needUpdate={settingStore.needUpdate}
+        onSubmit={settingStore.updateIng}
+        onDismiss={outApp}
+        version={'1.0.1'}
+      >
         <StatusBar backgroundColor="#00D1DE" barStyle={'light-content'} hidden={false} />
         <HeaderBar openLayout={() => updateMenuState()} />
         {renderContext}

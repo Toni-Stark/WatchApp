@@ -18,6 +18,7 @@ interface BaseViewProps {
   onSubmit?: () => void;
   onDismiss?: () => void;
   needUpdate?: boolean;
+  version: string;
   children: React.ReactNode;
 }
 
@@ -153,13 +154,15 @@ const BaseView: ForwardRefExoticComponent<BaseViewProps> = forwardRef(
           props.onSubmit();
         }
       };
-
       return (
         <Portal>
           <Dialog visible={needUpdate} onDismiss={() => dismiss()}>
+            <Dialog.Title>重要更新</Dialog.Title>
+            <Dialog.Content>
+              <Text>为了您的正常使用，建议立即更新最新版本的智能手表App v{props.version}</Text>
+            </Dialog.Content>
             <Dialog.Actions>
-              <Button onPress={() => dismiss()}>Cancel</Button>
-              <Button onPress={() => submit()}>Ok</Button>
+              <Button onPress={() => submit()}>更新</Button>
             </Dialog.Actions>
           </Dialog>
         </Portal>
