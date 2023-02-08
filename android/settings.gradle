@@ -1,3 +1,5 @@
 rootProject.name = 'Watch_App'
+include ':rn-app-upgrade'
+project(':rn-app-upgrade').projectDir = new File(rootProject.projectDir, '../node_modules/rn-app-upgrade/android')
 apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
 include ':app'

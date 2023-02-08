@@ -12,6 +12,7 @@ export class SettingStore {
   @observable initURL: string | undefined = '';
   @observable canJump: boolean = true;
   @observable needUpdate: boolean = false;
+  @observable newDeviceVersion: any = undefined;
 
   constructor() {
     makeAutoObservable(this);
@@ -62,7 +63,7 @@ export class SettingStore {
   async getDeviceUpdate() {
     return new Promise((resolve, reject) => {
       if (Platform.OS === 'ios') {
-        resolve(true);
+        resolve(false);
         return;
       }
       if (Platform.OS === 'android') {
@@ -70,8 +71,9 @@ export class SettingStore {
           let data = { version: '1.0.1' };
           let bool: boolean = versionThanOld(data?.version, appConfig.VERSION);
           this.needUpdate = bool;
+          this.newDeviceVersion = data;
           resolve(bool);
-        }, 3000);
+        }, 1000);
       }
     });
   }

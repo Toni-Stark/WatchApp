@@ -7,6 +7,8 @@ import { useDimensions } from '@react-native-community/hooks';
 import { tw } from 'react-native-tailwindcss';
 import { getBottomSpace, throttle } from '../common/tools';
 import { Chase } from 'react-native-animated-spinkit';
+import { downloadApk } from 'rn-app-upgrade';
+import AnimatedBar from 'react-native-animated-bar';
 
 interface BaseViewProps {
   ref?: any;
@@ -18,7 +20,7 @@ interface BaseViewProps {
   onSubmit?: () => void;
   onDismiss?: () => void;
   needUpdate?: boolean;
-  version: string;
+  version?: string;
   children: React.ReactNode;
 }
 
@@ -37,6 +39,7 @@ const BaseView: ForwardRefExoticComponent<BaseViewProps> = forwardRef(
     const [message, setMessage] = useState('');
     const [messageDelay, setMessageDelay] = useState(5);
     const [aboveTab, setAboveTab] = useState(false);
+    const [downloadSolid, setDownloadSolid] = useState<any>(undefined);
     const timer = useRef<any>();
 
     useImperativeHandle(
@@ -142,27 +145,89 @@ const BaseView: ForwardRefExoticComponent<BaseViewProps> = forwardRef(
         onRefresh();
       }
     };
-
+    const updateDevices = async () => {
+      downloadApk({
+        interval: 666, // listen to upload progress event, emit every 666ms
+        apkUrl:
+          'https://android-apps.pp.cn/fs01/2014/09/04/102_7ea4553b1c01618af56697c6312d0049.apk?yingid=web_space&amp;packageid=200000021&amp;md5=cedc7125c987a309407199b3ff940d40&amp;minSDK=8&amp;size=14264743&amp;shortMd5=289257a60fe4efe9403f9639c0cb7ffc&amp;crc32=3920359001&amp;did=18a8d9d390870cfc188d5737f58c64ed',
+        downloadInstall: true,
+        callback: {
+          onProgress: (received, total, percent) => {
+            setDownloadSolid({
+              received,
+              total,
+              percent,
+              count: percent ? percent / 100 : 0
+            });
+          },
+          onFailure: (errorMessage, statusCode) => {
+            console.log(errorMessage, statusCode, '错误内容');
+          },
+          onComplete: () => {
+            console.log('下载完成');
+            dismiss();
+          }
+        }
+      });
+    };
+    let dismiss = async () => {
+      if (downloadSolid) {
+        return;
+      }
+      if (props?.onDismiss) {
+        await props.onDismiss();
+      }
+    };
+    let submit = async () => {
+      if (props?.onSubmit) {
+        props.onSubmit();
+        await updateDevices();
+      }
+    };
     const globalUpdateDialog = () => {
-      let dismiss = () => {
-        if (props?.onDismiss) {
-          props.onDismiss();
-        }
-      };
-      let submit = () => {
-        if (props?.onSubmit) {
-          props.onSubmit();
-        }
-      };
+      if (!props?.version) {
+        return null;
+      }
+
       return (
         <Portal>
           <Dialog visible={needUpdate} onDismiss={() => dismiss()}>
             <Dialog.Title>重要更新</Dialog.Title>
-            <Dialog.Content>
-              <Text>为了您的正常使用，建议立即更新最新版本的智能手表App v{props.version}</Text>
-            </Dialog.Content>
+            {downloadSolid ? (
+              <Dialog.Content>
+                <View style={[tw.flexRow, [{ width: '100%' }]]}>
+                  <View style={[tw.flexCol, [{ flex: 1 }]]}>
+                    <AnimatedBar
+                      progress={downloadSolid?.count || 0}
+                      barColor="#00D1DE"
+                      borderColor="#00bac4"
+                      fillStyle={{ backgroundColor: '#ffffff', borderRadius: 8 }}
+                      wrapStyle={{ borderRadius: 8 }}
+                      barStyle={{ borderRadius: 7 }}
+                      height={16}
+                      duration={600}
+                    />
+                  </View>
+                  <View style={{ marginLeft: 10, width: 40 }}>
+                    <Text>{downloadSolid?.percent}%</Text>
+                  </View>
+                </View>
+              </Dialog.Content>
+            ) : (
+              <Dialog.Content>
+                <Text>为了您的正常使用，建议立即更新最新版本的智能手表App v{props.version}</Text>
+              </Dialog.Content>
+            )}
             <Dialog.Actions>
-              <Button onPress={() => submit()}>更新</Button>
+              {downloadSolid ? (
+                <View style={[tw.flex1, tw.flexRow, tw.justifyCenter, tw.pB5]}>
+                  <Text style={{ fontSize: 15 }}>
+                    {downloadSolid.received} / {downloadSolid.total}
+                  </Text>
+                </View>
+              ) : (
+                <Button onPress={() => submit()}>更新</Button>
+              )}
             </Dialog.Actions>
           </Dialog>
         </Portal>

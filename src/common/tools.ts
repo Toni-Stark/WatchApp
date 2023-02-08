@@ -31,18 +31,27 @@ export const isBlank = (str: string) => {
 };
 
 export const versionThanOld = (newVersion, oldVersion) => {
+  console.log(newVersion, oldVersion);
   let newList = newVersion.split('.');
   let oldList = oldVersion.split('.');
-  console.log(newVersion, oldVersion);
-  let than = false;
-  for (let i = 0; i < oldList.length; i++) {
-    if (!than) {
-      than = newList[i] > oldList[i];
+  for (let i = 0; i < newList.length || i < oldList.length; ++i) {
+    let x = 0,
+      y = 0;
+    if (i < newList.length) {
+      x = parseInt(newList[i]);
+    }
+    if (i < oldList.length) {
+      y = parseInt(oldList[i]);
+    }
+    if (x > y) {
+      return true;
+    }
+    if (x < y) {
+      return false;
     }
   }
-  return than;
+  return false;
 };
-
 export type ChartStatus = {
   text: string;
   id: number;

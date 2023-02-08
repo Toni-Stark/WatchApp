@@ -565,7 +565,7 @@ export class BlueToothStore {
    * url: /watch/device/list
    */
   @action
-  async userDeviceSetting(bool): Promise<any> {
+  async userDeviceSetting(bool, native = false): Promise<any> {
     return new Promise(async (resolve, reject) => {
       const res: ApiResult = await Api.getInstance.post({
         url: '/watch/device/list',
@@ -573,8 +573,7 @@ export class BlueToothStore {
         withToken: true
       });
       let data = res.data;
-      console.log(res, '绑定信息');
-
+      if (native) return resolve({ success: true, data: data.device_list });
       if (bool) {
         if (res.code !== 200) {
           return resolve({ msg: res.msg, success: false });
@@ -590,6 +589,25 @@ export class BlueToothStore {
       if (!bool) {
         return resolve({ success: true, data: data.device_list });
       }
+    });
+  }
+  /**
+   * get getDeviceBindInfo
+   * url: /watch/share/share
+   */
+  @action
+  async getDeviceBindInfo(params): Promise<any> {
+    return new Promise(async (resolve, reject) => {
+      const res: ApiResult = await Api.getInstance.post({
+        url: '/watch/share/share',
+        params: params,
+        withToken: true
+      });
+      console.log(res.data, '设备信息');
+      if (res.code !== 200) {
+        return resolve({ msg: res.msg, success: false });
+      }
+      return resolve({ data: res.data, success: true });
     });
   }
 

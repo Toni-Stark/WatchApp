@@ -130,16 +130,16 @@ export const Home: ScreenComponent = observer(
     const [lastTime, setLastTime] = useState('');
     const [isRefresh, setIsRefresh] = useState(false);
 
-    const regDeviceUpdate = async () => {
-      await settingStore.getDeviceUpdate();
-    };
-
     useEffect(() => {
-      regDeviceUpdate().then();
       // setTimeout(() => {
       //   RNBootSplash.hide();
       // }, 2000);
       (async () => {
+        const isUpdate = await settingStore.getDeviceUpdate();
+        if (isUpdate) {
+          console.log('应用需要更新');
+          return;
+        }
         await weChatStore.getUserInfo();
         const rePowered = await BluetoothStateManager.getState();
         if (rePowered !== 'PoweredOn') return;
@@ -677,10 +677,19 @@ export const Home: ScreenComponent = observer(
         needUpdate={settingStore.needUpdate}
         onSubmit={settingStore.updateIng}
         onDismiss={outApp}
-        version={'1.0.1'}
+        version={settingStore?.newDeviceVersion?.version}
       >
         <StatusBar backgroundColor="#00D1DE" barStyle={'light-content'} hidden={false} />
-        <HeaderBar openLayout={() => updateMenuState()} />
+        <HeaderBar
+          openLayout={() => updateMenuState()}
+          sharePress={
+            blueToothStore?.devicesInfo
+              ? () => {
+                  navigation.navigate('BindingInfo', { mac: blueToothStore?.devicesInfo.id });
+                }
+              : undefined
+          }
+        />
         {renderContext}
         <View style={{ height: 60 }} />
         {/*<PortalDialog visible={visDialog} open={openApi} delay={delayApi} context={visContext} />*/}
@@ -692,7 +701,6 @@ export const Home: ScreenComponent = observer(
 const color1 = '#00D1DE';
 const color3 = '#ffffff';
 const color5 = '#cecece';
-const color6 = 'rgba(255,255,255,0.84)';
 const color7 = '#3d3d3d';
 const color8 = '#00bac4';
 const color9 = '#FF002F';

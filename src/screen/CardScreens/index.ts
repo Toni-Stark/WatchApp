@@ -24,6 +24,7 @@ export type ScreensParamList = {
   BlueToothValue: { item?: any };
   BlueToothWhite: { item?: any };
   BlueListener: { item?: any; type?: string };
+  BindingInfo: { mac?: string };
 };
 
 export const CardScreens: Array<ScreenList> = [
