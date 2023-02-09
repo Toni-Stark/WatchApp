@@ -135,8 +135,9 @@ export const Home: ScreenComponent = observer(
       //   RNBootSplash.hide();
       // }, 2000);
       (async () => {
-        const isUpdate = await settingStore.getDeviceUpdate();
-        if (isUpdate) {
+        const isUpdate: any = await settingStore.getDeviceUpdate();
+        console.log('logs');
+        if (isUpdate?.success) {
           console.log('应用需要更新');
           return;
         }
@@ -229,8 +230,9 @@ export const Home: ScreenComponent = observer(
           clearInterval(timer);
           timer = null;
           await setHasBack(true);
-          if (type) return;
+          console.log('任务状态', e, type, '234234');
           blueToothStore.backgroundActive = true;
+          if (type) return;
           await initBackgroundFetch();
         }
         if (e === 'active') {
@@ -266,6 +268,7 @@ export const Home: ScreenComponent = observer(
     };
 
     const addEvent = (taskId) => {
+      console.log('后台进行时');
       // 用Promise模拟长时间的任务
       return new Promise((resolve, reject) => {
         blueToothStore.getMsgUpload().then(() => {
@@ -677,7 +680,7 @@ export const Home: ScreenComponent = observer(
         needUpdate={settingStore.needUpdate}
         onSubmit={settingStore.updateIng}
         onDismiss={outApp}
-        version={settingStore?.newDeviceVersion?.version}
+        data={settingStore?.newDevice}
       >
         <StatusBar backgroundColor="#00D1DE" barStyle={'light-content'} hidden={false} />
         <HeaderBar

@@ -31,7 +31,7 @@ export const isBlank = (str: string) => {
 };
 
 export const versionThanOld = (newVersion, oldVersion) => {
-  console.log(newVersion, oldVersion);
+  // console.log(newVersion, oldVersion);
   let newList = newVersion.split('.');
   let oldList = oldVersion.split('.');
   for (let i = 0; i < newList.length || i < oldList.length; ++i) {
@@ -118,7 +118,19 @@ export const eventTimer = (callback: Function, time = 1000, stop) => {
     timer = null;
   }, time);
 };
-
+let timeout: any = null;
+export const eventTimeInterval = (callback: Function, time = 1000, stop) => {
+  if (stop) {
+    clearInterval(timeout);
+    timeout = null;
+    return;
+  }
+  clearInterval(timeout);
+  timer = null;
+  timeout = setInterval(() => {
+    callback();
+  }, time);
+};
 // 完善JSON序列化方法
 export const getCircularReplacer = () => {
   const seen = new WeakSet();

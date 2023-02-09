@@ -188,6 +188,7 @@ export class BlueToothStore {
 
   @action
   async backDeviceData() {
+    console.log('发送数据');
     await this.sendActiveMessage(batterySign);
     await this.sendActiveMessage(allDataSleep);
     await this.sendActiveMessage(allDataC);
@@ -249,6 +250,7 @@ export class BlueToothStore {
       this.listenDevices = this.devicesInfo.monitorCharacteristicForService(params.serviceUUID, params.uuid, (error, characteristic) => {
         if (error) return;
         let value = baseToHex(characteristic.value);
+        console.log('有新数据', value);
         this.blueRootList = [...this.blueRootList, value];
         let regValue = ['a1', 'a0', 'd1', 'd0', 'd8', '88', '80', 'd2', 'e0', 'df'].includes(value.slice(0, 2));
         if (regValue) {

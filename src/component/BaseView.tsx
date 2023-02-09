@@ -20,7 +20,7 @@ interface BaseViewProps {
   onSubmit?: () => void;
   onDismiss?: () => void;
   needUpdate?: boolean;
-  version?: string;
+  data?: any;
   children: React.ReactNode;
 }
 
@@ -148,8 +148,7 @@ const BaseView: ForwardRefExoticComponent<BaseViewProps> = forwardRef(
     const updateDevices = async () => {
       downloadApk({
         interval: 666, // listen to upload progress event, emit every 666ms
-        apkUrl:
-          'https://android-apps.pp.cn/fs01/2014/09/04/102_7ea4553b1c01618af56697c6312d0049.apk?yingid=web_space&amp;packageid=200000021&amp;md5=cedc7125c987a309407199b3ff940d40&amp;minSDK=8&amp;size=14264743&amp;shortMd5=289257a60fe4efe9403f9639c0cb7ffc&amp;crc32=3920359001&amp;did=18a8d9d390870cfc188d5737f58c64ed',
+        apkUrl: props.data.url,
         downloadInstall: true,
         callback: {
           onProgress: (received, total, percent) => {
@@ -185,7 +184,7 @@ const BaseView: ForwardRefExoticComponent<BaseViewProps> = forwardRef(
       }
     };
     const globalUpdateDialog = () => {
-      if (!props?.version) {
+      if (!props?.data?.ver) {
         return null;
       }
 
@@ -215,7 +214,13 @@ const BaseView: ForwardRefExoticComponent<BaseViewProps> = forwardRef(
               </Dialog.Content>
             ) : (
               <Dialog.Content>
-                <Text>为了您的正常使用，建议立即更新最新版本的智能手表App v{props.version}</Text>
+                <Text>为了您的正常使用，建议立即更新最新版本的智能手表App v{props?.data.ver}</Text>
+                {props.data?.desc ? (
+                  <View style={[tw.mT5]}>
+                    <Text>更新内容</Text>
+                    <Text>{props.data.desc}</Text>
+                  </View>
+                ) : null}
               </Dialog.Content>
             )}
             <Dialog.Actions>

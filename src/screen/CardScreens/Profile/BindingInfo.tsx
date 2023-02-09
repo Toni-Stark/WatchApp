@@ -10,13 +10,13 @@ import FastImage from 'react-native-fast-image';
 import { StackBar } from '../../../component/home/StackBar';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { appConfig, SERVER_URL } from '../../../common/app.config';
+import { eventTimeInterval, eventTimes } from '../../../common/tools';
 
 export const BindingInfo: ScreenComponent = observer(
   ({ navigation, route }): JSX.Element => {
     const { blueToothStore } = useStore();
     const { mac }: any = route.params;
     const baseView = useRef<any>(undefined);
-    const [deviceShareInfo, setDeviceShareInfo] = useState({});
 
     const [loading, setLoading] = useState(!!mac);
     const [open, setOpen] = useState(false);
@@ -32,8 +32,19 @@ export const BindingInfo: ScreenComponent = observer(
     useEffect(() => {
       if (value && newValue > 0) {
         checkCode({ id: value });
+        eventTimeInterval(
+          (e) => {
+            console.log('二维码更新');
+            checkCode({ id: value });
+          },
+          60000,
+          false
+        );
       }
       setOpen(false);
+      return () => {
+        eventTimeInterval(() => {}, 60000, true);
+      };
     }, [value]);
 
     useEffect(() => {
@@ -112,7 +123,7 @@ export const BindingInfo: ScreenComponent = observer(
           </View>
         </ScrollView>
       );
-    }, [deviceShareInfo, open, value, codeInfo, loading]);
+    }, [open, value, codeInfo, loading]);
 
     return (
       <BaseView ref={baseView} style={[tw.flex1, [{ backgroundColor: 'blue' }]]}>
