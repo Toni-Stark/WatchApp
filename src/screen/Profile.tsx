@@ -11,7 +11,7 @@ import FastImage from 'react-native-fast-image';
 
 export const Profile: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
-    const { settingStore, weChatStore } = useStore();
+    const { settingStore, weChatStore, blueToothStore } = useStore();
     const baseView = useRef<any>(undefined);
     const [list, setList] = useState<any>([
       {
@@ -20,7 +20,7 @@ export const Profile: ScreenComponent = observer(
         tag: 'device'
       },
       {
-        title: '绑定信息',
+        title: '共享信息',
         icon: require('../assets/home/binding.png'),
         tag: 'info'
       }
@@ -43,14 +43,23 @@ export const Profile: ScreenComponent = observer(
       // await blueToothStore.listenActiveMessage(mainListen);
       // blueToothStore.device = defaultDevice;
       // await blueToothStore.sendActiveMessage(allDataSign);
-      console.log(data);
       switch (data.tag) {
         case 'device':
           navigation.navigate('WatchStyleSetting', {});
           break;
         case 'info':
-          navigation.navigate('BindingInfo', {});
-          break;
+          blueToothStore.userDeviceSetting(false, true).then((res) => {
+            console.log(res);
+            if (!res.success) {
+              baseView.current.showToast({ text: res.msg, delay: 1.5 });
+              return;
+            }
+            if (res.data.length > 0) {
+              navigation.navigate('BindingInfo', {});
+              return;
+            }
+            baseView.current.showToast({ text: '无绑定信息', delay: 1.5 });
+          });
       }
     };
     const logOut = () => {

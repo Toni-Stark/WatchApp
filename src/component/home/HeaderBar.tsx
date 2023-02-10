@@ -25,7 +25,7 @@ export const HeaderBar = (props) => {
         <View>
           {props?.sharePress ? (
             <TouchableOpacity onPress={props.sharePress}>
-              <FastImage style={[tw.w8, tw.h8, { borderRadius: 50 }]} source={require('../../assets/home/share.png')} resizeMode={FastImage.resizeMode.cover} />
+              <FastImage style={[tw.w6, tw.h6, tw.mR2]} source={require('../../assets/home/white-binding.png')} resizeMode={FastImage.resizeMode.contain} />
             </TouchableOpacity>
           ) : (
             <View style={[tw.w8, tw.h8]} />

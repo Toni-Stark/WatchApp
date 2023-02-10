@@ -24,7 +24,7 @@ const BottomTabs = observer(() => {
   const { colors } = useTheme();
 
   return (
-    <BottomTabStack.Navigator backBehavior="none" shifting={false} activeColor={blue500} barStyle={{ backgroundColor: colors.background }}>
+    <BottomTabStack.Navigator backBehavior="none" shifting={false} activeColor={blue500} barStyle={{ backgroundColor: colors.background, height: 60 }}>
       <BottomTabStack.Screen
         name="Home"
         component={Home}

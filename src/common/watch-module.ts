@@ -51,7 +51,7 @@ export const allDataSign = {
  * uuid: 写入特征值id;
  * */
 export const allDataSleep = {
-  value: arrToByte([-32, 0]),
+  value: arrToByte([-32, 1]),
   serviceUUID: 'f0080001-0451-4000-B000-000000000000',
   uuid: 'f0080003-0451-4000-B000-000000000000'
 };
@@ -83,7 +83,7 @@ export const allDataHeartEnd = {
  * uuid: 写入特征值id;
  * */
 export const allDataC = {
-  value: arrToByte([-120, 1, 0, 0, 0]),
+  value: arrToByte([-120, 1, 0, 1, 0]),
   serviceUUID: 'f0080001-0451-4000-B000-000000000000',
   uuid: 'f0080003-0451-4000-B000-000000000000'
 };
@@ -95,7 +95,7 @@ export const allDataC = {
  * */
 // value: arrToByte([-46, 1, 0, 0]),
 export const bloodData = {
-  value: arrToByte([-46, 1, 0, 0]),
+  value: arrToByte([-46, 1, 1, 0]),
   serviceUUID: 'f0080001-0451-4000-B000-000000000000',
   uuid: 'f0080003-0451-4000-B000-000000000000'
 };

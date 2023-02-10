@@ -121,7 +121,8 @@ export const Home: ScreenComponent = observer(
       enableHeadless: true,
       forceAlarmManager: true,
       stopOnTerminate: false,
-      startOnBoot: true
+      startOnBoot: true,
+      periodic: true
     }); // 默认后台运行配置项
     const [refreshing, setRefreshing] = useState(false);
     const [visDialog, setVisDialog] = useState(false);
@@ -136,9 +137,7 @@ export const Home: ScreenComponent = observer(
       // }, 2000);
       (async () => {
         const isUpdate: any = await settingStore.getDeviceUpdate();
-        console.log('logs');
         if (isUpdate?.success) {
-          console.log('应用需要更新');
           return;
         }
         await weChatStore.getUserInfo();
@@ -534,6 +533,7 @@ export const Home: ScreenComponent = observer(
         </View>
       );
     }, [
+      lastTime,
       dataLogCat,
       blueToothStore.currentDevice,
       blueToothStore.refreshing,
@@ -589,6 +589,7 @@ export const Home: ScreenComponent = observer(
       blueToothDetail,
       blueToothStore.devicesInfo,
       dataLogCat,
+      lastTime,
       openBlueTooth,
       blueToothStore.currentDevice,
       blueToothStore.refreshInfo,
@@ -670,7 +671,7 @@ export const Home: ScreenComponent = observer(
           {currentResult}
         </ScrollView>
       );
-    }, [refreshing, onRefresh, contentList, currentResult, weChatStore.userInfo, dataLogCat, blueToothStore.evalName]);
+    }, [refreshing, onRefresh, contentList, currentResult, weChatStore.userInfo, dataLogCat, blueToothStore.evalName, lastTime]);
 
     return (
       <BaseView
@@ -694,7 +695,14 @@ export const Home: ScreenComponent = observer(
           }
         />
         {renderContext}
-        <View style={{ height: 60 }} />
+        {/*<TouchableOpacity*/}
+        {/*  onPress={() => {*/}
+        {/*    blueToothStore.devicesTimes = 0;*/}
+        {/*  }}*/}
+        {/*>*/}
+        {/*  <Text>+++{blueToothStore.devicesTimes}+++</Text>*/}
+        {/*</TouchableOpacity>*/}
+        <View style={{ height: 65 }} />
         {/*<PortalDialog visible={visDialog} open={openApi} delay={delayApi} context={visContext} />*/}
         {/*<PasswordDialog visible={blueToothStore.needRegPassword} open={passApi} input={bindTextInput} />*/}
       </BaseView>

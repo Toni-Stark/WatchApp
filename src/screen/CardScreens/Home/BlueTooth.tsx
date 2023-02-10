@@ -10,8 +10,6 @@ import { StackBar } from '../../../component/home/StackBar';
 import Spinner from 'react-native-loading-spinner-overlay/src/index';
 import { RootEnum } from '../../../common/sign-module';
 import { mainListen } from '../../../common/watch-module';
-import AsyncStorage from '@react-native-community/async-storage';
-import { DEVICE_CONFIG } from '../../../common/constants';
 
 export const BlueTooth: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -43,6 +41,7 @@ export const BlueTooth: ScreenComponent = observer(
       blueToothStore.manager.startDeviceScan(null, { scanMode: 2 }, (error, device) => {
         if (error) {
           // 处理错误（扫描会自动停止）
+          console.log('设备连接', error);
           return;
         }
         console.log(device.name);

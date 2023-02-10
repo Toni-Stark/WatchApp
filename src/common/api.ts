@@ -100,8 +100,8 @@ export class Api {
   }
 
   async get(param: ApiParam): Promise<ApiResult> {
-    const { url, params = {}, withToken = true } = param;
-    return this.RestfulOperate('get', url, params, withToken, false);
+    const { url, params = {}, withToken = true, multipart = false } = param;
+    return this.RestfulOperate('get', url, params, withToken, multipart);
   }
 
   async post(param: ApiParam): Promise<ApiResult> {
@@ -190,7 +190,7 @@ export class Api {
       }
     }
     if (multipart) {
-      rawHeaders['  Content-Type'] = 'multipart/form-data';
+      rawHeaders['Content-Type'] = 'multipart/form-data';
     }
     const headers = { headers: rawHeaders };
     switch (operate) {
