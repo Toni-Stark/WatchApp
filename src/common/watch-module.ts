@@ -51,7 +51,7 @@ export const allDataSign = {
  * uuid: 写入特征值id;
  * */
 export const allDataSleep = {
-  value: arrToByte([-32, 1]),
+  value: arrToByte([-32, 2]),
   serviceUUID: 'f0080001-0451-4000-B000-000000000000',
   uuid: 'f0080003-0451-4000-B000-000000000000'
 };

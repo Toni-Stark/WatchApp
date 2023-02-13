@@ -303,7 +303,6 @@ export class BlueToothStore {
     //   this.logcatDetailed[hex] = '';
     // }
     // this.logcatDetailed[hex] += val + '\n';
-    console.log(val, hex, '新数据');
     if (bool) {
       switch (hex) {
         case -47:

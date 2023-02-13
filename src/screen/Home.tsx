@@ -643,10 +643,14 @@ export const Home: ScreenComponent = observer(
                       </Text>
 
                       <View style={styles.tableStart}>
-                        <Text style={[styles.endValue]}>
-                          {item.value || 0}
-                          <Text style={styles.cap}> {item.cap}</Text>
-                        </Text>
+                        {item?.value ? (
+                          <Text style={[styles.endValue]}>
+                            {item.value || 0}
+                            <Text style={styles.cap}> {item.cap}</Text>
+                          </Text>
+                        ) : (
+                          <Text style={[styles.evalsValue]}>无数据</Text>
+                        )}
                       </View>
                     </View>
 
@@ -717,6 +721,7 @@ const color8 = '#00bac4';
 const color9 = '#FF002F';
 const color10 = '#8f8f8f';
 const color11 = 'transparent';
+const color12 = '#6a6a6a';
 
 const styles = StyleSheet.create({
   barText: {
@@ -815,6 +820,10 @@ const styles = StyleSheet.create({
   },
   endValue: {
     fontSize: 19
+  },
+  evalsValue: {
+    fontSize: 16,
+    color: color12
   },
   evalName: {
     color: color3,
