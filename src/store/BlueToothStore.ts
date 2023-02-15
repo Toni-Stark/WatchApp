@@ -189,6 +189,7 @@ export class BlueToothStore {
 
   @action
   async backDeviceData() {
+    this.devicesTimes = this.devicesTimes + 1;
     await this.sendActiveMessage(batterySign);
     await this.sendActiveMessage(allDataSleep);
     await this.sendActiveMessage(allDataC);

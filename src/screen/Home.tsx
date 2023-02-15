@@ -122,7 +122,12 @@ export const Home: ScreenComponent = observer(
       forceAlarmManager: true,
       stopOnTerminate: false,
       startOnBoot: true,
-      periodic: false
+      periodic: true,
+      requiredNetworkType: BackgroundFetch.NETWORK_TYPE_UNMETERED,
+      requiresCharging: false,
+      requiresDeviceIdle: false,
+      requiresBatteryNotLow: false,
+      requiresStorageNotLow: false
     }); // 默认后台运行配置项
     const [refreshing, setRefreshing] = useState(false);
     const [visDialog, setVisDialog] = useState(false);
@@ -699,13 +704,13 @@ export const Home: ScreenComponent = observer(
           }
         />
         {renderContext}
-        {/*<TouchableOpacity*/}
-        {/*  onPress={() => {*/}
-        {/*    blueToothStore.devicesTimes = 0;*/}
-        {/*  }}*/}
-        {/*>*/}
-        {/*  <Text>+++{blueToothStore.devicesTimes}+++</Text>*/}
-        {/*</TouchableOpacity>*/}
+        <TouchableOpacity
+          onPress={() => {
+            blueToothStore.devicesTimes = 0;
+          }}
+        >
+          <Text>+++{blueToothStore.devicesTimes}+++</Text>
+        </TouchableOpacity>
         <View style={{ height: 65 }} />
         {/*<PortalDialog visible={visDialog} open={openApi} delay={delayApi} context={visContext} />*/}
         {/*<PasswordDialog visible={blueToothStore.needRegPassword} open={passApi} input={bindTextInput} />*/}
