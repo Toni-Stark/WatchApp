@@ -117,12 +117,12 @@ export const Home: ScreenComponent = observer(
     ]);
     const [hasBack, setHasBack] = useState(false);
     const [configureOptions] = useState({
-      minimumFetchInterval: 5,
+      minimumFetchInterval: 1,
       enableHeadless: true,
       forceAlarmManager: true,
       stopOnTerminate: false,
       startOnBoot: true,
-      periodic: true
+      periodic: false
     }); // 默认后台运行配置项
     const [refreshing, setRefreshing] = useState(false);
     const [visDialog, setVisDialog] = useState(false);
@@ -224,12 +224,12 @@ export const Home: ScreenComponent = observer(
         reConnectData();
       }, 300000);
       AppState.addEventListener('change', async (e) => {
+        console.log(blueToothStore.devicesInfo?.id, e, type);
         if (!blueToothStore.devicesInfo?.id) return;
         if (e === 'background') {
           clearInterval(timer);
           timer = null;
           await setHasBack(true);
-          console.log('任务状态', e, type, '234234');
           blueToothStore.backgroundActive = true;
           if (type) return;
           await initBackgroundFetch();
