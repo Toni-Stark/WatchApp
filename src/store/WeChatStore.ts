@@ -29,13 +29,7 @@ export class WeChatStore {
       WeChat.isWXAppInstalled()
         .then((isInstalled) => {
           console.warn('isInstalled==', isInstalled);
-          WeChat.sendAuthRequest('snsapi_userinfo')
-            .then((wechatInfo) => {
-              resolve(wechatInfo);
-            })
-            .catch((err) => {
-              reject(err);
-            });
+          return resolve(isInstalled);
         })
         .catch((err) => {
           reject(err);

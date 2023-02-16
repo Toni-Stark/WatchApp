@@ -70,6 +70,7 @@ export class BlueToothStore {
   @observable isCheckHeart: boolean = false;
 
   @observable isRoot = RootEnum['初次进入'];
+  @observable value = 0;
   constructor() {
     makeAutoObservable(this);
 

@@ -138,22 +138,23 @@ const App = observer(() => {
   };
 
   const showScreens = () => {
-    if (systemStore.showBootAnimation || !blueTooth) {
-      return <BootAnimation />;
-    }
-    console.log('运行几次');
-    if (Platform.OS === 'android' && !isLogin) {
-      return (
-        <WeChatOnePassLogin
-          outApp={async () => {
-            await outApp();
-          }}
-          goInApp={async (e) => {
-            await goInApp(e);
-          }}
-        />
-      );
-    }
+    // if (systemStore.showBootAnimation || !blueTooth) {
+    //   return <BootAnimation />;
+    // }
+    // console.log('运行几次');
+    // if (Platform.OS === 'android' && !isLogin) {
+    //   return (
+    //     <WeChatOnePassLogin
+    //       outApp={async () => {
+    //         await outApp();
+    //       }}
+    //       goInApp={async (e) => {
+    //         // await goInApp(e);
+    //         setIsLogin(true);
+    //       }}
+    //     />
+    //   );
+    // }
     return <NavigatorStack />;
   };
   return (
