@@ -12,9 +12,8 @@ import BackgroundFetch from 'react-native-background-fetch';
 let type = 0;
 export const Home: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
-    const { blueToothStore, weChatStore } = useStore();
+    const { blueToothStore } = useStore();
     const baseView = useRef<any>(undefined);
-    const [hasBack, setHasBack] = useState(false);
     const [configureOptions] = useState({
       minimumFetchInterval: 1,
       enableHeadless: true,
@@ -30,7 +29,6 @@ export const Home: ScreenComponent = observer(
     const setBackgroundServer = async () => {
       AppState.addEventListener('change', async (e) => {
         if (e === 'background') {
-          await setHasBack(true);
           await initBackgroundFetch();
         }
         if (e === 'active') {
@@ -53,7 +51,7 @@ export const Home: ScreenComponent = observer(
           configureOptions,
           async (taskId) => {
             console.log('添加后台任务', taskId, moment(new Date()).format('YYYY-MM-DD HH:mm:ss'));
-            await addEvent(taskId);
+            await addEvent();
             BackgroundFetch.finish(taskId);
           },
           (taskId) => {
