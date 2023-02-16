@@ -123,11 +123,7 @@ export const Home: ScreenComponent = observer(
       stopOnTerminate: false,
       startOnBoot: true,
       periodic: true,
-      requiredNetworkType: BackgroundFetch.NETWORK_TYPE_UNMETERED,
-      requiresCharging: false,
-      requiresDeviceIdle: false,
-      requiresBatteryNotLow: false,
-      requiresStorageNotLow: false
+      requiredNetworkType: BackgroundFetch.NETWORK_TYPE_UNMETERED
     }); // 默认后台运行配置项
     const [refreshing, setRefreshing] = useState(false);
     const [visDialog, setVisDialog] = useState(false);
@@ -279,7 +275,7 @@ export const Home: ScreenComponent = observer(
           configureOptions,
           async (taskId) => {
             // await blueToothStore.listenActiveMessage(mainListen);
-            blueToothStore.getMsgUpload();
+            await blueToothStore.getMsgUpload();
             BackgroundFetch.finish(taskId);
           },
           (taskId) => {

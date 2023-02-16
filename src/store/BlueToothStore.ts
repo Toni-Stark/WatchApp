@@ -186,6 +186,7 @@ export class BlueToothStore {
   @action
   async backDeviceData() {
     this.devicesTimes = this.devicesTimes + 1;
+    console.log(this.devicesTimes);
     await this.sendActiveMessage(batterySign);
     await this.sendActiveMessage(allDataSleep);
     await this.sendActiveMessage(allDataC);
@@ -623,14 +624,13 @@ export class BlueToothStore {
    */
   @action
   async updateDeviceList(): Promise<any> {
-    console.log('有新数据', this.devicesTimes);
     this.devicesTimes += 1;
     let data = this.deviceFormData;
-    if (data['1']) this.updateDeviceData({ type: '1', value: data['1'] });
-    if (data['2']) this.updateDeviceData({ type: '2', value: data['2'] });
-    if (data['3']) this.updateDeviceData({ type: '3', value: data['3'] });
-    if (data['4']) this.updateDeviceData({ type: '4', value: data['4'] });
-    if (data['5']) this.updateDeviceData({ type: '5', value: data['5'] });
+    if (data['1']) await this.updateDeviceData({ type: '1', value: data['1'] });
+    if (data['2']) await this.updateDeviceData({ type: '2', value: data['2'] });
+    if (data['3']) await this.updateDeviceData({ type: '3', value: data['3'] });
+    if (data['4']) await this.updateDeviceData({ type: '4', value: data['4'] });
+    if (data['5']) await this.updateDeviceData({ type: '5', value: data['5'] });
     this.currentDevice = { ...this.device };
     await AsyncStorage.setItem(UPDATE_TIME, moment().format('YYYY-MM-DD HH:mm'));
   }
@@ -641,7 +641,7 @@ export class BlueToothStore {
    */
   @action
   async updateDeviceData(params) {
-    Api.getInstance.post({
+    await Api.getInstance.post({
       url: '/watch/data/save',
       params: {
         type: params.type,
