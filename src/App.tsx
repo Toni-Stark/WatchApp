@@ -113,48 +113,7 @@ const App = observer(() => {
     })();
   }, []);
 
-  const goInApp = async (e) => {
-    await AsyncStorage.setItem(USER_AGREEMENT, 'Happy every day');
-    const res = await weChatStore.userWeChatLogin({ code: e.code });
-    if (res?.success) {
-      setIsLogin(true);
-    }
-  };
-  const outApp = async (isClean?: boolean) => {
-    if (!isClean) {
-      await AsyncStorage.removeItem(USER_AGREEMENT);
-      getStorage(USER_AGREEMENT)
-        .then((res) => {
-          setIsLogin(!!res);
-        })
-        .catch(() => {
-          setIsLogin(false);
-        });
-    }
-    BackHandler.exitApp();
-    BackHandler.exitApp();
-    BackHandler.exitApp();
-    BackHandler.exitApp();
-  };
-
   const showScreens = () => {
-    // if (systemStore.showBootAnimation || !blueTooth) {
-    //   return <BootAnimation />;
-    // }
-    // console.log('运行几次');
-    // if (Platform.OS === 'android' && !isLogin) {
-    //   return (
-    //     <WeChatOnePassLogin
-    //       outApp={async () => {
-    //         await outApp();
-    //       }}
-    //       goInApp={async (e) => {
-    //         // await goInApp(e);
-    //         setIsLogin(true);
-    //       }}
-    //     />
-    //   );
-    // }
     return <NavigatorStack />;
   };
   return (

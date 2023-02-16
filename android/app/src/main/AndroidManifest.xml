@@ -49,6 +49,7 @@
       android:taskAffinity="com.namemmrgip5e.wxapi"
       android:launchMode="singleTask"
     />
+    <service android:name="com.example.MyTaskService" />
   </application>
   <queries>
     <package android:name="com.tencent.mm" />

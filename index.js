@@ -18,4 +18,6 @@ protobuf.util.Long = require('long');
 protobuf.configure();
 Orientation.lockToPortrait();
 
+AppRegistry.registerHeadlessTask('SomeTaskName', () => require('./src/store/backServers'));
+
 AppRegistry.registerComponent(appName, () => App);
