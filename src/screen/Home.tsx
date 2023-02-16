@@ -271,16 +271,6 @@ export const Home: ScreenComponent = observer(
       }
     };
 
-    const addEvent = (taskId) => {
-      console.log('后台进行时');
-      // 用Promise模拟长时间的任务
-      return new Promise((resolve, reject) => {
-        blueToothStore.getMsgUpload().then(() => {
-          resolve();
-        });
-      });
-    };
-
     const initBackgroundFetch = async () => {
       type = 1;
       try {
@@ -289,7 +279,7 @@ export const Home: ScreenComponent = observer(
           configureOptions,
           async (taskId) => {
             // await blueToothStore.listenActiveMessage(mainListen);
-            await addEvent(taskId);
+            blueToothStore.getMsgUpload();
             BackgroundFetch.finish(taskId);
           },
           (taskId) => {

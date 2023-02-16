@@ -180,19 +180,15 @@ export class BlueToothStore {
 
   @action
   async getMsgUpload() {
-    try {
-      await this.backDeviceData();
-    } catch (err) {
-      console.log(err);
-    }
+    await this.backDeviceData();
   }
 
   @action
   async backDeviceData() {
     this.devicesTimes = this.devicesTimes + 1;
-    // await this.sendActiveMessage(batterySign);
-    // await this.sendActiveMessage(allDataSleep);
-    // await this.sendActiveMessage(allDataC);
+    await this.sendActiveMessage(batterySign);
+    await this.sendActiveMessage(allDataSleep);
+    await this.sendActiveMessage(allDataC);
   }
 
   @action
@@ -630,11 +626,11 @@ export class BlueToothStore {
     console.log('有新数据', this.devicesTimes);
     this.devicesTimes += 1;
     let data = this.deviceFormData;
-    if (data['1']) await this.updateDeviceData({ type: '1', value: data['1'] });
-    if (data['2']) await this.updateDeviceData({ type: '2', value: data['2'] });
-    if (data['3']) await this.updateDeviceData({ type: '3', value: data['3'] });
-    if (data['4']) await this.updateDeviceData({ type: '4', value: data['4'] });
-    if (data['5']) await this.updateDeviceData({ type: '5', value: data['5'] });
+    if (data['1']) this.updateDeviceData({ type: '1', value: data['1'] });
+    if (data['2']) this.updateDeviceData({ type: '2', value: data['2'] });
+    if (data['3']) this.updateDeviceData({ type: '3', value: data['3'] });
+    if (data['4']) this.updateDeviceData({ type: '4', value: data['4'] });
+    if (data['5']) this.updateDeviceData({ type: '5', value: data['5'] });
     this.currentDevice = { ...this.device };
     await AsyncStorage.setItem(UPDATE_TIME, moment().format('YYYY-MM-DD HH:mm'));
   }
@@ -644,19 +640,16 @@ export class BlueToothStore {
    * url: /watch/device/list
    */
   @action
-  async updateDeviceData(params): Promise<any> {
-    return new Promise(async (resolve, reject) => {
-      const res: ApiResult = await Api.getInstance.post({
-        url: '/watch/data/save',
-        params: {
-          type: params.type,
-          record_date: moment(new Date()).format('YYYY-MM-DD HH:mm'),
-          device_mac: this.devicesInfo.id,
-          raw_data: params.value
-        },
-        withToken: true
-      });
-      return resolve(res);
+  async updateDeviceData(params) {
+    Api.getInstance.post({
+      url: '/watch/data/save',
+      params: {
+        type: params.type,
+        record_date: moment(new Date()).format('YYYY-MM-DD HH:mm'),
+        device_mac: this.devicesInfo.id,
+        raw_data: params.value
+      },
+      withToken: true
     });
   }
 
