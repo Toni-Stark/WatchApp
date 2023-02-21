@@ -81,6 +81,7 @@ export const BlueTooth: ScreenComponent = observer(
             // AsyncStorage.setItem(DEVICE_CONFIG, JSON.stringify(device));
             blueToothStore.isRoot = RootEnum['连接中'];
             blueToothStore.setDeviceStorage(device);
+            if (device?.id) blueToothStore.checkList(device.id);
             blueToothStore.listenActiveMessage(mainListen);
             setConnectName(item.id);
             setSpinner(false);

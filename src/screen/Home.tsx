@@ -1,27 +1,46 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, ScrollView, AppState, RefreshControl, StatusBar, BackHandler } from 'react-native';
-import BaseView from '../component/BaseView';
-import { useStore } from '../store';
-import { ScreenComponent } from './index';
-import { tw } from 'react-native-tailwindcss';
-import { observer } from 'mobx-react-lite';
-import { HeaderBar } from '../component/home/HeaderBar';
-import FastImage from 'react-native-fast-image';
-import BluetoothStateManager from 'react-native-bluetooth-state-manager';
-import { arrCount, arrToByte, eventTimes, getMinTen, hasAndroidPermission } from '../common/tools';
-import { Hexagon } from '../component/home/Hexagon';
-import AsyncStorage from '@react-native-community/async-storage';
-import { DEVICE_DATA, DEVICE_INFO, UPDATE_TIME } from '../common/constants';
-import Spinkit from 'react-native-spinkit';
-import { RootEnum } from '../common/sign-module';
+import {
+  AppState,
+  BackHandler,
+  NativeModules,
+  RefreshControl,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View
+} from 'react-native';
 import moment from 'moment';
 import BackgroundFetch from 'react-native-background-fetch';
 import LinearGradient from 'react-native-linear-gradient';
+import FastImage from 'react-native-fast-image';
+import BluetoothStateManager from 'react-native-bluetooth-state-manager';
+import AsyncStorage from '@react-native-community/async-storage';
+import Spinkit from 'react-native-spinkit';
+import BaseView from '../component/BaseView';
+import { ScreenComponent } from './index';
+import { tw } from 'react-native-tailwindcss';
 import { Api } from '../common/api';
+import { RootEnum } from '../common/sign-module';
 import { defaultDataLog } from '../store/BlueToothStore';
+import { DEVICE_DATA, DEVICE_INFO, NEAR_FUTURE, TOKEN_NAME, UPDATE_TIME } from '../common/constants';
+import { useStore } from '../store';
+import { observer } from 'mobx-react-lite';
+import { HeaderBar } from '../component/home/HeaderBar';
+import { arrCount, arrToByte, eventTimes, getMinTen, hasAndroidPermission } from '../common/tools';
 import { StatusText } from '../component/home/StatusText';
+import { Hexagon } from '../component/home/Hexagon';
 
 let type = 0;
+
+let timeStorage = {
+  'D5:28:F2:C3:C0': '2023/2/19',
+  'C5:12:6F:54:85': '',
+  'E5:34:42:D5:B6': ''
+};
+
 export const Home: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
     const { blueToothStore, weChatStore, settingStore } = useStore();
@@ -126,16 +145,11 @@ export const Home: ScreenComponent = observer(
       requiredNetworkType: BackgroundFetch.NETWORK_TYPE_UNMETERED
     }); // 默认后台运行配置项
     const [refreshing, setRefreshing] = useState(false);
-    const [visDialog, setVisDialog] = useState(false);
-    const [password, setPassword] = useState('');
     const [dataLogCat, setDataLogCat] = useState(defaultDataLog);
     const [lastTime, setLastTime] = useState('');
     const [isRefresh, setIsRefresh] = useState(false);
 
     useEffect(() => {
-      // setTimeout(() => {
-      //   RNBootSplash.hide();
-      // }, 2000);
       (async () => {
         const isUpdate: any = await settingStore.getDeviceUpdate();
         if (isUpdate?.success) {
@@ -159,59 +173,31 @@ export const Home: ScreenComponent = observer(
               if (res.type === '3') {
                 baseView.current?.showToast({ text: '未搜索到设备', delay: 1 });
               }
+              return;
             });
           }
         }
         let bool = [RootEnum['初次进入'], RootEnum['连接中']].includes(blueToothStore.isRoot);
         if (blueToothStore?.devicesInfo && bool) {
-          eventTimes(() => blueToothStore.successDialog({}), 1000);
-          // await blueToothStore.listenActiveMessage(mainListen);
+          eventTimes(() => blueToothStore.successDialog({ date: blueToothStore.nearFuture }), 1000);
           blueToothStore.userDeviceSetting(true).then((res) => {});
         }
       })();
     }, [blueToothStore.isRoot, blueToothStore.devicesInfo]);
 
     useEffect(() => {
-      if (blueToothStore.noPasswordTips && blueToothStore.needRegPassword) {
-        baseView.current.showToast({ text: '设备密码错误', delay: 2 });
-        setPassword('');
-      }
-    }, [blueToothStore.noPasswordTips]);
-
-    useEffect(() => {
-      const unsubscribe = navigation.addListener('focus', async () => {
+      navigation.addListener('focus', async () => {
         if (isRefresh) {
           await onRefreshing(true);
         }
       });
-
-      return unsubscribe;
     }, [navigation]);
-
-    const openApi = async () => {
-      await blueToothStore.bindUserDevice().then((res) => {
-        baseView.current.showToast({ text: res.msg, delay: 2 });
-      });
-      setVisDialog(false);
-    };
-    const delayApi = () => {
-      setVisDialog(false);
-    };
-    const passApi = async () => {
-      if (password.trim().length <= 0) {
-        return baseView.current.showToast({ text: '请验证设备密码', delay: 2 });
-      }
-      await blueToothStore.successDialog({ pass: password });
-    };
-    const bindTextInput = (text) => {
-      setPassword(text);
-    };
 
     const reConnectData = async () => {
       if (blueToothStore.devicesInfo) {
         console.log(blueToothStore.activeDeviceConnect, '蓝牙连接状态');
         if (blueToothStore.activeDeviceConnect) {
-          await blueToothStore.successDialog({});
+          await blueToothStore.successDialog({ date: 0 });
         }
       }
     };
@@ -225,7 +211,7 @@ export const Home: ScreenComponent = observer(
         reConnectData();
       }, 300000);
       AppState.addEventListener('change', async (e) => {
-        console.log(blueToothStore.devicesInfo?.id, e, type);
+        // console.log(blueToothStore.devicesInfo?.id, e, type);
         if (!blueToothStore.devicesInfo?.id) return;
         if (e === 'background') {
           clearInterval(timer);
@@ -251,7 +237,8 @@ export const Home: ScreenComponent = observer(
               callback: (res) => {
                 setRefreshing(false);
                 baseView.current.showToast(res);
-              }
+              },
+              date: 0
             })
             .then((res) => {
               setRefreshing(false);
@@ -351,11 +338,6 @@ export const Home: ScreenComponent = observer(
           if (data) {
             let startTime = `${getMinTen(five[5])}-${getMinTen(five[6])} ${getMinTen(five[7])}:${getMinTen(five[8])}`;
             let endTime = `${getMinTen(five[9])}-${getMinTen(five[10])} ${getMinTen(five[11])}:${getMinTen(five[12])}`;
-            // return {
-            //   deepSleep: data['02']['12'],
-            //   startTime: startTime,
-            //   endTime: endTime
-            // };
             const date1 = moment(startTime, 'MM-DD hh:mm');
             const date2 = moment(endTime, 'MM-DD hh:mm');
             let time = date2.diff(date1, 'minute');
@@ -420,7 +402,8 @@ export const Home: ScreenComponent = observer(
           callback: (res) => {
             setRefreshing(false);
             baseView.current.showToast(res);
-          }
+          },
+          date: 0
         })
         .then((res) => {
           setRefreshing(false);
@@ -690,16 +673,16 @@ export const Home: ScreenComponent = observer(
           }
         />
         {renderContext}
-        <TouchableOpacity
-          onPress={() => {
-            blueToothStore.devicesTimes = 0;
-          }}
-        >
-          <Text>+++{blueToothStore.devicesTimes}+++</Text>
-        </TouchableOpacity>
+        {/*<TouchableOpacity*/}
+        {/*  onPress={() => {*/}
+        {/*    blueToothStore.devicesTimes = 0;*/}
+        {/*    // NativeModules.BaseJSBridgeAndroid.testAndroidToast('调用android端方法');*/}
+        {/*    NativeModules.ToastExample.show('数据发生变化', NativeModules.ToastExample.SHORT);*/}
+        {/*  }}*/}
+        {/*>*/}
+        {/*  <Text>+++{blueToothStore.devicesTimes}+++</Text>*/}
+        {/*</TouchableOpacity>*/}
         <View style={{ height: 65 }} />
-        {/*<PortalDialog visible={visDialog} open={openApi} delay={delayApi} context={visContext} />*/}
-        {/*<PasswordDialog visible={blueToothStore.needRegPassword} open={passApi} input={bindTextInput} />*/}
       </BaseView>
     );
   }

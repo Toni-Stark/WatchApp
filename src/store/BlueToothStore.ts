@@ -1,6 +1,6 @@
 import { action, get, makeAutoObservable, observable } from 'mobx';
 import AsyncStorage from '@react-native-community/async-storage';
-import { DEVICE_CONFIG, DEVICE_DATA, DEVICE_INFO, TOKEN_NAME, UPDATE_TIME } from '../common/constants';
+import { DEVICE_CONFIG, DEVICE_DATA, DEVICE_INFO, NEAR_FUTURE, TOKEN_NAME, UPDATE_TIME } from '../common/constants';
 import { arrToByte, baseToHex, dateTimes, eventTimer, eventTimes, getCircularReplacer, getMinTen, regCutString, stringToByte } from '../common/tools';
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
@@ -91,6 +91,7 @@ export class BlueToothStore {
   @observable readyDevice: any = undefined;
   @observable activeDeviceConnect: boolean = false;
   @observable devicesTimes: number = 0;
+  @observable nearFuture: number = 0;
 
   constructor() {
     makeAutoObservable(this);
@@ -110,6 +111,7 @@ export class BlueToothStore {
   @action
   async clearDevice() {
     this.device = defaultDevice;
+    this.deviceFormData = defaultData;
   }
 
   @action
@@ -186,10 +188,9 @@ export class BlueToothStore {
   @action
   async backDeviceData() {
     this.devicesTimes = this.devicesTimes + 1;
-    console.log(this.devicesTimes);
     await this.sendActiveMessage(batterySign);
-    await this.sendActiveMessage(allDataSleep);
-    await this.sendActiveMessage(allDataC);
+    await this.sendActiveMessage(allDataSleep(0));
+    await this.sendActiveMessage(allDataC(0));
   }
 
   @action
@@ -201,8 +202,16 @@ export class BlueToothStore {
     };
     await AsyncStorage.setItem(DEVICE_INFO, JSON.stringify(deviceInfo));
   }
+
   @action
-  async successDialog({ pass, callback }: { pass?: string; callback?: Function }) {
+  async updateActiveDevices({ num }) {
+    await this.sendActiveMessage(allDataSign(num));
+    await this.sendActiveMessage(allDataSleep(num));
+    await this.sendActiveMessage(allDataC(num));
+  }
+
+  @action
+  async successDialog({ pass, callback, date = 0 }: { pass?: string; callback?: Function; date: number }) {
     if (!this.devicesInfo?.id) {
       this.refreshing = false;
       return;
@@ -217,10 +226,12 @@ export class BlueToothStore {
     await this.setDeviceStorage(this.devicesInfo);
     try {
       await this.sendActiveMessage(passRegSign(pass));
-      await this.sendActiveMessage(allDataSign);
       await this.sendActiveMessage(batterySign);
-      await this.sendActiveMessage(allDataSleep);
-      await this.sendActiveMessage(allDataC);
+      // if (date === 0) {
+      //   await this.checkList(this.devicesInfo.id);
+      // }
+      console.log(date || this.nearFuture, '此次数据向标data-for');
+      await this.updateActiveDevices({ num: date || this.nearFuture });
     } catch (err) {
       console.log(err, 'error');
       await this.closeDevices((res) => {
@@ -260,7 +271,6 @@ export class BlueToothStore {
           let dateTime = new Date().getTime();
           let timeThan = this.dataChangeTime ? dateTime - this.dataChangeTime : dateTime;
           if (timeThan > 9000) {
-            console.log(timeThan, this.dataChangeTime);
             this.dataChangeTime = dateTime;
             this.updateDeviceList();
           } else if (timeThan > 1000) {
@@ -481,6 +491,50 @@ export class BlueToothStore {
   }
 
   @action
+  async getDataTime(times) {
+    this.nearFuture = times;
+  }
+
+  @action
+  async setTimesNow(deviceId, times) {
+    let oneDay = 60 * 60 * 24 * 1000;
+    let data: any = await AsyncStorage.getItem(NEAR_FUTURE);
+    let json: any = data ? JSON.parse(data) : {};
+    let today = moment().format('YYYY-MM-DD');
+    let date: any = '';
+    if (times === 2) {
+      date = moment(new Date(today).getTime() - 2 * oneDay).format('YYYY/MM/DD');
+    } else {
+      date = moment(new Date(today).getTime() - oneDay).format('YYYY/MM/DD');
+    }
+    json[deviceId] = date;
+    await AsyncStorage.setItem(NEAR_FUTURE, JSON.stringify(json));
+  }
+
+  @action
+  async checkList(deviceId) {
+    let data: any = await AsyncStorage.getItem(NEAR_FUTURE);
+    let json: any = data ? JSON.parse(data) : {};
+    let today = moment().format('YYYY-MM-DD');
+    let oneDay = 60 * 60 * 24 * 1000;
+    const time: any = json && json[deviceId];
+    console.log(data, time, 'data-what');
+    if (time) {
+      let yesterday = moment(new Date(time)).format('YYYY-MM-DD');
+      let difference = moment(new Date(today)).diff(moment(new Date(yesterday)));
+      if (difference > oneDay) {
+        if (difference === 2 * oneDay) {
+          await this.getDataTime(1);
+          return;
+        }
+        await this.getDataTime(2);
+      }
+    } else {
+      await this.getDataTime(2);
+    }
+  }
+
+  @action
   async connectDevice(device, callback) {
     device
       .connect()
@@ -498,7 +552,8 @@ export class BlueToothStore {
         this.isConnected = true;
         this.activeDeviceConnect = true;
         this.listenActiveMessage(mainListen);
-        this.successDialog({});
+        if (devices?.id) this.checkList(devices.id);
+        // this.successDialog({ date: this.nearFuture });
         return callback({ type: '2', delay: 1 });
       })
       .catch((err) => {
@@ -572,7 +627,6 @@ export class BlueToothStore {
         params: {},
         withToken: true
       });
-      console.log(res.data, native, '信息');
       let data = res.data;
       if (native) {
         if (res.code !== 200) {
@@ -633,6 +687,14 @@ export class BlueToothStore {
     if (data['5']) await this.updateDeviceData({ type: '5', value: data['5'] });
     this.currentDevice = { ...this.device };
     await AsyncStorage.setItem(UPDATE_TIME, moment().format('YYYY-MM-DD HH:mm'));
+    setTimeout(async () => {
+      let time = this.nearFuture - 1;
+      await this.setTimesNow(this.devicesInfo.id, time);
+      if (this.nearFuture > 0) {
+        this.nearFuture = time;
+        await this.successDialog({ date: this.nearFuture });
+      }
+    }, 1000);
   }
 
   /**

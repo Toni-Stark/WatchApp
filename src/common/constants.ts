@@ -11,6 +11,7 @@ export const BLUE_STATUS = 'BLUE_STATUS';
 export const DEVICE_DATA = 'DEVICE_DATA';
 export const DEVICE_CONFIG = 'DEVICE_CONFIG';
 export const UPDATE_TIME = 'UPDATE_TIME';
+export const NEAR_FUTURE = 'NEAR_FUTURE';
 
 export const USER_CONFIG = 'USER_CONFIG';
 export const TEST_TOKEN = 'TEST_TOKEN';
