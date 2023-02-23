@@ -1,9 +1,8 @@
 import { action, makeAutoObservable, observable } from 'mobx';
 import { Api } from '../common/api';
-import { util } from 'protobufjs';
 import { versionThanOld } from '../common/tools';
-import { appConfig } from '../common/app.config';
 import { Platform } from 'react-native';
+import DeviceInfo from 'react-native-device-info';
 
 export class SettingStore {
   @observable loading = false;
@@ -61,7 +60,7 @@ export class SettingStore {
               return resolve({ success: false, msg: res.msg });
             }
             let data = { version: res.data.ver };
-            let bool: boolean = versionThanOld(data?.version, appConfig.VERSION);
+            let bool: boolean = versionThanOld(data?.version, DeviceInfo.getVersion());
             this.needUpdate = bool;
             this.newDevice = res.data;
             return resolve({ success: bool });

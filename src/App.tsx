@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { BackHandler, Platform, StatusBar } from 'react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { NavigatorStack } from './screen';
-import { APP_LANGUAGE, TOKEN_NAME } from './common/constants';
+import { APP_LANGUAGE, NEAR_FUTURE, TOKEN_NAME } from './common/constants';
 import { darkTheme, theme } from './common/theme';
 import { useStore } from './store';
 import { getStorage, hasAndroidPermission, versionThanOld } from './common/tools';
@@ -55,6 +55,22 @@ const App = observer(() => {
   }, [systemStore]);
 
   useEffect(() => {
+    AsyncStorage.getItem(NEAR_FUTURE).then((res) => {
+      if (!res) return;
+      let data = JSON.parse(res);
+      let list: any = [];
+      for (let ind in data) {
+        list.push({
+          name: ind,
+          value: data[ind]
+        });
+      }
+      let datalist = {};
+      list.map((item) => {
+        datalist[item.name] = item.value;
+      });
+      AsyncStorage.setItem(NEAR_FUTURE, JSON.stringify(datalist));
+    });
     setTimeout(() => {
       RNBootSplash.hide();
     }, 2000);

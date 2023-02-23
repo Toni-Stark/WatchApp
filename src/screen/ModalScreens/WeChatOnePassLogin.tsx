@@ -5,7 +5,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useStore } from '../../store';
 import FastImage from 'react-native-fast-image';
 import AsyncStorage from '@react-native-community/async-storage';
-import { USER_AGREEMENT } from '../../common/constants';
+import { NEAR_FUTURE, USER_AGREEMENT } from '../../common/constants';
 import RNBootSplash from 'react-native-bootsplash';
 import LinearGradient from 'react-native-linear-gradient';
 export type Props = {
@@ -29,6 +29,7 @@ export const WeChatOnePassLogin = observer((props: Props) => {
   };
   const currentLogin = async () => {
     if (agree) {
+      await AsyncStorage.removeItem(NEAR_FUTURE);
       baseView.current.showLoading({ text: '登录中' });
       const result: any = await weChatStore.checkWeChatInstall();
       if (result) {

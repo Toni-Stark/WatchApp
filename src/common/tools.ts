@@ -31,7 +31,6 @@ export const isBlank = (str: string) => {
 };
 
 export const versionThanOld = (newVersion, oldVersion) => {
-  // console.log(newVersion, oldVersion);
   let newList = newVersion.split('.');
   let oldList = oldVersion.split('.');
   for (let i = 0; i < newList.length || i < oldList.length; ++i) {
@@ -87,11 +86,14 @@ export const regCutString = (value): any => {
 
 let timer: any = null;
 export const eventTimes = (callback: Function, time = 1000) => {
-  clearTimeout(timer);
-  timer = null;
-  timer = setTimeout(() => {
-    callback();
-  }, time);
+  try {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      callback();
+    }, time);
+  } catch (err) {
+    console.log(err, 'errorMsg');
+  }
 };
 let timerObject: any = {};
 export const dateTimes = (callback: Function, time = 1000, tag) => {

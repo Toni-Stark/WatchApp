@@ -137,8 +137,8 @@ android {
         multiDexEnabled true  // 开启 multiDex 支持
         missingDimensionStrategy 'react-native-camera', 'general'
         renderscriptSupportModeEnabled true
-        versionCode 1010001
-        versionName "1.1.0"
+        versionCode 1010501
+        versionName "1.1.5"
     }
     splits {
         abi {

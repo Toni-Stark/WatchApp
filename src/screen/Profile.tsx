@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Text } from 'react-native-paper';
-import { View, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import BaseView from '../component/BaseView';
 import { useStore } from '../store';
 import { ScreenComponent } from './index';
@@ -8,6 +8,7 @@ import { tw } from 'react-native-tailwindcss';
 import { ProfilePlaceholder } from '../component/skeleton/ProfilePlaceholder';
 import { observer } from 'mobx-react-lite';
 import FastImage from 'react-native-fast-image';
+import DeviceInfo from 'react-native-device-info';
 
 export const Profile: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -76,9 +77,9 @@ export const Profile: ScreenComponent = observer(
       if (avatar) url = { uri: avatar };
       if (!avatar) url = require('../assets/home/header-assets.png');
       let name = nickname || '微信用户';
-
+      let version = DeviceInfo.getVersion();
       return (
-        <ScrollView style={[tw.flex1, [{ marginBottom: 60 }]]}>
+        <View style={[tw.flex1, [{ marginBottom: 80 }]]}>
           <View style={styles.header}>
             <View style={styles.headerStart}>
               <View style={styles.imageView}>
@@ -115,7 +116,10 @@ export const Profile: ScreenComponent = observer(
               ))}
             </View>
           </View>
-        </ScrollView>
+          <View style={styles.versionView}>
+            <Text style={styles.versionText}>智能手表{version}版本</Text>
+          </View>
+        </View>
       );
     }, [settingStore.loading, weChatStore.userInfo]);
 
@@ -239,5 +243,13 @@ const styles = StyleSheet.create({
   logView: {},
   logText: {
     color: '#ffffff'
+  },
+  versionView: {
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  versionText: {
+    color: '#908f8f',
+    fontSize: 14
   }
 });

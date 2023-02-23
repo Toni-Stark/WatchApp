@@ -1,17 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  AppState,
-  BackHandler,
-  NativeModules,
-  RefreshControl,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View
-} from 'react-native';
+import { AppState, BackHandler, RefreshControl, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import moment from 'moment';
 import BackgroundFetch from 'react-native-background-fetch';
 import LinearGradient from 'react-native-linear-gradient';
@@ -19,13 +7,14 @@ import FastImage from 'react-native-fast-image';
 import BluetoothStateManager from 'react-native-bluetooth-state-manager';
 import AsyncStorage from '@react-native-community/async-storage';
 import Spinkit from 'react-native-spinkit';
+import DeviceInfo from 'react-native-device-info';
 import BaseView from '../component/BaseView';
 import { ScreenComponent } from './index';
 import { tw } from 'react-native-tailwindcss';
 import { Api } from '../common/api';
 import { RootEnum } from '../common/sign-module';
 import { defaultDataLog } from '../store/BlueToothStore';
-import { DEVICE_DATA, DEVICE_INFO, NEAR_FUTURE, TOKEN_NAME, UPDATE_TIME } from '../common/constants';
+import { DEVICE_DATA, DEVICE_INFO, UPDATE_TIME } from '../common/constants';
 import { useStore } from '../store';
 import { observer } from 'mobx-react-lite';
 import { HeaderBar } from '../component/home/HeaderBar';
@@ -34,12 +23,6 @@ import { StatusText } from '../component/home/StatusText';
 import { Hexagon } from '../component/home/Hexagon';
 
 let type = 0;
-
-let timeStorage = {
-  'D5:28:F2:C3:C0': '2023/2/19',
-  'C5:12:6F:54:85': '',
-  'E5:34:42:D5:B6': ''
-};
 
 export const Home: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -165,7 +148,7 @@ export const Home: ScreenComponent = observer(
               if (res.type === '1') {
                 blueToothStore.isRoot = RootEnum['无设备连接'];
                 blueToothStore.refreshing = false;
-                baseView?.current?.showToast({ text: '重连失败', delay: 1 });
+                // baseView?.current?.showToast({ text: '重连失败', delay: 1 });
               }
               if (res.type === '5') {
                 // baseView?.current?.showToast({ text: '', delay: 1 });
@@ -179,7 +162,7 @@ export const Home: ScreenComponent = observer(
         }
         let bool = [RootEnum['初次进入'], RootEnum['连接中']].includes(blueToothStore.isRoot);
         if (blueToothStore?.devicesInfo && bool) {
-          eventTimes(() => blueToothStore.successDialog({ date: blueToothStore.nearFuture }), 1000);
+          eventTimes(() => blueToothStore.successDialog({ date: blueToothStore.nearFuture }, baseView), 1000);
           blueToothStore.userDeviceSetting(true).then((res) => {});
         }
       })();
@@ -438,6 +421,10 @@ export const Home: ScreenComponent = observer(
     };
 
     const outApp = async () => {
+      if (settingStore.newDevice.type === 1) {
+        settingStore.needUpdate = false;
+        return;
+      }
       BackHandler.exitApp();
       BackHandler.exitApp();
       BackHandler.exitApp();

@@ -92,6 +92,7 @@ export class BlueToothStore {
   @observable activeDeviceConnect: boolean = false;
   @observable devicesTimes: number = 0;
   @observable nearFuture: number = 0;
+  @observable baseView: any = null;
 
   constructor() {
     makeAutoObservable(this);
@@ -204,14 +205,27 @@ export class BlueToothStore {
   }
 
   @action
-  async updateActiveDevices({ num }) {
+  async updateActiveDevices({ num }, base) {
+    if (base) {
+      this.baseView = base;
+    }
+    if (num === 2) {
+      this.baseView?.current?.hideLoading();
+      this.baseView?.current.showLoading({ text: '加载前天数据...' });
+    } else if (num === 1) {
+      this.baseView?.current?.hideLoading();
+      this.baseView?.current.showLoading({ text: '加载昨天数据...' });
+    } else {
+      this.baseView?.current?.hideLoading();
+      // this.baseView?.current?.showLoading({ text: '加载今日数据...' });
+    }
     await this.sendActiveMessage(allDataSign(num));
     await this.sendActiveMessage(allDataSleep(num));
     await this.sendActiveMessage(allDataC(num));
   }
 
   @action
-  async successDialog({ pass, callback, date = 0 }: { pass?: string; callback?: Function; date: number }) {
+  async successDialog({ pass, callback, date = 0 }: { pass?: string; callback?: Function; date: number }, base?: any) {
     if (!this.devicesInfo?.id) {
       this.refreshing = false;
       return;
@@ -231,7 +245,7 @@ export class BlueToothStore {
       //   await this.checkList(this.devicesInfo.id);
       // }
       console.log(date || this.nearFuture, '此次数据向标data-for');
-      await this.updateActiveDevices({ num: date || this.nearFuture });
+      await this.updateActiveDevices({ num: date || this.nearFuture }, base);
     } catch (err) {
       console.log(err, 'error');
       await this.closeDevices((res) => {
@@ -256,6 +270,7 @@ export class BlueToothStore {
   @action
   async listenActiveMessage(params) {
     try {
+      let timer: any = null;
       this.listenDevices = this.devicesInfo.monitorCharacteristicForService(params.serviceUUID, params.uuid, (error, characteristic) => {
         if (error) return;
         let value = baseToHex(characteristic.value);
@@ -283,12 +298,18 @@ export class BlueToothStore {
           this.currentDevice = { ...this.device };
           return;
         }
-        eventTimes(() => {
-          // this.setBasicInfo();
+        // console.log(value, this.backgroundActive);
+        clearTimeout(timer);
+        timer = setTimeout(() => {
           this.updateDeviceList();
-        }, 1000);
+        }, 1500);
+        // eventTimes(() => {
+        //   // this.setBasicInfo();
+        //   this.updateDeviceList();
+        // }, 1000);
       });
     } catch (err) {
+      // this.baseView?.current.hideLoading();
       console.log('打印报错', err);
     }
   }
@@ -307,6 +328,7 @@ export class BlueToothStore {
   @action
   async devicesModules(val, bool) {
     let hex = parseInt(val.slice(0, 2), 16) - 256;
+    // console.log(hex, val);
     // if (!this.logcatDetailed[hex]) {
     //   this.logcatDetailed[hex] = '';
     // }
@@ -694,7 +716,7 @@ export class BlueToothStore {
         this.nearFuture = time;
         await this.successDialog({ date: this.nearFuture });
       }
-    }, 1000);
+    }, 1200);
   }
 
   /**
