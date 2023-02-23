@@ -10,6 +10,7 @@ export class SettingStore {
   @observable canJump: boolean = true;
   @observable needUpdate: boolean = false;
   @observable newDevice: any = undefined;
+  @observable count: any = 0;
 
   constructor() {
     makeAutoObservable(this);
