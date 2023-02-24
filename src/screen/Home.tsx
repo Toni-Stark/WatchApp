@@ -42,8 +42,8 @@ export const Home: ScreenComponent = observer(
         name: 'ic_launcher',
         type: 'mipmap'
       },
-      // color: '#ff00ff',
-      // linkingURI: 'com.cqqgsafe.watch', // See Deep Linking for more info
+      color: '#ff00ff',
+      linkingURI: 'com.cqqgsafe.watch', // See Deep Linking for more info
       parameters: {
         delay: 5000
       }
