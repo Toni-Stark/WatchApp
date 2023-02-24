@@ -60,7 +60,7 @@ export class WeChatStore {
       await WeChat.launchMiniProgram({
         userName: 'gh_86ca0d9e5a9a',
         miniProgramType: 0,
-        path: 'pages/index/index'
+        path: 'pages/logistics/index'
       });
     });
   }

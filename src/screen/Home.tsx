@@ -7,7 +7,6 @@ import FastImage from 'react-native-fast-image';
 import BluetoothStateManager from 'react-native-bluetooth-state-manager';
 import AsyncStorage from '@react-native-community/async-storage';
 import Spinkit from 'react-native-spinkit';
-import DeviceInfo from 'react-native-device-info';
 import BaseView from '../component/BaseView';
 import { ScreenComponent } from './index';
 import { tw } from 'react-native-tailwindcss';
