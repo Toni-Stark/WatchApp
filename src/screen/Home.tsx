@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StatusBar, StyleSheet, Text, TouchableOpacity, View, Linking } from 'react-native';
 import BackgroundService from 'react-native-background-actions';
 
 import BaseView from '../component/BaseView';
@@ -35,7 +35,7 @@ export const Home: ScreenComponent = observer(
     };
 
     const options = {
-      taskName: '正在运行',
+      taskName: '重庆千港',
       taskTitle: '正在运行中',
       taskDesc: '后台更新数据中',
       taskIcon: {
@@ -43,14 +43,20 @@ export const Home: ScreenComponent = observer(
         type: 'mipmap'
       },
       color: '#ff00ff',
-      linkingURI: 'com.cqqgsafe.watch', // See Deep Linking for more info
+      linkingURI: 'youlu://com.cqqgsafe.watch', // See Deep Linking for more info
       parameters: {
         delay: 5000
       }
     };
 
+    const handleOpenURL = (e) => {
+      console.log(e, 'url-link');
+    };
+
     useEffect(() => {
       console.log('注册后台---log');
+      Linking.addEventListener('url', handleOpenURL);
+
       BackgroundService.start(veryIntensiveTask, options);
       // await BackgroundService.updateNotification({ taskDesc: 'New ExampleTask description' });
       return () => {
