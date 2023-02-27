@@ -17,6 +17,8 @@ import { HeartTest } from './Home/HomeCommon/HeartTest';
 import { UserInfo } from './Profile/UserInfo';
 import { BindingInfo } from './Profile/BindingInfo';
 import { BlueToothDeviceName } from './Home/BlueToothDeviceName';
+import { BlueToolsList } from './Home/BlueToolsList';
+import { BlueToothName } from './Home/BlueToothName';
 
 export type ScreensParamList = {
   Login: { message?: string };
@@ -41,5 +43,7 @@ export const CardScreens: Array<ScreenList> = [
   { name: 'HeartTest', component: HeartTest },
   { name: 'UserInfo', component: UserInfo },
   { name: 'BindingInfo', component: BindingInfo },
-  { name: 'BlueToothDeviceName', component: BlueToothDeviceName }
+  { name: 'BlueToothDeviceName', component: BlueToothDeviceName },
+  { name: 'BlueToolsList', component: BlueToolsList },
+  { name: 'BlueToothName', component: BlueToothName }
 ];

@@ -5,7 +5,7 @@ import { arrToByte, baseToHex, dateTimes, eventTimer, eventTimes, getCircularRep
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
 import moment from 'moment';
-import { allDataC, allDataSign, allDataSleep, batterySign, mainListen, passRegSign } from '../common/watch-module';
+import { allDataC, allDataSign, allDataSleep, batterySign, mainListen, passRegSign, settingName } from '../common/watch-module';
 import { RootEnum } from '../common/sign-module';
 import { Api, ApiResult } from '../common/api';
 
@@ -256,6 +256,7 @@ export class BlueToothStore {
 
   @action
   async sendActiveMessage(params) {
+    console.log(params);
     let storeRes = regCutString(params.value);
     let buffer = Buffer.from(stringToByte(storeRes)).toString('base64');
     await this.devicesInfo.writeCharacteristicWithResponseForService(params.serviceUUID, params.uuid, buffer);
@@ -554,6 +555,11 @@ export class BlueToothStore {
     } else {
       await this.getDataTime(2);
     }
+  }
+
+  @action
+  async changeDeviceName(params) {
+    await this.sendActiveMessage(settingName);
   }
 
   @action

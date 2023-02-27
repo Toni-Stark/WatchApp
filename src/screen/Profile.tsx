@@ -39,6 +39,8 @@ export const Profile: ScreenComponent = observer(
       navigation.navigate('UserInfo', {});
     };
     const navigateToDevice = async (data) => {
+      navigation.navigate('BlueToolsList');
+      return;
       // await blueToothStore.sendActiveMessage(allDataSign);
       // await blueToothStore.successDialog();
       // await blueToothStore.listenActiveMessage(mainListen);

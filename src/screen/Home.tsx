@@ -416,7 +416,11 @@ export const Home: ScreenComponent = observer(
     };
 
     const addEval = () => {
-      navigation.navigate('BlueToothDeviceName');
+      baseView.current.showLoading({ text: '加载中...' });
+      navigation.navigate('BlueToolsList');
+      setTimeout(() => {
+        baseView.current.hideLoading();
+      }, 100);
     };
 
     const outApp = async () => {
@@ -441,11 +445,11 @@ export const Home: ScreenComponent = observer(
         return (
           <TouchableOpacity style={styles.modalModule} onPress={blueToothDetail}>
             {!blueToothStore?.devicesInfo ? (
-              <View style={styles.refreCard}>
+              <View style={styles.refCard}>
                 <View style={styles.refreshContent}>
-                  <Text style={styles.refreCardTitle}>设备名称：{blueToothStore.getEvalName()}</Text>
-                  <Text style={styles.refreCardMac}>MAC：{blueToothStore.refreshInfo.deviceID}</Text>
-                  <Text style={styles.refreCardTime}>上次连接时间：{blueToothStore.refreshInfo.time}</Text>
+                  <Text style={styles.refCardTitle}>设备名称：{blueToothStore.getEvalName()}</Text>
+                  <Text style={styles.refCardMac}>MAC：{blueToothStore.refreshInfo.deviceID}</Text>
+                  <Text style={styles.refCardTime}>上次连接时间：{blueToothStore.refreshInfo.time}</Text>
                 </View>
                 <View style={styles.refreshTips}>
                   <Text style={[styles.labelColor, styles.labelReady]}>正在重连设备...</Text>
@@ -528,9 +532,9 @@ export const Home: ScreenComponent = observer(
                   {device?.name ? (
                     <View style={styles.userView}>
                       <Text style={styles.userName}>{blueToothStore.getEvalName()}</Text>
-                      <TouchableWithoutFeedback onPress={addEval}>
-                        <Text style={styles.evalName}>{blueToothStore.evalName ? '修改' : '添加'}备注</Text>
-                      </TouchableWithoutFeedback>
+                      <TouchableOpacity onPress={addEval} style={styles.evalButton}>
+                        <Text style={styles.evalName}>操作</Text>
+                      </TouchableOpacity>
                     </View>
                   ) : (
                     <Text style={styles.userName}>{/*蓝牙手表App*/}</Text>
@@ -609,7 +613,7 @@ export const Home: ScreenComponent = observer(
                             <Text style={styles.cap}> {item.cap}</Text>
                           </Text>
                         ) : (
-                          <Text style={[styles.evalsValue]}>无数据</Text>
+                          <Text style={[styles.evalValue]}>无数据</Text>
                         )}
                       </View>
                     </View>
@@ -781,9 +785,11 @@ const styles = StyleSheet.create({
   endValue: {
     fontSize: 19
   },
-  evalsValue: {
-    fontSize: 16,
-    color: color12
+  evalButton: {
+    backgroundColor: color8,
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3
   },
   evalName: {
     color: color3,
@@ -798,6 +804,10 @@ const styles = StyleSheet.create({
     color: color3,
     marginTop: 2,
     textAlign: 'center'
+  },
+  evalValue: {
+    color: color12,
+    fontSize: 16
   },
   footerText: {
     marginTop: 3
@@ -894,23 +904,23 @@ const styles = StyleSheet.create({
   modalModule: {
     flex: 1
   },
-  refreCard: {
+  refCard: {
     alignItems: 'center',
     flex: 1,
     justifyContent: 'space-between',
     paddingBottom: 30
   },
-  refreCardMac: {
+  refCardMac: {
     color: color3,
-    marginTop: 5,
-    fontSize: 14
+    fontSize: 14,
+    marginTop: 5
   },
-  refreCardTime: {
+  refCardTime: {
     color: color3,
-    marginTop: 5,
-    fontSize: 14
+    fontSize: 14,
+    marginTop: 5
   },
-  refreCardTitle: {
+  refCardTitle: {
     color: color3,
     fontSize: 20
   },
@@ -934,9 +944,9 @@ const styles = StyleSheet.create({
     width: '100%'
   },
   refreshView: {
-    height: 28,
     alignItems: 'center',
     flexDirection: 'row',
+    height: 28,
     justifyContent: 'space-between'
   },
   resultText: {

@@ -9,14 +9,13 @@ import { StackBar } from '../../../component/home/StackBar';
 import AsyncStorage from '@react-native-community/async-storage';
 import { DEVICE_INFO } from '../../../common/constants';
 
-export const BlueToothDeviceName: ScreenComponent = observer(
+export const BlueToothName: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
     const baseView = useRef<any>(undefined);
     const { blueToothStore } = useStore();
     const [data, setData] = useState<any>({});
 
     useEffect(() => {
-      baseView.current.showLoading({ text: '加载中...' });
       blueToothStore.userDeviceSetting(false).then((res) => {
         let dataInfo = res.data;
         AsyncStorage.getItem(DEVICE_INFO).then((info) => {
@@ -24,10 +23,7 @@ export const BlueToothDeviceName: ScreenComponent = observer(
           let resInfo: any = JSON.parse(info);
           if (!dataInfo?.length) return;
           let result: any = dataInfo.find((item) => item.device_mac === resInfo.deviceID);
-          setData({ text: result.note });
-          setTimeout(() => {
-            baseView.current.hideLoading();
-          }, 1500);
+          setData({ name: result.device_name });
         });
       });
     }, []);
@@ -35,39 +31,25 @@ export const BlueToothDeviceName: ScreenComponent = observer(
     const backScreen = () => {
       navigation.goBack();
     };
+
     const currentSubmit = async () => {
-      let info: any = await AsyncStorage.getItem(DEVICE_INFO);
-      let res = JSON.parse(info);
-      baseView.current.showLoading({ text: '修改中...' });
       let params = {
-        id: blueToothStore.readyDevice.id,
-        note: data.text
+        id: blueToothStore.devicesInfo.id,
+        note: data.name
       };
-      let result = await blueToothStore.settingNote(params);
-      baseView.current.hideLoading();
-      if (result.success) {
-        res.note = data.text;
-        await AsyncStorage.setItem(DEVICE_INFO, JSON.stringify(res));
-        blueToothStore.evalName = data.text;
-        baseView.current.showToast({ text: result.msg, delay: 1.5 });
-        setTimeout(() => {
-          navigation.goBack();
-        }, 1500);
-        return;
-      }
-      baseView.current.showToast({ text: result.msg, delay: 1.5 });
+      await blueToothStore.changeDeviceName(params);
     };
 
     const changeText = (e) => {
-      setData({ text: e });
+      setData({ name: e });
     };
 
     return (
       <BaseView ref={baseView}>
         <View style={[tw.flex1, tw.textCenter]}>
-          <StackBar title="设备备注" onBack={() => backScreen()} />
+          <StackBar title="更改设备名称" onBack={() => backScreen()} />
           <View style={styles.headerLabel}>
-            <TextInput style={styles.headerInput} placeholder="设置备注" value={data.text} onChangeText={changeText} onEndEditing={currentSubmit} />
+            <TextInput style={styles.headerInput} placeholder="请输入新的设备名称" value={data.name} onChangeText={changeText} onEndEditing={currentSubmit} />
           </View>
         </View>
       </BaseView>
