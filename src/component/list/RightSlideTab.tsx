@@ -1,18 +1,33 @@
 import * as React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Switch } from 'react-native';
 import FastImage from 'react-native-fast-image';
+import { useState } from 'react';
 
 export const RightSlideTab = (props): JSX.Element => {
   const { data, cate, onPress } = props;
+  const [isEnabled, setIsEnabled] = useState(cate);
   return (
     <TouchableOpacity style={styles.itemStyle} onPress={onPress}>
       {data.image ? <FastImage style={styles.imageIcon} source={data.image} /> : null}
       <View style={[styles.itemData, cate ? styles.borderB : styles.borderNull]}>
         <Text style={styles.itemName}>{data.name}</Text>
-        <View style={styles.textView}>
-          <Text style={styles.textStyle}>{data.value}</Text>
-          <FastImage style={styles.rightIcon} source={require('../../assets/home/right-gray.png')} />
-        </View>
+        {data.type === 'switch' ? (
+          <Switch
+            trackColor={{ false: '#eceaea', true: '#00D1DE' }}
+            thumbColor={isEnabled ? '#ffffff' : '#ffffff'}
+            ios_backgroundColor="#3e3e3e"
+            onValueChange={() => {
+              setIsEnabled(!isEnabled);
+              onPress(!isEnabled);
+            }}
+            value={isEnabled}
+          />
+        ) : (
+          <View style={styles.textView}>
+            <Text style={styles.textStyle}>{data.value}</Text>
+            <FastImage style={styles.rightIcon} source={require('../../assets/home/right-gray.png')} />
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );

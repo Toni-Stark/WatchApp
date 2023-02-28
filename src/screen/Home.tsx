@@ -118,7 +118,7 @@ export const Home: ScreenComponent = observer(
     ]);
     const [hasBack, setHasBack] = useState(false);
     const [configureOptions] = useState({
-      minimumFetchInterval: 1,
+      minimumFetchInterval: 5,
       enableHeadless: true,
       forceAlarmManager: true,
       stopOnTerminate: false,

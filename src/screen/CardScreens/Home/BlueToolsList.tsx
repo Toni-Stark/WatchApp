@@ -7,8 +7,12 @@ import { observer } from 'mobx-react-lite';
 import { StackBar } from '../../../component/home/StackBar';
 import { RightSlideTab } from '../../../component/list/RightSlideTab';
 import AsyncStorage from '@react-native-community/async-storage';
-import { DEVICE_INFO } from '../../../common/constants';
+import { DEVICE_INFO, WEATHER_UPDATE } from '../../../common/constants';
 import { useStore } from '../../../store';
+import { closeSendInfo, settingName, updateWeather } from '../../../common/watch-module';
+import { CommonUtil } from '../../../common/signing';
+import { arrToByte, baseToHex, stringToByte } from '../../../common/tools';
+import { Buffer } from 'buffer';
 
 export const BlueToolsList: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -20,6 +24,7 @@ export const BlueToolsList: ScreenComponent = observer(
         value: '',
         image: require('../../../assets/home/name.png'),
         cate: 'info',
+        type: 'label',
         fun: () => {
           baseView.current.showLoading({ text: '加载中...' });
           navigation.navigate('BlueToothDeviceName');
@@ -33,20 +38,41 @@ export const BlueToolsList: ScreenComponent = observer(
         value: 'F22R',
         image: require('../../../assets/home/note.png'),
         cate: 'device',
-        fun: () => {
-          baseView.current.showLoading({ text: '加载中...' });
-          navigation.navigate('BlueToothName');
-          setTimeout(() => {
-            baseView.current.hideLoading();
-          }, 100);
+        type: 'label',
+        fun: async () => {
+          // baseView.current.showLoading({ text: '加载中...' });
+          // navigation.navigate('BlueToothName');
+          // setTimeout(() => {
+          //   baseView.current.hideLoading();
+          // }, 100);
+          // console.log(baseToHex(str));
+          console.log(arrToByte([-124, 17, 11, 11, 11, 2, 11, 11, 11, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]));
+          // await blueToothStore.sendActiveMessage(settingName());
+        }
+      },
+      {
+        name: '天气更新',
+        value: '',
+        image: require('../../../assets/home/note.png'),
+        cate: 'device',
+        type: 'switch',
+        fun: async (e) => {
+          // baseView.current.showLoading({ text: '加载中...' });
+          await blueToothStore.sendActiveMessage(updateWeather(e ? 1 : 0));
+          await AsyncStorage.setItem(WEATHER_UPDATE, JSON.stringify(e));
         }
       }
     ]);
-
     useEffect(() => {
       baseView.current.showLoading({ text: '加载中...' });
+      AsyncStorage.getItem(WEATHER_UPDATE).then((weather) => {
+        let list: any = [...dataList];
+        if (!weather) return;
+        list[2].value = JSON.parse(weather);
+        setDataList(list);
+      });
       blueToothStore.userDeviceSetting(false).then((res) => {
-        let list = [...dataList];
+        let list: any = [...dataList];
         AsyncStorage.getItem(DEVICE_INFO).then((info) => {
           let result: any = typeof info === 'string' ? JSON.parse(info) : '';
           let resInfo: any = res.data.find((item) => item.device_mac === result.deviceID);

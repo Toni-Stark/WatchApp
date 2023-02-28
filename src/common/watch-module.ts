@@ -135,10 +135,38 @@ export const downData = {
  * serviceUUID: 服务id;
  * uuid: 写入特征值id;
  * */
-export const settingName = {
-  value: arrToByte([83, 11]),
-  serviceUUID: 'f0080001-0451-4000-B000-000000000000',
-  uuid: 'f0080003-0451-4000-B000-000000000000'
+export const settingName = () => {
+  return {
+    value: arrToByte([-124, 17]),
+    serviceUUID: 'f0080001-0451-4000-B000-000000000000',
+    uuid: 'f0080003-0451-4000-B000-000000000000'
+  };
+};
+
+/**
+ * 更新蓝牙天气：
+ * serviceUUID: 服务id;
+ * uuid: 写入特征值id;
+ * */
+export const updateWeather = (num) => {
+  return {
+    value: arrToByte([-56, 3, num, 0]),
+    serviceUUID: 'f0080001-0451-4000-B000-000000000000',
+    uuid: 'f0080003-0451-4000-B000-000000000000'
+  };
+};
+
+/**
+ * 关闭蓝牙长链接通信：
+ * serviceUUID: 服务id;
+ * uuid: 写入特征值id;
+ * */
+export const closeSendInfo = (pass) => {
+  return {
+    value: CommonUtil.getUtilHex(),
+    serviceUUID: 'f0080001-0451-4000-B000-000000000000',
+    uuid: 'f0080003-0451-4000-B000-000000000000'
+  };
 };
 
 let list = `
