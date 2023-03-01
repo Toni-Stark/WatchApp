@@ -62,7 +62,7 @@ export const BlueToolsList: ScreenComponent = observer(
         }
       },
       {
-        name: '定位设置',
+        name: '天气预报',
         value: '',
         image: require('../../../assets/home/note.png'),
         cate: 'device',

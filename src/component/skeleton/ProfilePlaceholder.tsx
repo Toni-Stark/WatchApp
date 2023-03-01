@@ -1,5 +1,5 @@
 import React from 'react';
-import { Fade, Placeholder, PlaceholderLine, PlaceholderMedia } from 'rn-placeholder';
+import { Fade, Placeholder, PlaceholderLine } from 'rn-placeholder';
 import { View } from 'react-native';
 import { tw } from 'react-native-tailwindcss';
 

@@ -179,3 +179,88 @@ df010001b10402140000b20a00000023000000004000b3060000000000ff
 df010001b10402150000b20a00000000000000003f01b3060000000000ff
 df010001b10402140000b20a00000023000000004000b3060000000000ff
 `;
+let geoLocation = {
+  accuracy: 29,
+  adCode: '500103',
+  address: '重庆市渝中区经纬大道66号靠近华清远见嵌入式培训(重庆分中心)',
+  altitude: 0,
+  city: '重庆市',
+  cityCode: '023',
+  coordinateType: 'GCJ02',
+  country: '中国',
+  description: '在华清远见嵌入式培训(重庆分中心)附近',
+  district: '渝中区',
+  errorCode: 0,
+  errorInfo: 'success',
+  gpsAccuracy: -1,
+  heading: 0,
+  latitude: 29.547679,
+  locationDetail: '#id:ELA==#csid:6e7780aae2364109a9914297f32db9bc',
+  locationType: 2,
+  longitude: 106.495963,
+  poiName: '华清远见嵌入式培训(重庆分中心)',
+  province: '重庆市',
+  speed: 0,
+  street: '经纬大道',
+  streetNumber: '66号',
+  timestamp: 1677656376216,
+  trustedLevel: 1
+};
+let weatherList = [
+  {
+    date: '2023-03-01',
+    daypower: '≤3',
+    daytemp: '13',
+    daytemp_float: '12.8',
+    dayweather: '小雨',
+    daywind: '西',
+    nightpower: '≤3',
+    nighttemp: '11',
+    nighttemp_float: '11.2',
+    nightweather: '阴',
+    nightwind: '东北',
+    week: '3'
+  },
+  {
+    date: '2023-03-02',
+    daypower: '≤3',
+    daytemp: '13',
+    daytemp_float: '12.7',
+    dayweather: '小雨',
+    daywind: '北',
+    nightpower: '≤3',
+    nighttemp: '12',
+    nighttemp_float: '11.7',
+    nightweather: '小雨',
+    nightwind: '北',
+    week: '4'
+  },
+  {
+    date: '2023-03-03',
+    daypower: '≤3',
+    daytemp: '15',
+    daytemp_float: '15.2',
+    dayweather: '小雨',
+    daywind: '西南',
+    nightpower: '≤3',
+    nighttemp: '11',
+    nighttemp_float: '11.3',
+    nightweather: '阴',
+    nightwind: '西南',
+    week: '5'
+  },
+  {
+    date: '2023-03-04',
+    daypower: '≤3',
+    daytemp: '18',
+    daytemp_float: '18.4',
+    dayweather: '阴',
+    daywind: '北',
+    nightpower: '≤3',
+    nighttemp: '15',
+    nighttemp_float: '15.0',
+    nightweather: '小雨',
+    nightwind: '北',
+    week: '6'
+  }
+];

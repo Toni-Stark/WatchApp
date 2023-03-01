@@ -155,6 +155,17 @@ export const strToHex = (num): string => {
   return (num + 0).toString(16);
 };
 
+export const getWeek = (num): string => {
+  if (num === '1') return '一';
+  if (num === '2') return '二';
+  if (num === '3') return '三';
+  if (num === '4') return '四';
+  if (num === '5') return '五';
+  if (num === '6') return '六';
+  if (num === '7') return '日';
+  return '日';
+};
+
 export const arrToByte = (arr, bool?: boolean): string => {
   let list = arr.map((item) => {
     if (bool) return parseInt(item, 16);
