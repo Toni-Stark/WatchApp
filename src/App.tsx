@@ -4,7 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { enableScreens } from 'react-native-screens';
 import AsyncStorage from '@react-native-community/async-storage';
 import * as RNLocalize from 'react-native-localize';
-import { StatusBar, BackHandler, ToastAndroid, TextInput, Text } from 'react-native';
+import { StatusBar, TextInput, Text, BackHandler, ToastAndroid } from 'react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { NavigatorStack } from './screen';
 import { APP_LANGUAGE, NEAR_FUTURE, TOKEN_NAME } from './common/constants';
@@ -25,12 +25,13 @@ const App = observer(() => {
       enableScreens();
       await Icon.loadFont();
     })();
+  }, []);
+  useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', handleBackPress);
     return () => {
       BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
     };
   }, []);
-
   const handleBackPress = () => {
     if (settingStore.backHome && settingStore.backHome + 2000 >= Date.now()) {
       //最近2秒内按过back键，可以退出应用。
@@ -39,8 +40,8 @@ const App = observer(() => {
     } else {
       settingStore.backHome = Date.now();
       ToastAndroid.show('再次点击退出App', 1500);
+      return true;
     }
-    return true;
   };
 
   useEffect(() => {

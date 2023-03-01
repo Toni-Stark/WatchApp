@@ -1,5 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AppState, BackHandler, RefreshControl, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import {
+  AppState,
+  BackHandler,
+  RefreshControl,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  ToastAndroid,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View
+} from 'react-native';
 import moment from 'moment';
 import BackgroundFetch from 'react-native-background-fetch';
 import LinearGradient from 'react-native-linear-gradient';
@@ -20,11 +32,12 @@ import { HeaderBar } from '../component/home/HeaderBar';
 import { arrCount, arrToByte, eventTimes, getMinTen, hasAndroidPermission } from '../common/tools';
 import { StatusText } from '../component/home/StatusText';
 import { Hexagon } from '../component/home/Hexagon';
+import RNExitApp from 'react-native-exit-app';
 
 let type = 0;
 
 export const Home: ScreenComponent = observer(
-  ({ navigation }): JSX.Element => {
+  ({ navigation, route }): JSX.Element => {
     const { blueToothStore, weChatStore, settingStore } = useStore();
     const baseView = useRef<any>(undefined);
     const [contentList, setContentList] = useState<any>([

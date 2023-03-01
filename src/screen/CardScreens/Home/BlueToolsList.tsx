@@ -90,11 +90,11 @@ export const BlueToolsList: ScreenComponent = observer(
           let result: any = typeof info === 'string' ? JSON.parse(info) : '';
           let resInfo: any = res.data.find((item) => item.device_mac === result.deviceID);
           list[1].value = result?.name || '';
-          list[0].value = resInfo.note || '';
+          list[0].value = resInfo?.note || '';
           setDataList(list);
           setTimeout(() => {
             baseView.current.hideLoading();
-          }, 1500);
+          }, 500);
         });
       });
     }, []);
