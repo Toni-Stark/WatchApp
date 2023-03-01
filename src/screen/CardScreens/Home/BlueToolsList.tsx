@@ -9,10 +9,9 @@ import { RightSlideTab } from '../../../component/list/RightSlideTab';
 import AsyncStorage from '@react-native-community/async-storage';
 import { DEVICE_INFO, WEATHER_UPDATE } from '../../../common/constants';
 import { useStore } from '../../../store';
-import { closeSendInfo, settingName, updateWeather } from '../../../common/watch-module';
+import { closeSendInfo, passRegSign, settingName, updateWeather } from '../../../common/watch-module';
 import { CommonUtil } from '../../../common/signing';
-import { arrToByte, baseToHex, stringToByte } from '../../../common/tools';
-import { Buffer } from 'buffer';
+import { arrToByte, baseToHex, rootByteArr, stringToByte } from '../../../common/tools';
 
 export const BlueToolsList: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -35,7 +34,7 @@ export const BlueToolsList: ScreenComponent = observer(
       },
       {
         name: '设备名称',
-        value: 'F22R',
+        value: '',
         image: require('../../../assets/home/note.png'),
         cate: 'device',
         type: 'label',
@@ -46,7 +45,7 @@ export const BlueToolsList: ScreenComponent = observer(
           //   baseView.current.hideLoading();
           // }, 100);
           // console.log(baseToHex(str));
-          console.log(arrToByte([-124, 17, 11, 11, 11, 2, 11, 11, 11, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]));
+          console.log(rootByteArr([17, 11, 11, 11, 2, 11, 11, 11, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]));
           // await blueToothStore.sendActiveMessage(settingName());
         }
       },
@@ -58,8 +57,8 @@ export const BlueToolsList: ScreenComponent = observer(
         type: 'switch',
         fun: async (e) => {
           // baseView.current.showLoading({ text: '加载中...' });
-          await blueToothStore.sendActiveMessage(updateWeather(e ? 1 : 0));
-          await AsyncStorage.setItem(WEATHER_UPDATE, JSON.stringify(e));
+          // await blueToothStore.sendActiveMessage(updateWeather(e ? 1 : 0));
+          // await AsyncStorage.setItem(WEATHER_UPDATE, JSON.stringify(e));
         }
       }
     ]);

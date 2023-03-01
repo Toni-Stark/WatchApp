@@ -164,6 +164,16 @@ export const arrToByte = (arr, bool?: boolean): string => {
   return list.toString().replace(/[,]/g, ' ');
 };
 
+export const rootByteArr = (arr): any => {
+  let arr1 = new Array(20);
+  arr1[0] = -124;
+  arr1[1] = 1;
+  for (let i = 0; i < arr; i++) {
+    arr1[i + 2] = arr[i];
+  }
+  return arr1;
+};
+
 export const stringToByte = (value): Array<any> => {
   let str = value.replace(/\s*/g, '').split('');
   let index = 0;

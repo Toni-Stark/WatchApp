@@ -283,6 +283,7 @@ export class BlueToothStore {
         if (['bd'].includes(value.slice(0, 2))) {
           return;
         }
+        console.log(value);
         if (this.backgroundActive) {
           let dateTime = new Date().getTime();
           let timeThan = this.dataChangeTime ? dateTime - this.dataChangeTime : dateTime;
