@@ -4,7 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { enableScreens } from 'react-native-screens';
 import AsyncStorage from '@react-native-community/async-storage';
 import * as RNLocalize from 'react-native-localize';
-import { StatusBar, BackHandler, ToastAndroid } from 'react-native';
+import { StatusBar, BackHandler, ToastAndroid, TextInput, Text } from 'react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { NavigatorStack } from './screen';
 import { APP_LANGUAGE, NEAR_FUTURE, TOKEN_NAME } from './common/constants';
@@ -116,6 +116,8 @@ const App = observer(() => {
     //     />
     //   );
     // }
+    TextInput.defaultProps = Object.assign({}, TextInput.defaultProps, { allowFontScaling: false });
+    Text.defaultProps = Object.assign({}, Text.defaultProps, { allowFontScaling: false });
     return <NavigatorStack isRoot={isLogin} />;
   };
 

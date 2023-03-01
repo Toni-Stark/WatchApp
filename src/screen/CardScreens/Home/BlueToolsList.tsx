@@ -57,8 +57,22 @@ export const BlueToolsList: ScreenComponent = observer(
         type: 'switch',
         fun: async (e) => {
           // baseView.current.showLoading({ text: '加载中...' });
-          // await blueToothStore.sendActiveMessage(updateWeather(e ? 1 : 0));
-          // await AsyncStorage.setItem(WEATHER_UPDATE, JSON.stringify(e));
+          await blueToothStore.sendActiveMessage(updateWeather(e ? 1 : 0));
+          await AsyncStorage.setItem(WEATHER_UPDATE, JSON.stringify(e));
+        }
+      },
+      {
+        name: '定位设置',
+        value: '',
+        image: require('../../../assets/home/note.png'),
+        cate: 'device',
+        type: 'label',
+        fun: async (e) => {
+          baseView.current.showLoading({ text: '加载中...' });
+          navigation.navigate('GeoWeather');
+          setTimeout(() => {
+            baseView.current.hideLoading();
+          }, 100);
         }
       }
     ]);

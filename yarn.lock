@@ -7085,6 +7085,11 @@ react-is@^16.12.0, react-is@^16.13.0, react-is@^16.13.1, react-is@^16.7.0, react
   resolved "https://registry.npmjs.org/react-is/-/react-is-16.13.1.tgz#789729a4dc36de2999dc156dd6c1d9c18cea56a4"
   integrity sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==
 
+react-native-amap-geolocation@1.1.0:
+  version "1.1.0"
+  resolved "https://registry.npmmirror.com/react-native-amap-geolocation/-/react-native-amap-geolocation-1.1.0.tgz#f1f5b077cb5782afcb5fa9d7c339307343d21b00"
+  integrity sha512-JgqSX5bCqmfz/wVX3uh4LI9CskLWPA20VJ0rVdlMA9gY0SV3uXW8zwyF1C6YNXlu8Y2RQ6E6CNUumgDS4DEtCA==
+
 react-native-animated-bar@^0.2.0:
   version "0.2.0"
   resolved "https://registry.npmmirror.com/react-native-animated-bar/-/react-native-animated-bar-0.2.0.tgz#98ffaaa58d5ac73d73a88b061141ef4f74a7dda1"
