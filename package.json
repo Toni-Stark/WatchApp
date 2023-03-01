@@ -48,6 +48,7 @@
     "react-native-device-info": "^7.3.1",
     "react-native-document-picker": "^5.0.3",
     "react-native-dropdown-picker": "^5.4.4",
+    "react-native-exit-app": "^1.1.0",
     "react-native-fast-image": "^8.3.2",
     "react-native-fs": "^2.16.6",
     "react-native-gesture-handler": "^1.9.0",

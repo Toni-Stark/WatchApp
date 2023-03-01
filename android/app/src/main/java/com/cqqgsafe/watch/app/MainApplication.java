@@ -10,6 +10,7 @@ import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.soloader.SoLoader;
 import com.theweflex.react.WeChatPackage;
+import com.github.wumke.RNExitApp.RNExitAppPackage;
 import org.wonday.orientation.OrientationActivityLifecycle;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;

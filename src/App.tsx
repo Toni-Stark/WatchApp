@@ -2,19 +2,19 @@ import React, { useEffect, useState } from 'react';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { enableScreens } from 'react-native-screens';
-import * as RNLocalize from 'react-native-localize';
 import AsyncStorage from '@react-native-community/async-storage';
-import { BackHandler, Platform, StatusBar } from 'react-native';
+import * as RNLocalize from 'react-native-localize';
+import { StatusBar, BackHandler, ToastAndroid } from 'react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { NavigatorStack } from './screen';
 import { APP_LANGUAGE, NEAR_FUTURE, TOKEN_NAME } from './common/constants';
 import { darkTheme, theme } from './common/theme';
 import { useStore } from './store';
-import { getStorage, hasAndroidPermission, versionThanOld } from './common/tools';
+import { getStorage, hasAndroidPermission } from './common/tools';
 import { observer, Observer } from 'mobx-react-lite';
 import BluetoothStateManager from 'react-native-bluetooth-state-manager';
-import { appConfig } from './common/app.config';
 import RNBootSplash from 'react-native-bootsplash';
+import RNExitApp from 'react-native-exit-app';
 
 const App = observer(() => {
   const { systemStore, blueToothStore, settingStore } = useStore();
@@ -25,17 +25,23 @@ const App = observer(() => {
       enableScreens();
       await Icon.loadFont();
     })();
+    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    return () => {
+      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+    };
   }, []);
 
-  useEffect(() => {
-    getStorage(TOKEN_NAME)
-      .then((res) => {
-        setIsLogin(!!res);
-      })
-      .catch(() => {
-        setIsLogin(false);
-      });
-  }, []);
+  const handleBackPress = () => {
+    if (settingStore.backHome && settingStore.backHome + 2000 >= Date.now()) {
+      //最近2秒内按过back键，可以退出应用。
+      RNExitApp.exitApp();
+      RNExitApp.exitApp();
+    } else {
+      settingStore.backHome = Date.now();
+      ToastAndroid.show('再次点击退出App', 1500);
+    }
+    return true;
+  };
 
   useEffect(() => {
     const handleLocalizationChange = async () => {
@@ -53,6 +59,16 @@ const App = observer(() => {
       RNLocalize.removeEventListener('change', handleLocalizationChange);
     };
   }, [systemStore]);
+
+  useEffect(() => {
+    getStorage(TOKEN_NAME)
+      .then((res) => {
+        setIsLogin(!!res);
+      })
+      .catch(() => {
+        setIsLogin(false);
+      });
+  }, []);
 
   useEffect(() => {
     AsyncStorage.getItem(NEAR_FUTURE).then((res) => {
