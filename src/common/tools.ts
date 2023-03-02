@@ -147,6 +147,15 @@ export const getCircularReplacer = () => {
   };
 };
 
+export const getASCodeStr = (str) => {
+  // let str = 'abcdefghijklmnopqrstuvwxyzACDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+  let arr = str.split('').map((item) => {
+    return item.charCodeAt(0).toString(16);
+  });
+  // console.log(arr.toString().replaceAll(',', ''));
+  return arr.toString().replace(/,/g, ' ');
+};
+
 // 10进制16进制转换
 export const strToHex = (num): string => {
   if (num > -128 && num < 0) return (256 + num).toString(16);

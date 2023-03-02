@@ -84,6 +84,56 @@ export const GeoWeather: ScreenComponent = observer(
       }
     };
 
+    const currentList = useMemo(() => {
+      return (
+        <>
+          {data?.casts.map((item, index) => {
+            const lightWeather = getUrl(item.dayweather, true);
+            const nightWeather = getUrl(item.nightweather, false);
+            return (
+              <LinearGradient
+                key={index}
+                colors={['#bdf6ff', '#07bec4']}
+                style={[styles.dayCard, { opacity: 1 - index * 0.2 }]}
+                start={{ x: 0.3, y: 0.75 }}
+                end={{ x: 0.9, y: 1.0 }}
+                locations={[0.1, 0.8]}
+              >
+                <Text style={styles.dayWeek}>
+                  {moment(item.date).format('MM月DD日')} 星期{getWeek(item.week)}
+                </Text>
+                <View style={styles.tabStyles}>
+                  <View style={styles.tabItems}>
+                    <Text style={[styles.tabWeather, styles.colorBlue]}>{item.dayweather}</Text>
+                    <Text style={[styles.tabC, styles.colorBlue]}>
+                      {item.daytemp_float}°C / {item.daytemp}°C
+                    </Text>
+                  </View>
+                  <View style={styles.textContext}>
+                    <Text style={[styles.light, styles.colorBlue]}>{'<=白天'}</Text>
+                    <View style={styles.tabView}>
+                      <Text style={[styles.tabW]}>
+                        {item.nightwind}&nbsp;{item.nightpower}&nbsp;级
+                      </Text>
+                    </View>
+                    <Text style={[styles.night, styles.colorWhite]}>{'晚上=>'}</Text>
+                  </View>
+                  <View style={styles.tabItems}>
+                    <Text style={[styles.tabWeather, styles.colorWhite]}>{item.nightweather}</Text>
+                    <Text style={[styles.tabC, styles.colorWhite]}>
+                      {item.nighttemp_float}°C / {item.nighttemp}°C
+                    </Text>
+                  </View>
+                </View>
+                <FastImage resizeMode="contain" style={styles.leftImage} source={lightWeather} />
+                <FastImage resizeMode="contain" style={styles.rightImage} source={nightWeather} />
+              </LinearGradient>
+            );
+          })}
+        </>
+      );
+    }, [data]);
+
     const currentContext = useMemo(() => {
       if (!data) return;
       return (
@@ -91,48 +141,10 @@ export const GeoWeather: ScreenComponent = observer(
           <Text style={styles.city}>
             {data.province}-{data.city}
           </Text>
-          {data.casts.map((item, index) => (
-            <LinearGradient
-              key={index}
-              colors={['#bdf6ff', '#07bec4']}
-              style={styles.dayCard}
-              start={{ x: 0.3, y: 0.75 }}
-              end={{ x: 0.9, y: 1.0 }}
-              locations={[0.1, 0.8]}
-            >
-              <Text style={styles.dayWeek}>
-                {moment(item.date).format('MM月DD日')} 星期{getWeek(item.week)}
-              </Text>
-              <View style={styles.tabStyles}>
-                <View style={styles.tabItems}>
-                  <Text style={[styles.tabWeather, styles.colorBlue]}>{item.dayweather}</Text>
-                  <Text style={[styles.tabC, styles.colorBlue]}>
-                    {item.daytemp_float}°C / {item.daytemp}°C
-                  </Text>
-                </View>
-                <View style={styles.textContext}>
-                  <Text style={[styles.light, styles.colorBlue]}>{'<=白天'}</Text>
-                  <View style={styles.tabView}>
-                    <Text style={[styles.tabW]}>
-                      {item.nightwind}&nbsp;{item.nightpower}&nbsp;级
-                    </Text>
-                  </View>
-                  <Text style={[styles.night, styles.colorWhite]}>{'晚上=>'}</Text>
-                </View>
-                <View style={styles.tabItems}>
-                  <Text style={[styles.tabWeather, styles.colorWhite]}>{item.nightweather}</Text>
-                  <Text style={[styles.tabC, styles.colorWhite]}>
-                    {item.nighttemp_float}°C / {item.nighttemp}°C
-                  </Text>
-                </View>
-              </View>
-              <FastImage resizeMode="contain" style={styles.leftImage} source={getUrl(item.dayweather, true)} />
-              <FastImage resizeMode="contain" style={styles.rightImage} source={getUrl(item.nightweather, false)} />
-            </LinearGradient>
-          ))}
+          {currentList}
         </View>
       );
-    }, [data]);
+    }, [currentList, data]);
 
     const mainContext = useMemo(() => {
       if (loading) {
@@ -154,7 +166,7 @@ export const GeoWeather: ScreenComponent = observer(
           </TouchableOpacity>
         </ScrollView>
       );
-    }, [loading, data]);
+    }, [loading, currentContext]);
 
     return (
       <BaseView ref={baseView}>
@@ -247,12 +259,19 @@ export const styles = StyleSheet.create({
     marginTop: 15,
     zIndex: 90
   },
+  tabView: {
+    backgroundColor: color2,
+    borderRadius: 5,
+    marginVertical: 5,
+    paddingHorizontal: 4,
+    paddingVertical: 2
+  },
   tabW: {
-    fontSize: 12,
-    color: color5
+    color: color5,
+    fontSize: 12
   },
   tabWeather: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold'
   },
   textContext: {
@@ -270,12 +289,5 @@ export const styles = StyleSheet.create({
     color: color2,
     fontSize: 15,
     fontWeight: 'bold'
-  },
-  tabView: {
-    backgroundColor: '#ffffff',
-    marginVertical: 5,
-    paddingVertical: 2,
-    paddingHorizontal: 4,
-    borderRadius: 5
   }
 });

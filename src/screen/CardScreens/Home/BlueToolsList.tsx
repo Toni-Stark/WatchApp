@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { DeviceEventEmitter, ScrollView, StyleSheet, View } from 'react-native';
 import { ScreenComponent } from '../../index';
 import BaseView from '../../../component/BaseView';
 import { tw } from 'react-native-tailwindcss';
@@ -10,8 +10,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import { DEVICE_INFO, WEATHER_UPDATE } from '../../../common/constants';
 import { useStore } from '../../../store';
 import { closeSendInfo, passRegSign, settingName, updateWeather } from '../../../common/watch-module';
-import { CommonUtil } from '../../../common/signing';
-import { arrToByte, baseToHex, rootByteArr, stringToByte } from '../../../common/tools';
+import { arrToByte, baseToHex, getASCodeStr, rootByteArr, stringToByte } from '../../../common/tools';
 
 export const BlueToolsList: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -25,6 +24,7 @@ export const BlueToolsList: ScreenComponent = observer(
         cate: 'info',
         type: 'label',
         fun: () => {
+          if (!blueToothStore.readyDevice) return baseView.current.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
           baseView.current.showLoading({ text: '加载中...' });
           navigation.navigate('BlueToothDeviceName');
           setTimeout(() => {
@@ -39,14 +39,12 @@ export const BlueToolsList: ScreenComponent = observer(
         cate: 'device',
         type: 'label',
         fun: async () => {
-          // baseView.current.showLoading({ text: '加载中...' });
-          // navigation.navigate('BlueToothName');
-          // setTimeout(() => {
-          //   baseView.current.hideLoading();
-          // }, 100);
-          // console.log(baseToHex(str));
-          console.log(rootByteArr([17, 11, 11, 11, 2, 11, 11, 11, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]));
-          // await blueToothStore.sendActiveMessage(settingName());
+          // if (!blueToothStore.readyDevice) return baseView.current.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
+          baseView.current.showLoading({ text: '加载中...' });
+          navigation.navigate('BlueToothName');
+          setTimeout(() => {
+            baseView.current.hideLoading();
+          }, 100);
         }
       },
       {
@@ -56,6 +54,7 @@ export const BlueToolsList: ScreenComponent = observer(
         cate: 'device',
         type: 'switch',
         fun: async (e) => {
+          if (!blueToothStore.readyDevice) return baseView.current.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
           // baseView.current.showLoading({ text: '加载中...' });
           await blueToothStore.sendActiveMessage(updateWeather(e ? 1 : 0));
           await AsyncStorage.setItem(WEATHER_UPDATE, JSON.stringify(e));
@@ -68,6 +67,7 @@ export const BlueToolsList: ScreenComponent = observer(
         cate: 'device',
         type: 'label',
         fun: async (e) => {
+          if (!blueToothStore.readyDevice) return baseView.current.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
           baseView.current.showLoading({ text: '加载中...' });
           navigation.navigate('GeoWeather');
           setTimeout(() => {
@@ -89,7 +89,7 @@ export const BlueToolsList: ScreenComponent = observer(
         AsyncStorage.getItem(DEVICE_INFO).then((info) => {
           let result: any = typeof info === 'string' ? JSON.parse(info) : '';
           let resInfo: any = res.data.find((item) => item.device_mac === result.deviceID);
-          list[1].value = result?.name || '';
+          list[1].value = resInfo?.device_name || result.name;
           list[0].value = resInfo?.note || '';
           setDataList(list);
           setTimeout(() => {
@@ -97,6 +97,23 @@ export const BlueToolsList: ScreenComponent = observer(
           }, 500);
         });
       });
+
+      let subscription = DeviceEventEmitter.addListener('EventType', (param) => {
+        console.log(param, '页面监听');
+        let list: any = [...dataList];
+        if (param?.name) {
+          list[1].value = param?.name;
+        }
+        if (param?.note) {
+          list[0].value = param?.note;
+        }
+        console.log(list);
+        setDataList(list);
+        // 刷新界面等
+      });
+      return () => {
+        subscription.remove();
+      };
     }, []);
 
     const backScreen = () => {

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { DeviceEventEmitter, StyleSheet, Text, TextInput, View } from 'react-native';
 import { ScreenComponent } from '../../index';
 import BaseView from '../../../component/BaseView';
 import { tw } from 'react-native-tailwindcss';
@@ -8,6 +8,8 @@ import { useStore } from '../../../store';
 import { StackBar } from '../../../component/home/StackBar';
 import AsyncStorage from '@react-native-community/async-storage';
 import { DEVICE_INFO } from '../../../common/constants';
+import { getASCodeStr } from '../../../common/tools';
+import { settingName } from '../../../common/watch-module';
 
 export const BlueToothName: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -33,11 +35,31 @@ export const BlueToothName: ScreenComponent = observer(
     };
 
     const currentSubmit = async () => {
+      let reg = /^([a-zA-Z]|[0-9]){1,18}$/;
+      if (!data.name.match(reg)) {
+        baseView.current.showToast({ text: '请输入符合规范的名称', delay: 1.5 });
+        return;
+      }
       let params = {
         id: blueToothStore.devicesInfo.id,
-        note: data.name
+        name: data.name
       };
-      await blueToothStore.changeDeviceName(params);
+      baseView.current.showLoading({ text: '修改中...' });
+      blueToothStore.changeDeviceName(params).then((res) => {
+        baseView.current.hideLoading();
+        if (res.success) {
+          baseView.current.showToast({ text: '修改成功', delay: 1 });
+          blueToothStore.devicesInfo.name = res.name;
+          blueToothStore.device.name = res.name;
+          blueToothStore.currentDevice.name = res.name;
+          blueToothStore.refreshInfo.name = res.name;
+          blueToothStore.readyDevice.device_name = res.name;
+          setTimeout(() => {
+            backScreen();
+            DeviceEventEmitter.emit('EventType', { name: res.name });
+          }, 1000);
+        }
+      });
     };
 
     const changeText = (e) => {
@@ -50,6 +72,9 @@ export const BlueToothName: ScreenComponent = observer(
           <StackBar title="更改设备名称" onBack={() => backScreen()} />
           <View style={styles.headerLabel}>
             <TextInput style={styles.headerInput} placeholder="请输入新的设备名称" value={data.name} onChangeText={changeText} onEndEditing={currentSubmit} />
+          </View>
+          <View style={styles.tipsView}>
+            <Text style={styles.tips}>提示：数字、英文字符大小写，不超过16个字符。</Text>
           </View>
         </View>
       </BaseView>
@@ -67,5 +92,11 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     width: '100%'
+  },
+  tipsView: {
+    paddingHorizontal: 20
+  },
+  tips: {
+    fontSize: 13
   }
 });

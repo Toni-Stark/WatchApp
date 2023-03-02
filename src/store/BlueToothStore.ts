@@ -1,7 +1,7 @@
-import { action, get, makeAutoObservable, observable } from 'mobx';
+import { action, makeAutoObservable, observable } from 'mobx';
 import AsyncStorage from '@react-native-community/async-storage';
-import { DEVICE_CONFIG, DEVICE_DATA, DEVICE_INFO, NEAR_FUTURE, TOKEN_NAME, UPDATE_TIME } from '../common/constants';
-import { arrToByte, baseToHex, dateTimes, eventTimer, eventTimes, getCircularReplacer, getMinTen, regCutString, stringToByte } from '../common/tools';
+import { DEVICE_DATA, DEVICE_INFO, NEAR_FUTURE, TOKEN_NAME, UPDATE_TIME } from '../common/constants';
+import { arrToByte, baseToHex, dateTimes, eventTimer, getASCodeStr, getMinTen, regCutString, stringToByte } from '../common/tools';
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
 import moment from 'moment';
@@ -481,7 +481,7 @@ export class BlueToothStore {
           };
         }
       },
-      '-46': (e) => {
+      '-46': () => {
         // console.log(e, '血氧数据');
       },
       '-48': (e) => {
@@ -559,8 +559,28 @@ export class BlueToothStore {
   }
 
   @action
-  async changeDeviceName(params) {
-    await this.sendActiveMessage(settingName);
+  async changeDeviceName(params): Promise<any> {
+    return new Promise(async (resolve) => {
+      let str = params.name;
+      let completion = 18 - str.length;
+      let str1 = ' ';
+      for (let i = 1; i <= completion; i++) {
+        if (i !== completion) {
+          str1 += '00 ';
+        } else {
+          str1 += '00';
+        }
+      }
+
+      let msg = getASCodeStr(str) + str1;
+      await this.sendActiveMessage(settingName(msg));
+      this.bindUserDevice({ name: str }).then((res) => {
+        if (res.success) {
+          return resolve({ name: str, success: true });
+        }
+        return resolve({ success: false });
+      });
+    });
   }
 
   @action
@@ -585,7 +605,7 @@ export class BlueToothStore {
         // this.successDialog({ date: this.nearFuture });
         return callback({ type: '2', delay: 1 });
       })
-      .catch((err) => {
+      .catch(() => {
         this.closeDevices();
         return callback({ type: '1', delay: 1 });
       });
@@ -650,7 +670,7 @@ export class BlueToothStore {
    */
   @action
   async userDeviceSetting(bool, native = false): Promise<any> {
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async (resolve) => {
       const res: ApiResult = await Api.getInstance.post({
         url: '/watch/device/list',
         params: {},
@@ -671,7 +691,7 @@ export class BlueToothStore {
         }
         let need = !data.device_list.find((item) => item.device_mac === this.devicesInfo.id) || data.device_list.length <= 0;
         if (need) {
-          this.bindUserDevice().then((result) => {
+          this.bindUserDevice().then(() => {
             return resolve({ success: true, data: data.device_list });
           });
         }
@@ -688,7 +708,7 @@ export class BlueToothStore {
    */
   @action
   async getDeviceBindInfo(params): Promise<any> {
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async (resolve) => {
       const res: ApiResult = await Api.getInstance.post({
         url: '/watch/share/share',
         params: params,
@@ -749,13 +769,13 @@ export class BlueToothStore {
    * url: /watch/device/binding
    */
   @action
-  async bindUserDevice(): Promise<any> {
-    return new Promise(async (resolve, reject) => {
+  async bindUserDevice(params?: any): Promise<any> {
+    return new Promise(async (resolve) => {
       const res: ApiResult = await Api.getInstance.post({
         url: '/watch/device/binding',
         params: {
           device_mac: this.devicesInfo.id,
-          device_name: this.devicesInfo.name
+          device_name: params?.name || this.devicesInfo.name
         },
         withToken: true
       });
@@ -772,7 +792,7 @@ export class BlueToothStore {
    */
   @action
   async getDeviceInfo(params): Promise<any> {
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async (resolve) => {
       const res: ApiResult = await Api.getInstance.post({
         url: '/watch/device/newest-stat',
         params: {
@@ -792,7 +812,7 @@ export class BlueToothStore {
    */
   @action
   async settingNote(params): Promise<any> {
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async (resolve) => {
       const res: ApiResult = await Api.getInstance.post({
         url: '/watch/device/set-note',
         params: params,

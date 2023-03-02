@@ -12,6 +12,7 @@
     "bundle-android": "react-native bundle –platform android –dev false –entry-file index.android.js –bundle-output android/app/src/main/assets/index.android.bundle –sourcemap-output android/app/src/main/assets/index.android.map –assets-dest android/app/src/main/res/"
   },
   "dependencies": {
+    "@react-native-clipboard/clipboard": "^1.11.2",
     "@react-native-community/async-storage": "^1.12.1",
     "@react-native-community/cameraroll": "^4.0.1",
     "@react-native-community/hooks": "^2.6.0",

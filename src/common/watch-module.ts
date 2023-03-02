@@ -135,9 +135,9 @@ export const downData = {
  * serviceUUID: 服务id;
  * uuid: 写入特征值id;
  * */
-export const settingName = () => {
+export const settingName = (str) => {
   return {
-    value: arrToByte([-124, 17]),
+    value: arrToByte([-124, 1]) + ' ' + str,
     serviceUUID: 'f0080001-0451-4000-B000-000000000000',
     uuid: 'f0080003-0451-4000-B000-000000000000'
   };
@@ -206,61 +206,3 @@ let geoLocation = {
   timestamp: 1677656376216,
   trustedLevel: 1
 };
-let weatherList = [
-  {
-    date: '2023-03-01',
-    daypower: '≤3',
-    daytemp: '13',
-    daytemp_float: '12.8',
-    dayweather: '小雨',
-    daywind: '西',
-    nightpower: '≤3',
-    nighttemp: '11',
-    nighttemp_float: '11.2',
-    nightweather: '阴',
-    nightwind: '东北',
-    week: '3'
-  },
-  {
-    date: '2023-03-02',
-    daypower: '≤3',
-    daytemp: '13',
-    daytemp_float: '12.7',
-    dayweather: '小雨',
-    daywind: '北',
-    nightpower: '≤3',
-    nighttemp: '12',
-    nighttemp_float: '11.7',
-    nightweather: '小雨',
-    nightwind: '北',
-    week: '4'
-  },
-  {
-    date: '2023-03-03',
-    daypower: '≤3',
-    daytemp: '15',
-    daytemp_float: '15.2',
-    dayweather: '小雨',
-    daywind: '西南',
-    nightpower: '≤3',
-    nighttemp: '11',
-    nighttemp_float: '11.3',
-    nightweather: '阴',
-    nightwind: '西南',
-    week: '5'
-  },
-  {
-    date: '2023-03-04',
-    daypower: '≤3',
-    daytemp: '18',
-    daytemp_float: '18.4',
-    dayweather: '阴',
-    daywind: '北',
-    nightpower: '≤3',
-    nighttemp: '15',
-    nighttemp_float: '15.0',
-    nightweather: '小雨',
-    nightwind: '北',
-    week: '6'
-  }
-];

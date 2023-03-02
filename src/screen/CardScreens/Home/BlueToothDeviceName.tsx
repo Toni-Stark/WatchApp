@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { DeviceEventEmitter, StyleSheet, TextInput, View } from 'react-native';
 import { ScreenComponent } from '../../index';
 import BaseView from '../../../component/BaseView';
 import { tw } from 'react-native-tailwindcss';
@@ -20,7 +20,10 @@ export const BlueToothDeviceName: ScreenComponent = observer(
       blueToothStore.userDeviceSetting(false).then((res) => {
         let dataInfo = res.data;
         AsyncStorage.getItem(DEVICE_INFO).then((info) => {
-          if (!info) return;
+          if (!info) {
+            baseView.current.hideLoading();
+            return;
+          }
           let resInfo: any = JSON.parse(info);
           if (!dataInfo?.length) return;
           let result: any = dataInfo.find((item) => item.device_mac === resInfo.deviceID);
@@ -39,6 +42,11 @@ export const BlueToothDeviceName: ScreenComponent = observer(
       let info: any = await AsyncStorage.getItem(DEVICE_INFO);
       let res = JSON.parse(info);
       baseView.current.showLoading({ text: '修改中...' });
+      if (!blueToothStore?.readyDevice?.id) {
+        baseView.current.hideLoading();
+        baseView.current.showToast({ text: '请先使用蓝牙连接设备', delay: 1.5 });
+        return;
+      }
       let params = {
         id: blueToothStore.readyDevice.id,
         note: data.text
@@ -52,6 +60,7 @@ export const BlueToothDeviceName: ScreenComponent = observer(
         baseView.current.showToast({ text: result.msg, delay: 1.5 });
         setTimeout(() => {
           navigation.goBack();
+          DeviceEventEmitter.emit('EventType', { note: data.text });
         }, 1500);
         return;
       }

@@ -1,17 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  AppState,
-  BackHandler,
-  RefreshControl,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  ToastAndroid,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View
-} from 'react-native';
+import { AppState, BackHandler, RefreshControl, ScrollView, StatusBar, StyleSheet, Text, ToastAndroid, TouchableOpacity, View } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import moment from 'moment';
 import BackgroundFetch from 'react-native-background-fetch';
 import LinearGradient from 'react-native-linear-gradient';
@@ -32,7 +21,6 @@ import { HeaderBar } from '../component/home/HeaderBar';
 import { arrCount, arrToByte, eventTimes, getMinTen, hasAndroidPermission } from '../common/tools';
 import { StatusText } from '../component/home/StatusText';
 import { Hexagon } from '../component/home/Hexagon';
-import RNExitApp from 'react-native-exit-app';
 
 let type = 0;
 
@@ -206,7 +194,6 @@ export const Home: ScreenComponent = observer(
         reConnectData();
       }, 300000);
       AppState.addEventListener('change', async (e) => {
-        // console.log(blueToothStore.devicesInfo?.id, e, type);
         if (!blueToothStore.devicesInfo?.id) return;
         if (e === 'background') {
           clearInterval(timer);
@@ -519,6 +506,16 @@ export const Home: ScreenComponent = observer(
       blueToothDetail,
       blueToothStore.evalName
     ]);
+    const onPressCopy = () => {
+      let str = blueToothStore.devicesInfo.id;
+      Clipboard.setString(str);
+      ToastAndroid.show('已复制到粘贴板', 1500);
+    };
+    const onLongPress = (e) => {
+      let str = e._targetInst.pendingProps.children;
+      Clipboard.setString(str);
+      ToastAndroid.show('已复制到粘贴板', 1500);
+    };
 
     const currentDeviceBanner = useMemo(() => {
       let device = blueToothStore.devicesInfo;
@@ -540,11 +537,13 @@ export const Home: ScreenComponent = observer(
                 <View style={styles.imageViewEval} />
               )}
 
-              <TouchableOpacity style={styles.loginView}>
+              <TouchableOpacity style={styles.loginView} onPress={onPressCopy}>
                 <View style={styles.headerContent}>
                   {device?.name ? (
                     <View style={styles.userView}>
-                      <Text style={styles.userName}>{blueToothStore.getEvalName()}</Text>
+                      <Text ellipsizeMode="middle" numberOfLines={1} style={styles.userName} onLongPress={onLongPress}>
+                        {blueToothStore.getEvalName()}
+                      </Text>
                       <TouchableOpacity onPress={addEval} style={styles.evalButton}>
                         <Text style={styles.evalName}>操作</Text>
                       </TouchableOpacity>
@@ -1036,7 +1035,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     color: color3,
     fontSize: 18,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    flex: 1
   },
   userView: {
     alignItems: 'center',
