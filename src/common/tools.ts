@@ -224,6 +224,18 @@ export const stringToByte = (value): Array<any> => {
   return list;
 };
 
+export const stringToByteNoNum = (value): Array<any> => {
+  let str = value.split(' ');
+  let val = '';
+  let list: any[] = [];
+  for (let i = 0; i < str.length; i++) {
+    val += str[i];
+    list.push('0x' + val);
+    val = '';
+  }
+  return list;
+};
+
 export const baseToHex = (str): any => {
   let buffer = Buffer.from(str, 'base64');
   return buffer.toString('hex');

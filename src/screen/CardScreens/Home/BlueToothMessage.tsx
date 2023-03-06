@@ -27,7 +27,7 @@ export const BlueToothMessage: ScreenComponent = observer(
         id: blueToothStore.devicesInfo.id,
         name: data.name
       };
-      baseView?.current?.showLoading({ text: '修改中...' });
+      baseView?.current?.showLoading({ text: '发送数据...' });
       blueToothStore.sendMessageOfDevice(params).then((res) => {
         baseView?.current?.hideLoading();
         console.log(res);

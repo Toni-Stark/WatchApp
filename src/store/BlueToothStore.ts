@@ -1,7 +1,7 @@
 import { action, makeAutoObservable, observable } from 'mobx';
 import AsyncStorage from '@react-native-community/async-storage';
 import { DEVICE_DATA, DEVICE_INFO, NEAR_FUTURE, TOKEN_NAME, UPDATE_TIME } from '../common/constants';
-import { arrToByte, baseToHex, dateTimes, eventTimer, getASCodeStr, getMinTen, regCutString, stringToByte } from '../common/tools';
+import { arrToByte, baseToHex, dateTimes, eventTimer, getASCodeStr, getMinTen, regCutString, stringToByte, stringToByteNoNum } from '../common/tools';
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
 import moment from 'moment';
@@ -257,7 +257,8 @@ export class BlueToothStore {
   @action
   async sendActiveMessage(params) {
     let storeRes = regCutString(params.value);
-    let buffer = Buffer.from(stringToByte(storeRes)).toString('base64');
+    let buffer = Buffer.from(stringToByteNoNum(storeRes)).toString('base64');
+    console.log(storeRes, stringToByteNoNum(storeRes), '---logs---');
     await this.devicesInfo.writeCharacteristicWithResponseForService(params.serviceUUID, params.uuid, buffer);
   }
   @action

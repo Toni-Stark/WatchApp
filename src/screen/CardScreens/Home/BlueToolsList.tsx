@@ -9,8 +9,7 @@ import { RightSlideTab } from '../../../component/list/RightSlideTab';
 import AsyncStorage from '@react-native-community/async-storage';
 import { DEVICE_INFO, WEATHER_UPDATE } from '../../../common/constants';
 import { useStore } from '../../../store';
-import { settingName, updateWeather } from '../../../common/watch-module';
-import { arrToByte, getASCodeStr } from '../../../common/tools';
+import { updateWeather } from '../../../common/watch-module';
 
 export const BlueToolsList: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
