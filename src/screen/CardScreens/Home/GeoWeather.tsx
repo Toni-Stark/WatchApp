@@ -37,6 +37,7 @@ export const GeoWeather: ScreenComponent = observer(
     const getWeather = (e) => {
       let weatherUrl = 'https://restapi.amap.com/v3/weather/weatherInfo';
       let webKey = '554ba62e047b6431be1a6042ffd900f2';
+      console.log(e.adCode);
       fetch(`${weatherUrl}?key=${webKey}&extensions=all&city=${e?.adCode}`)
         .then((response) => response.json())
         .then((responseJson) => {

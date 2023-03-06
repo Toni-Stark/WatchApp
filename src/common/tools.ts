@@ -73,6 +73,7 @@ export const getChartStatus = (item): ChartStatus[] => {
 };
 
 export const regCutString = (value): any => {
+  console.log(value);
   let str = value.split(' ');
   let res = str.map((item) => {
     if (item.trim().length <= 1) {
@@ -104,6 +105,18 @@ export const dateTimes = (callback: Function, time = 1000, tag) => {
   timerObject[tag] = setTimeout(() => {
     callback();
   }, time);
+};
+
+export const getAllFixString = (str, count) => {
+  let str1 = ' ';
+  for (let i = 0; i <= count; i++) {
+    if (i !== count) {
+      str1 += '00 ';
+    } else {
+      str1 += '00';
+    }
+  }
+  return str1;
 };
 
 let times: any = null;

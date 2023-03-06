@@ -8,8 +8,6 @@ import { useStore } from '../../../store';
 import { StackBar } from '../../../component/home/StackBar';
 import AsyncStorage from '@react-native-community/async-storage';
 import { DEVICE_INFO } from '../../../common/constants';
-import { getASCodeStr } from '../../../common/tools';
-import { settingName } from '../../../common/watch-module';
 
 export const BlueToothName: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {

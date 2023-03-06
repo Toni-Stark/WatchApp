@@ -9,8 +9,8 @@ import { RightSlideTab } from '../../../component/list/RightSlideTab';
 import AsyncStorage from '@react-native-community/async-storage';
 import { DEVICE_INFO, WEATHER_UPDATE } from '../../../common/constants';
 import { useStore } from '../../../store';
-import { closeSendInfo, passRegSign, settingName, updateWeather } from '../../../common/watch-module';
-import { arrToByte, baseToHex, getASCodeStr, rootByteArr, stringToByte } from '../../../common/tools';
+import { settingName, updateWeather } from '../../../common/watch-module';
+import { arrToByte, getASCodeStr } from '../../../common/tools';
 
 export const BlueToolsList: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -24,11 +24,11 @@ export const BlueToolsList: ScreenComponent = observer(
         cate: 'info',
         type: 'label',
         fun: () => {
-          if (!blueToothStore.readyDevice) return baseView.current.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
-          baseView.current.showLoading({ text: '加载中...' });
+          if (!blueToothStore.readyDevice) return baseView?.current?.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
+          baseView?.current?.showLoading({ text: '加载中...' });
           navigation.navigate('BlueToothDeviceName');
           setTimeout(() => {
-            baseView.current.hideLoading();
+            baseView?.current?.hideLoading();
           }, 100);
         }
       },
@@ -39,11 +39,11 @@ export const BlueToolsList: ScreenComponent = observer(
         cate: 'device',
         type: 'label',
         fun: async () => {
-          // if (!blueToothStore.readyDevice) return baseView.current.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
-          baseView.current.showLoading({ text: '加载中...' });
+          if (!blueToothStore.readyDevice) return baseView?.current?.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
+          baseView?.current?.showLoading({ text: '加载中...' });
           navigation.navigate('BlueToothName');
           setTimeout(() => {
-            baseView.current.hideLoading();
+            baseView?.current?.hideLoading();
           }, 100);
         }
       },
@@ -54,7 +54,7 @@ export const BlueToolsList: ScreenComponent = observer(
         cate: 'device',
         type: 'switch',
         fun: async (e) => {
-          if (!blueToothStore.readyDevice) return baseView.current.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
+          if (!blueToothStore.readyDevice) return baseView?.current?.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
           // baseView.current.showLoading({ text: '加载中...' });
           await blueToothStore.sendActiveMessage(updateWeather(e ? 1 : 0));
           await AsyncStorage.setItem(WEATHER_UPDATE, JSON.stringify(e));
@@ -67,17 +67,32 @@ export const BlueToolsList: ScreenComponent = observer(
         cate: 'device',
         type: 'label',
         fun: async (e) => {
-          if (!blueToothStore.readyDevice) return baseView.current.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
-          baseView.current.showLoading({ text: '加载中...' });
+          // if (!blueToothStore.readyDevice) return baseView.current.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
+          baseView?.current?.showLoading({ text: '加载中...' });
           navigation.navigate('GeoWeather');
           setTimeout(() => {
-            baseView.current.hideLoading();
+            baseView?.current?.hideLoading();
+          }, 100);
+        }
+      },
+      {
+        name: '推送消息',
+        value: '',
+        image: require('../../../assets/home/note.png'),
+        cate: 'device',
+        type: 'label',
+        fun: async (e) => {
+          if (!blueToothStore.readyDevice) return baseView?.current?.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
+          baseView?.current?.showLoading({ text: '加载中...' });
+          navigation.navigate('BlueToothMessage');
+          setTimeout(() => {
+            baseView?.current?.hideLoading();
           }, 100);
         }
       }
     ]);
     useEffect(() => {
-      baseView.current.showLoading({ text: '加载中...' });
+      baseView?.current?.showLoading({ text: '加载中...' });
       AsyncStorage.getItem(WEATHER_UPDATE).then((weather) => {
         let list: any = [...dataList];
         if (!weather) return;
@@ -93,7 +108,7 @@ export const BlueToolsList: ScreenComponent = observer(
           list[0].value = resInfo?.note || '';
           setDataList(list);
           setTimeout(() => {
-            baseView.current.hideLoading();
+            baseView?.current?.hideLoading();
           }, 500);
         });
       });

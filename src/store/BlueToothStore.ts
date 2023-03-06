@@ -256,7 +256,6 @@ export class BlueToothStore {
 
   @action
   async sendActiveMessage(params) {
-    console.log(params);
     let storeRes = regCutString(params.value);
     let buffer = Buffer.from(stringToByte(storeRes)).toString('base64');
     await this.devicesInfo.writeCharacteristicWithResponseForService(params.serviceUUID, params.uuid, buffer);
@@ -580,6 +579,33 @@ export class BlueToothStore {
         }
         return resolve({ success: false });
       });
+    });
+  }
+
+  @action
+  async sendMessageOfDevice(params): Promise<any> {
+    return new Promise(async (resolve) => {
+      // let str = 'abcdefghijklmnjklfjalsdfasdfsfsdfsdf';
+      let str = params.name;
+      let timesCount = Math.ceil(str.length / 14);
+
+      for (let i = 1; i <= timesCount; i++) {
+        let brr = [-62, 17];
+        brr[2] = str.length;
+        brr[3] = timesCount;
+        brr[4] = i;
+        brr[5] = 2;
+        let msg = str.slice((i - 1) * 14, 14 * i);
+        let message = getASCodeStr(msg);
+        let result = arrToByte(brr) + ' ' + message;
+        const obj = {
+          value: result,
+          serviceUUID: 'f0080001-0451-4000-B000-000000000000',
+          uuid: 'f0080003-0451-4000-B000-000000000000'
+        };
+        await this.sendActiveMessage(obj);
+      }
+      return resolve({ success: true, text: '推送成功' });
     });
   }
 

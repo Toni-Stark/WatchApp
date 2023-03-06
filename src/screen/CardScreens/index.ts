@@ -20,6 +20,7 @@ import { BlueToothDeviceName } from './Home/BlueToothDeviceName';
 import { BlueToolsList } from './Home/BlueToolsList';
 import { BlueToothName } from './Home/BlueToothName';
 import { GeoWeather } from './Home/GeoWeather';
+import { BlueToothMessage } from './Home/BlueToothMessage';
 
 export type ScreensParamList = {
   Login: { message?: string };
@@ -47,5 +48,6 @@ export const CardScreens: Array<ScreenList> = [
   { name: 'BlueToothDeviceName', component: BlueToothDeviceName },
   { name: 'BlueToolsList', component: BlueToolsList },
   { name: 'BlueToothName', component: BlueToothName },
-  { name: 'GeoWeather', component: GeoWeather }
+  { name: 'GeoWeather', component: GeoWeather },
+  { name: 'BlueToothMessage', component: BlueToothMessage }
 ];
