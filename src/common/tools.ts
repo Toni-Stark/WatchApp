@@ -169,6 +169,40 @@ export const getASCodeStr = (str) => {
   return arr.toString().replace(/,/g, ' ');
 };
 
+export const getUniCodeStr = (str) => {
+  let ch,
+    st,
+    re = [];
+  for (let i = 0; i < str.length; i++) {
+    ch = str.charCodeAt(i);
+    st = [];
+    do {
+      st.push(ch & 0xff);
+      ch = ch >> 8;
+    } while (ch);
+    re = re.concat(st.reverse());
+  }
+  return re;
+};
+export const getBytesList = (str) => {
+  let result: any = [];
+  let k = 0;
+  for (let i = 0; i < str.length; i++) {
+    let j = encodeURI(str[i]);
+    if (j.length === 1) {
+      // 未转换的字符
+      result[k++] = j.charCodeAt(0);
+    } else {
+      // 转换成%XX形式的字符
+      let bytes = j.split('%');
+      for (let l = 1; l < bytes.length; l++) {
+        result[k++] = parseInt('0x' + bytes[l]);
+      }
+    }
+  }
+  return result;
+};
+
 // 10进制16进制转换
 export const strToHex = (num): string => {
   if (num > -128 && num < 0) return (256 + num).toString(16);

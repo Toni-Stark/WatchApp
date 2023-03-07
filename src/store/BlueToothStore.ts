@@ -1,7 +1,19 @@
 import { action, makeAutoObservable, observable } from 'mobx';
 import AsyncStorage from '@react-native-community/async-storage';
 import { DEVICE_DATA, DEVICE_INFO, NEAR_FUTURE, TOKEN_NAME, UPDATE_TIME } from '../common/constants';
-import { arrToByte, baseToHex, dateTimes, eventTimer, getASCodeStr, getMinTen, regCutString, stringToByte, stringToByteNoNum } from '../common/tools';
+import {
+  arrToByte,
+  baseToHex,
+  dateTimes,
+  eventTimer,
+  getASCodeStr,
+  getBytesList,
+  getMinTen,
+  getUniCodeStr,
+  regCutString,
+  stringToByte,
+  stringToByteNoNum
+} from '../common/tools';
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
 import moment from 'moment';
@@ -257,8 +269,7 @@ export class BlueToothStore {
   @action
   async sendActiveMessage(params) {
     let storeRes = regCutString(params.value);
-    let buffer = Buffer.from(stringToByteNoNum(storeRes)).toString('base64');
-    console.log(storeRes, stringToByteNoNum(storeRes), '---logs---');
+    let buffer = Buffer.from(stringToByte(storeRes)).toString('base64');
     await this.devicesInfo.writeCharacteristicWithResponseForService(params.serviceUUID, params.uuid, buffer);
   }
   @action
@@ -561,7 +572,10 @@ export class BlueToothStore {
   @action
   async changeDeviceName(params): Promise<any> {
     return new Promise(async (resolve) => {
-      let str = params.name;
+      let str = getBytesList(params.name);
+      if (str?.length > 18) {
+        str = str.slice(0, 18);
+      }
       let completion = 18 - str.length;
       let str1 = ' ';
       for (let i = 1; i <= completion; i++) {
@@ -571,12 +585,11 @@ export class BlueToothStore {
           str1 += '00';
         }
       }
-
-      let msg = getASCodeStr(str) + str1;
-      await this.sendActiveMessage(settingName(msg));
-      this.bindUserDevice({ name: str }).then((res) => {
+      let message = arrToByte(str) + str1;
+      await this.sendActiveMessage(settingName(message));
+      this.bindUserDevice({ name: params.name }).then((res) => {
         if (res.success) {
-          return resolve({ name: str, success: true });
+          return resolve({ name: params.name, success: true });
         }
         return resolve({ success: false });
       });
@@ -586,19 +599,21 @@ export class BlueToothStore {
   @action
   async sendMessageOfDevice(params): Promise<any> {
     return new Promise(async (resolve) => {
-      // let str = 'abcdefghijklmnjklfjalsdfasdfsfsdfsdf';
-      let str = params.name;
+      let str = getBytesList(params.name);
+      if (str?.length > 280) {
+        str = str.slice(0, 280);
+      }
       let timesCount = Math.ceil(str.length / 14);
 
       for (let i = 1; i <= timesCount; i++) {
+        let msg = str.slice((i - 1) * 14, 14 * i);
         let brr = [-62, 17];
-        brr[2] = str.length;
+        brr[2] = msg.length;
         brr[3] = timesCount;
         brr[4] = i;
         brr[5] = 2;
-        let msg = str.slice((i - 1) * 14, 14 * i);
-        let message = getASCodeStr(msg);
-        let result = arrToByte(brr) + ' ' + message;
+        let result = arrToByte(brr) + ' ' + arrToByte(msg);
+        console.log(result, 'result', msg);
         const obj = {
           value: result,
           serviceUUID: 'f0080001-0451-4000-B000-000000000000',
@@ -716,16 +731,16 @@ export class BlueToothStore {
         if (res.code !== 200) {
           return resolve({ msg: res.msg, success: false });
         }
-        let need = !data.device_list.find((item) => item.device_mac === this.devicesInfo.id) || data.device_list.length <= 0;
+        let need = !data?.device_list.find((item) => item.device_mac === this.devicesInfo.id) || data.device_list.length <= 0;
         if (need) {
           this.bindUserDevice().then(() => {
-            return resolve({ success: true, data: data.device_list });
+            return resolve({ success: true, data: data?.device_list });
           });
         }
-        this.readyDevice = data.device_list.find((item) => item.device_mac === this.devicesInfo.id);
+        this.readyDevice = data?.device_list?.find((item) => item.device_mac === this.devicesInfo.id);
       }
       if (!bool) {
-        return resolve({ success: true, data: data.device_list });
+        return resolve({ success: true, data: data?.device_list });
       }
     });
   }
@@ -806,10 +821,12 @@ export class BlueToothStore {
         },
         withToken: true
       });
-      if (res.code !== 200) {
-        return resolve({ msg: res.msg, success: false });
-      }
-      return resolve({ msg: '绑定成功', success: true });
+      setTimeout(() => {
+        if (res.code !== 200) {
+          return resolve({ msg: res.msg, success: false });
+        }
+        return resolve({ msg: '绑定成功', success: true });
+      }, 800);
     });
   }
 

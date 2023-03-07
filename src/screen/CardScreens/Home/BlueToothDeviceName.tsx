@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { DeviceEventEmitter, StyleSheet, TextInput, View } from 'react-native';
+import { DeviceEventEmitter, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { ScreenComponent } from '../../index';
 import BaseView from '../../../component/BaseView';
 import { tw } from 'react-native-tailwindcss';
@@ -8,6 +8,7 @@ import { useStore } from '../../../store';
 import { StackBar } from '../../../component/home/StackBar';
 import AsyncStorage from '@react-native-community/async-storage';
 import { DEVICE_INFO } from '../../../common/constants';
+import LinearGradient from 'react-native-linear-gradient';
 
 export const BlueToothDeviceName: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -75,8 +76,23 @@ export const BlueToothDeviceName: ScreenComponent = observer(
       <BaseView ref={baseView}>
         <View style={[tw.flex1, tw.textCenter]}>
           <StackBar title="设备备注" onBack={() => backScreen()} />
-          <View style={styles.headerLabel}>
-            <TextInput style={styles.headerInput} placeholder="设置备注" value={data.text} onChangeText={changeText} onEndEditing={currentSubmit} />
+          <View style={styles.contextView}>
+            <View>
+              <View style={styles.headerLabel}>
+                <TextInput style={styles.headerInput} placeholder="设置备注" value={data.text} onChangeText={changeText} onEndEditing={currentSubmit} />
+              </View>
+            </View>
+            <TouchableOpacity style={styles.touchView} onPress={currentSubmit}>
+              <LinearGradient
+                colors={['#07bec4', '#07bec5']}
+                style={styles.touchStyle}
+                start={{ x: 0.3, y: 0.75 }}
+                end={{ x: 0.9, y: 1.0 }}
+                locations={[0.1, 0.8]}
+              >
+                <Text style={styles.touchText}>保存</Text>
+              </LinearGradient>
+            </TouchableOpacity>
           </View>
         </View>
       </BaseView>
@@ -85,7 +101,12 @@ export const BlueToothDeviceName: ScreenComponent = observer(
 );
 
 let color1 = '#9e9e9e';
+let color3 = '#ffffff';
 export const styles = StyleSheet.create({
+  contextView: {
+    flex: 1,
+    justifyContent: 'space-between'
+  },
   headerInput: {
     borderBottomWidth: 1,
     borderColor: color1
@@ -94,5 +115,21 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     width: '100%'
+  },
+  touchStyle: {
+    alignItems: 'center',
+    backgroundColor: color1,
+    borderRadius: 5,
+    marginBottom: 50,
+    marginTop: 15,
+    padding: 15
+  },
+  touchText: {
+    color: color3,
+    fontSize: 15,
+    fontWeight: 'bold'
+  },
+  touchView: {
+    margin: 20
   }
 });

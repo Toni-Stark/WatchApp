@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AppState, BackHandler, RefreshControl, ScrollView, StatusBar, StyleSheet, Text, ToastAndroid, TouchableOpacity, View } from 'react-native';
+import { AppState, BackHandler, Linking, RefreshControl, ScrollView, StatusBar, StyleSheet, Text, ToastAndroid, TouchableOpacity, View } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import moment from 'moment';
 import BackgroundFetch from 'react-native-background-fetch';
@@ -21,6 +21,7 @@ import { HeaderBar } from '../component/home/HeaderBar';
 import { arrCount, arrToByte, eventTimes, getMinTen, hasAndroidPermission } from '../common/tools';
 import { StatusText } from '../component/home/StatusText';
 import { Hexagon } from '../component/home/Hexagon';
+import BackgroundService from 'react-native-background-actions';
 
 let type = 0;
 
@@ -185,6 +186,53 @@ export const Home: ScreenComponent = observer(
       }
     };
 
+    const options = {
+      taskName: '智能手表',
+      taskTitle: '正在运行中',
+      taskDesc: '运动数据实时检测中',
+      taskIcon: {
+        name: 'ic_launcher',
+        type: 'mipmap'
+      },
+      color: '#ff00ff',
+      linkingURI: 'youlu://com.cqqgsafe.watch', // See Deep Linking for more info
+      parameters: {
+        delay: 300000
+      }
+    };
+
+    const veryIntensiveTask = async (taskDataArguments) => {
+      const { delay } = taskDataArguments;
+      await new Promise(async (resolve) => {
+        for (let i = 0; BackgroundService.isRunning(); i++) {
+          // settingStore.getDeviceUpdate().then((res) => {
+          //   blueToothStore.devicesTimes = blueToothStore.devicesTimes + 1;
+          //   console.log(blueToothStore.devicesTimes);
+          // });
+          await sleep(delay);
+        }
+      });
+    };
+
+    const sleep = (time) =>
+      new Promise((resolve) =>
+        setTimeout(() => {
+          blueToothStore.getMsgUpload();
+          // let str = new Date().getTime().toString();
+          // settingStore.count = str.slice(str.length - 3, str.length);
+          resolve();
+        }, time)
+      );
+
+    const showBackgroundActions = async () => {
+      Linking.addEventListener('url', handleOpenURL);
+      await BackgroundService.start(veryIntensiveTask, options);
+    };
+
+    const handleOpenURL = (e) => {
+      console.log(e, 'url-link');
+    };
+
     const setBackgroundServer = async () => {
       let timer: any = null;
       if (hasBack) return;
@@ -201,10 +249,12 @@ export const Home: ScreenComponent = observer(
           await setHasBack(true);
           blueToothStore.backgroundActive = true;
           if (type) return;
-          await initBackgroundFetch();
+          // await initBackgroundFetch();
+          await showBackgroundActions();
         }
         if (e === 'active') {
           blueToothStore.backgroundActive = false;
+          await BackgroundService.stop();
           clearInterval(timer);
           timer = null;
           timer = setInterval(() => {
@@ -528,6 +578,11 @@ export const Home: ScreenComponent = observer(
             end={{ x: 0.5, y: 1.0 }}
             locations={[0.2, 0.7, 0.5, 0.2]}
           >
+            {device?.name ? (
+              <TouchableOpacity onPress={addEval} style={styles.evalButton}>
+                <Text style={styles.evalName}>操作</Text>
+              </TouchableOpacity>
+            ) : null}
             <View style={styles.headerStart}>
               {device?.id ? (
                 <View style={styles.imageView}>
@@ -544,9 +599,6 @@ export const Home: ScreenComponent = observer(
                       <Text ellipsizeMode="middle" numberOfLines={1} style={styles.userName} onLongPress={onLongPress}>
                         {blueToothStore.getEvalName()}
                       </Text>
-                      <TouchableOpacity onPress={addEval} style={styles.evalButton}>
-                        <Text style={styles.evalName}>操作</Text>
-                      </TouchableOpacity>
                     </View>
                   ) : (
                     <Text style={styles.userName}>{/*蓝牙手表App*/}</Text>
@@ -602,7 +654,7 @@ export const Home: ScreenComponent = observer(
                     if (!blueToothStore.refreshing && blueToothStore.devicesInfo) {
                       return item.fun && item.fun();
                     }
-                    baseView.current.showToast({ text: '请先连接设备', delay: 2 });
+                    // baseView.current.showToast({ text: '请先连接设备', delay: 2 });
                   }}
                 >
                   <LinearGradient
@@ -678,8 +730,6 @@ export const Home: ScreenComponent = observer(
         {/*<TouchableOpacity*/}
         {/*  onPress={() => {*/}
         {/*    blueToothStore.devicesTimes = 0;*/}
-        {/*    // NativeModules.BaseJSBridgeAndroid.testAndroidToast('调用android端方法');*/}
-        {/*    NativeModules.ToastExample.show('数据发生变化', NativeModules.ToastExample.SHORT);*/}
         {/*  }}*/}
         {/*>*/}
         {/*  <Text>+++{blueToothStore.devicesTimes}+++</Text>*/}
@@ -754,7 +804,8 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     flex: 1,
     paddingHorizontal: 20,
-    paddingTop: 20
+    paddingTop: 20,
+    position: 'relative'
   },
   cardStart: {
     alignItems: 'center',
@@ -799,9 +850,13 @@ const styles = StyleSheet.create({
   },
   evalButton: {
     backgroundColor: color8,
-    borderRadius: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 3
+    borderBottomLeftRadius: 15,
+    borderTopRightRadius: 15,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    position: 'absolute',
+    right: 0,
+    top: 0
   },
   evalName: {
     color: color3,
@@ -823,14 +878,6 @@ const styles = StyleSheet.create({
   },
   footerText: {
     marginTop: 3
-  },
-  header: {
-    alignItems: 'center',
-    backgroundColor: color1,
-    height: 260,
-    justifyContent: 'center',
-    position: 'relative',
-    width: '100%'
   },
   headerContent: {
     flexDirection: 'column',

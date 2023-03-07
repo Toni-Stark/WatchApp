@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { DeviceEventEmitter, StyleSheet, Text, TextInput, View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { ScreenComponent } from '../../index';
 import BaseView from '../../../component/BaseView';
 import { tw } from 'react-native-tailwindcss';
@@ -18,13 +18,8 @@ export const BlueToothMessage: ScreenComponent = observer(
     };
 
     const currentSubmit = async () => {
-      let reg = /^([a-zA-Z]|[0-9]){1,280}$/;
-      if (!data.name.match(reg)) {
-        baseView?.current?.showToast({ text: '请输入符合规范的字符', delay: 1.5 });
-        return;
-      }
       let params = {
-        id: blueToothStore.devicesInfo.id,
+        id: blueToothStore?.devicesInfo?.id,
         name: data.name
       };
       baseView?.current?.showLoading({ text: '发送数据...' });
@@ -32,6 +27,7 @@ export const BlueToothMessage: ScreenComponent = observer(
         baseView?.current?.hideLoading();
         console.log(res);
         if (res.success) {
+          setData({ name: '' });
           baseView?.current?.showToast({ text: res.text, delay: 1.5 });
         }
       });
@@ -43,19 +39,23 @@ export const BlueToothMessage: ScreenComponent = observer(
 
     return (
       <BaseView ref={baseView}>
-        <View style={[tw.flex1, tw.textCenter]}>
+        <View style={[tw.flex1, tw.textCenter, { backgroundColor: color4 }]}>
           <StackBar title="推送消息到手表" onBack={() => backScreen()} />
-          <View style={styles.headerLabel}>
-            <TextInput
-              style={styles.headerInput}
-              placeholder="请输入手表要接收的信息"
-              value={data.name}
-              onChangeText={changeText}
-              onEndEditing={currentSubmit}
-            />
-          </View>
-          <View style={styles.tipsView}>
-            <Text style={styles.tips}>提示：数字、英文字符大小写，不超过280个字符。</Text>
+          <View style={styles.labelCard}>
+            <View style={styles.headerLabel}>
+              <TextInput
+                style={styles.headerInput}
+                placeholder="请输入手表要接收的信息"
+                clearTextOnFocus={true}
+                multiline={true}
+                numberOfLines={10}
+                value={data.name}
+                onChangeText={changeText}
+              />
+            </View>
+            <TouchableOpacity style={styles.tipsView} onPress={currentSubmit}>
+              <Text style={styles.tips}>推送消息</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </BaseView>
@@ -63,21 +63,35 @@ export const BlueToothMessage: ScreenComponent = observer(
   }
 );
 
-let color1 = '#9e9e9e';
+let color1 = '#00D1DE';
+let color3 = '#ffffff';
+let color4 = '#f2f2f2';
 export const styles = StyleSheet.create({
   headerInput: {
-    borderBottomWidth: 1,
-    borderColor: color1
+    textAlignVertical: 'top'
   },
   headerLabel: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingHorizontal: 10,
     width: '100%'
   },
-  tipsView: {
-    paddingHorizontal: 20
+  labelCard: {
+    backgroundColor: color3,
+    borderRadius: 8,
+    margin: 20
   },
   tips: {
-    fontSize: 13
+    color: color3,
+    fontSize: 15
+  },
+  tipsView: {
+    alignItems: 'center',
+    backgroundColor: color1,
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
+    borderTopColor: color4,
+    borderTopWidth: 4,
+    justifyContent: 'center',
+    paddingLeft: 10,
+    paddingVertical: 12
   }
 });

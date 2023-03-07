@@ -3763,6 +3763,11 @@ eventemitter3@^3.0.0:
   resolved "https://registry.npmjs.org/eventemitter3/-/eventemitter3-3.1.2.tgz#2d3d48f9c346698fce83a85d7d664e98535df6e7"
   integrity sha512-tvtQIeLVHjDkJYnzf2dgVMxfuSGJeM/7UCG17TT4EumTfNtF+0nebF/4zWOIkCreAbtNqhGEboB6BWrwqNaw4Q==
 
+eventemitter3@^4.0.7:
+  version "4.0.7"
+  resolved "https://registry.npmmirror.com/eventemitter3/-/eventemitter3-4.0.7.tgz#2de9b68f6528d5644ef5c59526a1b4a07306169f"
+  integrity sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw==
+
 events@1.0.1:
   version "1.0.1"
   resolved "https://registry.npm.taobao.org/events/download/events-1.0.1.tgz?cache=0&sync_timestamp=1595422555438&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fevents%2Fdownload%2Fevents-1.0.1.tgz#386f6471cbb609e7925e7bfe7468634b9e069ac2"
@@ -7104,6 +7109,13 @@ react-native-animated-spinkit@^1.4.1:
   version "1.4.1"
   resolved "https://registry.npmjs.org/react-native-animated-spinkit/-/react-native-animated-spinkit-1.4.1.tgz#dfad4de395be4b92bbb5b2f636177aa9e3454a78"
   integrity sha512-Cb0r2jPQsOR278mrXCJz1sT3jIy06gNr1nPhwQCVHzw+f0XtypWgH1aa83fNtiSk6747jRQprf8/2J6PD7W4bg==
+
+react-native-background-actions@2.6.7:
+  version "2.6.7"
+  resolved "https://registry.npmmirror.com/react-native-background-actions/-/react-native-background-actions-2.6.7.tgz#01637518814aa957b877bf8117cee01266d67f43"
+  integrity sha512-qjHeks9EbLIXeb2xn3AR0eLVlUh/sAboKt0tI3ZN8leEEL1xmZUvpbk0fN6RKRpxpv7ATVHgWjGMK1FNoYh+Ug==
+  dependencies:
+    eventemitter3 "^4.0.7"
 
 react-native-background-fetch@4.1.0:
   version "4.1.0"

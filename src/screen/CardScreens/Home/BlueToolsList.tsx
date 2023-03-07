@@ -34,7 +34,7 @@ export const BlueToolsList: ScreenComponent = observer(
       {
         name: '设备名称',
         value: '',
-        image: require('../../../assets/home/note.png'),
+        image: require('../../../assets/home/setting.png'),
         cate: 'device',
         type: 'label',
         fun: async () => {
@@ -49,7 +49,7 @@ export const BlueToolsList: ScreenComponent = observer(
       {
         name: '天气更新',
         value: '',
-        image: require('../../../assets/home/note.png'),
+        image: require('../../../assets/home/open-btn.png'),
         cate: 'device',
         type: 'switch',
         fun: async (e) => {
@@ -62,7 +62,7 @@ export const BlueToolsList: ScreenComponent = observer(
       {
         name: '天气预报',
         value: '',
-        image: require('../../../assets/home/note.png'),
+        image: require('../../../assets/home/weather.png'),
         cate: 'device',
         type: 'label',
         fun: async (e) => {
@@ -77,7 +77,7 @@ export const BlueToolsList: ScreenComponent = observer(
       {
         name: '推送消息',
         value: '',
-        image: require('../../../assets/home/note.png'),
+        image: require('../../../assets/home/message.png'),
         cate: 'device',
         type: 'label',
         fun: async (e) => {
@@ -102,7 +102,7 @@ export const BlueToolsList: ScreenComponent = observer(
         let list: any = [...dataList];
         AsyncStorage.getItem(DEVICE_INFO).then((info) => {
           let result: any = typeof info === 'string' ? JSON.parse(info) : '';
-          let resInfo: any = res.data.find((item) => item.device_mac === result.deviceID);
+          let resInfo: any = res?.data?.find((item) => item.device_mac === result.deviceID);
           list[1].value = resInfo?.device_name || result.name;
           list[0].value = resInfo?.note || '';
           setDataList(list);
