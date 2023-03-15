@@ -51,9 +51,9 @@ const styles = StyleSheet.create({
     width: 50
   },
   labelIcon: {
+    borderRadius: 200,
     height: 46,
-    width: 46,
-    borderRadius: 200
+    width: 46
   },
   labelView: {
     alignItems: 'center',

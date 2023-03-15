@@ -103,6 +103,7 @@ export class BlueToothStore {
   @observable readyDevice: any = undefined;
   @observable activeDeviceConnect: boolean = false;
   @observable devicesTimes: number = 0;
+  @observable aloneTimes: number = 0;
   @observable nearFuture: number = 0;
   @observable baseView: any = null;
 
@@ -197,13 +198,16 @@ export class BlueToothStore {
   async getMsgUpload() {
     await this.backDeviceData();
   }
-
+  @action
+  async aloneUpdate() {
+    this.aloneTimes = this.aloneTimes + 1;
+  }
   @action
   async backDeviceData() {
     this.devicesTimes = this.devicesTimes + 1;
-    await this.sendActiveMessage(batterySign);
-    await this.sendActiveMessage(allDataSleep(0));
-    await this.sendActiveMessage(allDataC(0));
+    // await this.sendActiveMessage(batterySign);
+    // await this.sendActiveMessage(allDataSleep(0));
+    // await this.sendActiveMessage(allDataC(0));
   }
 
   @action

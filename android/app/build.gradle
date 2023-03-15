@@ -210,6 +210,8 @@ dependencies {
 
     compile project(':react-native-exit-app')
 
+    compile project(':react-native-background-job')
+
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
 
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {

@@ -727,13 +727,16 @@ export const Home: ScreenComponent = observer(
           }
         />
         {renderContext}
-        {/*<TouchableOpacity*/}
-        {/*  onPress={() => {*/}
-        {/*    blueToothStore.devicesTimes = 0;*/}
-        {/*  }}*/}
-        {/*>*/}
-        {/*  <Text>+++{blueToothStore.devicesTimes}+++</Text>*/}
-        {/*</TouchableOpacity>*/}
+        <TouchableOpacity
+          onPress={() => {
+            blueToothStore.devicesTimes = 0;
+            blueToothStore.aloneTimes = 0;
+          }}
+        >
+          <Text>
+            +++{blueToothStore.devicesTimes}---{blueToothStore.aloneTimes}+++
+          </Text>
+        </TouchableOpacity>
         <View style={{ height: 65 }} />
       </BaseView>
     );

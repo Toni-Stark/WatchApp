@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { View, ScrollView, StyleSheet, TouchableOpacity, Text, Platform } from 'react-native';
 import BaseView from '../../../component/BaseView';
 import { useStore } from '../../../store';
 import { tw } from 'react-native-tailwindcss';
@@ -8,6 +8,7 @@ import { observer } from 'mobx-react-lite';
 import { ScreenComponent } from '../../index';
 import FastImage from 'react-native-fast-image';
 import { StackBar } from '../../../component/home/StackBar';
+import BackgroundJob from 'react-native-background-job';
 
 export const WatchStyleSetting: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -34,8 +35,35 @@ export const WatchStyleSetting: ScreenComponent = observer(
     };
 
     const navigateToDevice = async (item) => {
-      // navigation.navigate('ClockDial', {});
-      // blueToothStore.sendActiveMessage(allDataC);
+      if (Platform.OS === 'android') {
+        const backgroundJob = {
+          jobKey: 'backgroundDownloadTask',
+          job: () => {
+            console.log('background is running');
+            blueToothStore.aloneUpdate();
+            settingStore.getDeviceUpdate().then((res) => {
+              console.log(res, blueToothStore.devicesTimes, blueToothStore.aloneTimes);
+              blueToothStore.getMsgUpload();
+            });
+          }
+        };
+        BackgroundJob.register(backgroundJob);
+        setTimeout(() => {
+          BackgroundJob.schedule({
+            jobKey: 'backgroundDownloadTask', //后台运行任务的key
+            notificationText: '实时更新数据',
+            notificationTitle: '智能蓝牙手表',
+            period: 4000, //任务执行周期
+            timeout: 17000,
+            persist: true,
+            // requiresDeviceIdle: false,
+            // requiresCharging: false,
+            exact: true, //安排一个作业在提供的时间段内准确执行
+            allowWhileIdle: true //允许计划作业在睡眠模式下执行
+            // allowExecutionInForeground: false //允许任务在前台执行
+          });
+        }, 1000);
+      }
     };
     const backScreen = () => {
       navigation.goBack();
@@ -48,7 +76,7 @@ export const WatchStyleSetting: ScreenComponent = observer(
       return (
         <ScrollView style={[tw.flex1, [{ marginBottom: 60 }]]}>
           <View style={styles.moduleView}>
-            <Text style={styles.mainText}>我的设备</Text>
+            <Text style={styles.mainText}>已绑定的设备</Text>
             {switchList.map((item, index) => {
               return (
                 <TouchableOpacity
@@ -81,7 +109,7 @@ export const WatchStyleSetting: ScreenComponent = observer(
 
     return (
       <BaseView ref={baseView} style={[tw.flex1, [{ backgroundColor: 'blue' }]]}>
-        <StackBar title="已绑定的设备" onBack={() => backScreen()} />
+        <StackBar title="我的设备" onBack={() => backScreen()} />
         {renderContent}
       </BaseView>
     );
