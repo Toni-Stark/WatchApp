@@ -12,6 +12,9 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import { SERVER_URL } from '../../../common/app.config';
 import Spinkit from 'react-native-spinkit';
 import { UserStore } from '../../../store/UserStore';
+import { eventTimes } from '../../../common/tools';
+
+let timer = true; // 连点管理器
 
 export const BindingInfo: ScreenComponent = observer(
   ({ navigation, route }): JSX.Element => {
@@ -46,6 +49,7 @@ export const BindingInfo: ScreenComponent = observer(
     }, []);
 
     const checkCode = (info) => {
+      setRefresh(true);
       blueToothStore.getDeviceBindInfo({ id: info?.id }).then((result) => {
         if (!result.success) {
           baseView.current.hideLoading();
@@ -105,8 +109,16 @@ export const BindingInfo: ScreenComponent = observer(
     };
 
     const refreshCodes = () => {
-      setRefresh(true);
-      checkCode({ id: value });
+      if (timer) {
+        timer = false;
+        setRefresh(true);
+        checkCode({ id: value });
+        setTimeout(() => {
+          timer = true;
+        }, 3000);
+        return;
+      }
+      baseView.current?.showToast({ text: '刷新太快了', delay: 1 });
     };
 
     const loadImage = () => {
@@ -117,6 +129,7 @@ export const BindingInfo: ScreenComponent = observer(
     const renderImage: any = useMemo(() => {
       const url = SERVER_URL + '/qr-code/wechat?data=' + codeInfo?.qr_str;
       console.log(url, 'strUrl');
+
       if (codeInfo?.qr_str) {
         return <FastImage style={[styles.fastImage, [{}]]} onLoad={loadImage} resizeMode="stretch" source={{ uri: url }} />;
       }

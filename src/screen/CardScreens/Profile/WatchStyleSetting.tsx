@@ -69,7 +69,6 @@ export const WatchStyleSetting: ScreenComponent = observer(
                         <Text style={styles.evalText}>{item.value}</Text>
                       </View>
                     </View>
-                    {/*<FastImage style={styles.deviceIcon} source={require('../../../assets/home/right-gray.png')} resizeMode={FastImage.resizeMode.cover} />*/}
                   </View>
                 </TouchableOpacity>
               );
@@ -82,48 +81,36 @@ export const WatchStyleSetting: ScreenComponent = observer(
 
     return (
       <BaseView ref={baseView} style={[tw.flex1, [{ backgroundColor: 'blue' }]]}>
-        <StackBar title="我的设备" onBack={() => backScreen()} />
+        <StackBar title="已绑定的设备" onBack={() => backScreen()} />
         {renderContent}
       </BaseView>
     );
   }
 );
 
+const color1 = '#a6a6a6';
+const color2 = '#e3e3e3';
 const styles = StyleSheet.create({
-  placeText: {
-    fontSize: 17
+  deviceIcon: {
+    height: 20,
+    width: 20
+  },
+  evalText: {
+    fontSize: 13,
+    marginLeft: 15,
+    marginTop: 5
   },
   headerStart: {
     flexDirection: 'row'
   },
-  moduleView: {
-    padding: 20
-  },
-  mainText: {
-    color: '#a6a6a6',
-    fontSize: 16,
-    marginBottom: 10
-  },
-  labelView: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    paddingVertical: 15
-  },
-  labelTop: {
-    borderColor: '#e3e3e3',
-    borderStyle: 'solid',
-    borderTopWidth: 1
-  },
   labelBottom: {
     borderBottomWidth: 1,
-    borderColor: '#e3e3e3',
+    borderColor: color2,
     borderStyle: 'solid'
   },
-  startLabel: {
-    alignItems: 'center',
-    flexDirection: 'row'
+  labelContext: {
+    flex: 1,
+    justifyContent: 'space-between'
   },
   labelIcon: {
     height: 25,
@@ -133,17 +120,31 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginLeft: 15
   },
-  deviceIcon: {
-    height: 20,
-    width: 20
+  labelTop: {
+    borderColor: color2,
+    borderStyle: 'solid',
+    borderTopWidth: 1
   },
-  labelContext: {
-    flex: 1,
-    justifyContent: 'space-between'
+  labelView: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    paddingVertical: 15
   },
-  evalText: {
-    fontSize: 13,
-    marginLeft: 15,
-    marginTop: 5
+  mainText: {
+    color: color1,
+    fontSize: 16,
+    marginBottom: 10
+  },
+  moduleView: {
+    padding: 20
+  },
+  placeText: {
+    fontSize: 17
+  },
+  startLabel: {
+    alignItems: 'center',
+    flexDirection: 'row'
   }
 });

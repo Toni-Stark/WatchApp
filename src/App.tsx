@@ -4,7 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { enableScreens } from 'react-native-screens';
 import AsyncStorage from '@react-native-community/async-storage';
 import * as RNLocalize from 'react-native-localize';
-import { StatusBar, TextInput, Text, BackHandler, ToastAndroid } from 'react-native';
+import { StatusBar, TextInput, Text, BackHandler, ToastAndroid, View } from 'react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { NavigatorStack } from './screen';
 import { APP_LANGUAGE, NEAR_FUTURE, TOKEN_NAME } from './common/constants';
@@ -15,6 +15,8 @@ import { observer, Observer } from 'mobx-react-lite';
 import BluetoothStateManager from 'react-native-bluetooth-state-manager';
 import RNBootSplash from 'react-native-bootsplash';
 import RNExitApp from 'react-native-exit-app';
+import SideMenu from 'react-native-side-menu';
+import { LayoutMenu } from './screen/LayoutMenu';
 
 const App = observer(() => {
   const { systemStore, blueToothStore, settingStore } = useStore();
@@ -125,9 +127,11 @@ const App = observer(() => {
   return (
     <Observer>
       {() => (
-        <SafeAreaProvider>
+        <SafeAreaProvider style={{ backgroundColor: '#00D1DE' }}>
           <StatusBar backgroundColor="#66b8ae" barStyle={'light-content'} hidden={false} />
-          <PaperProvider theme={systemStore.colorMode === 'dark' ? darkTheme : theme}>{showScreens()}</PaperProvider>
+          <PaperProvider theme={systemStore.colorMode === 'dark' ? darkTheme : theme}>
+            <SideMenu menu={LayoutMenu()}>{showScreens()}</SideMenu>
+          </PaperProvider>
         </SafeAreaProvider>
       )}
     </Observer>
