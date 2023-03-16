@@ -39,7 +39,8 @@ export const WatchStyleSetting: ScreenComponent = observer(
         const backgroundJob = {
           jobKey: 'backgroundDownloadTask',
           job: () => {
-            console.log('background is running');
+            console.log('尝试启动后台服务');
+            // BackgroundJob.cancel({ jobKey: 'backgroundDownloadTask' }).then(() => console.log('Success'));
             blueToothStore.aloneUpdate();
             settingStore.getDeviceUpdate().then((res) => {
               console.log(res, blueToothStore.devicesTimes, blueToothStore.aloneTimes);
@@ -48,21 +49,25 @@ export const WatchStyleSetting: ScreenComponent = observer(
           }
         };
         BackgroundJob.register(backgroundJob);
-        setTimeout(() => {
-          BackgroundJob.schedule({
-            jobKey: 'backgroundDownloadTask', //后台运行任务的key
-            notificationText: '实时更新数据',
-            notificationTitle: '智能蓝牙手表',
-            period: 4000, //任务执行周期
-            timeout: 17000,
-            persist: true,
-            // requiresDeviceIdle: false,
-            // requiresCharging: false,
-            exact: true, //安排一个作业在提供的时间段内准确执行
-            allowWhileIdle: true //允许计划作业在睡眠模式下执行
-            // allowExecutionInForeground: false //允许任务在前台执行
-          });
-        }, 1000);
+        BackgroundJob.isAppIgnoringBatteryOptimization((error, ignoringOptimization) => {
+          console.log(ignoringOptimization);
+        });
+        // setTimeout(() => {
+        BackgroundJob.schedule({
+          jobKey: 'backgroundDownloadTask', //后台运行任务的key
+          notificationText: '启动后台',
+          notificationTitle: '智能蓝牙手表',
+          period: 4000, //任务执行周期
+          timeout: 5000,
+          persist: true,
+          override: true,
+          // requiresDeviceIdle: false,
+          // requiresCharging: false,
+          exact: true, //安排一个作业在提供的时间段内准确执行
+          allowWhileIdle: true //允许计划作业在睡眠模式下执行
+          // allowExecutionInForeground: false //允许任务在前台执行
+        });
+        // }, 1000);
       }
     };
     const backScreen = () => {
