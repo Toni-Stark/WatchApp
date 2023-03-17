@@ -1,25 +1,16 @@
 import { action, makeAutoObservable, observable } from 'mobx';
 import AsyncStorage from '@react-native-community/async-storage';
-import { DEVICE_DATA, DEVICE_INFO, NEAR_FUTURE, TOKEN_NAME, UPDATE_TIME } from '../common/constants';
-import {
-  arrToByte,
-  baseToHex,
-  dateTimes,
-  eventTimer,
-  getASCodeStr,
-  getBytesList,
-  getMinTen,
-  getUniCodeStr,
-  regCutString,
-  stringToByte,
-  stringToByteNoNum
-} from '../common/tools';
+import { DEVICE_DATA, DEVICE_INFO, NEAR_FUTURE, TOKEN_NAME, UPDATE_DEVICE_INFO, UPDATE_TIME } from '../common/constants';
+import { arrToByte, baseToHex, dateTimes, eventTimer, getBytesList, getMinTen, regCutString, stringToByte } from '../common/tools';
 import { BleManager } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
 import moment from 'moment';
 import { allDataC, allDataSign, allDataSleep, batterySign, mainListen, passRegSign, settingName } from '../common/watch-module';
 import { RootEnum } from '../common/sign-module';
 import { Api, ApiResult } from '../common/api';
+import BackgroundService from 'react-native-background-actions';
+import { Platform, ToastAndroid } from 'react-native';
+import BackgroundJob from 'react-native-background-job';
 
 export const defaultDevice = {
   '-47': {
@@ -198,14 +189,115 @@ export class BlueToothStore {
   async getMsgUpload() {
     await this.backDeviceData();
   }
+
+  /**
+   * 最终执行方法
+   */
   @action
-  async aloneUpdate() {
-    this.aloneTimes = this.aloneTimes + 1;
+  async sleepFunction({ time, type }: { time?: any; type?: string }) {
+    return new Promise((resolve) =>
+      setTimeout(() => {
+        if (type === UPDATE_DEVICE_INFO) {
+          this.getMsgUpload();
+          ToastAndroid.show('更新数据' + time + '更新时长' + type, 2000);
+        }
+        resolve();
+      }, time)
+    );
   }
+
+  /**
+   * android系统普遍使用方式
+   * vivo、oppo
+   */
+  @action
+  async runningAndroidTask(type, timer) {
+    const options = {
+      taskName: '智能手表',
+      taskTitle: '正在运行中',
+      taskDesc: '运动数据实时检测中',
+      taskIcon: {
+        name: 'ic_launcher',
+        type: 'mipmap'
+      },
+      color: '#ff00ff',
+      linkingURI: 'youlu://com.cqqgsafe.watch', // See Deep Linking for more info
+      parameters: {
+        delay: timer
+      }
+    };
+    const veryIntensiveTask = async (taskDataArguments) => {
+      const { delay } = taskDataArguments;
+      await new Promise(async (resolve) => {
+        for (let i = 0; BackgroundService.isRunning(); i++) {
+          await this.sleepFunction({ time: delay, type });
+        }
+      });
+    };
+    await BackgroundService.start(veryIntensiveTask, options);
+  }
+
+  /**
+   * 特殊第三方服务商android系统使用方式
+   * HUAWEI
+   */
+  @action
+  async runningProviderTask(type, timer) {
+    if (Platform.OS !== 'android') {
+      return;
+    }
+    const backgroundJob = {
+      jobKey: 'backgroundDownloadTask',
+      job: () => {
+        // BackgroundJob.cancel({ jobKey: 'backgroundDownloadTask' }).then(() => console.log('Success'));
+        this.sleepFunction({ type });
+      }
+    };
+    BackgroundJob.register(backgroundJob);
+    BackgroundJob.isAppIgnoringBatteryOptimization((error, ignoringOptimization) => {
+      console.log(ignoringOptimization);
+    });
+    // setTimeout(() => {
+    BackgroundJob.schedule({
+      jobKey: 'backgroundDownloadTask', //后台运行任务的key
+      notificationText: '启动后台',
+      notificationTitle: '智能蓝牙手表',
+      period: timer, //任务执行周期
+      timeout: 86400000,
+      persist: true,
+      override: true,
+      // requiresDeviceIdle: false,
+      // requiresCharging: false,
+      exact: true, //安排一个作业在提供的时间段内准确执行
+      allowWhileIdle: true //允许计划作业在睡眠模式下执行
+      // allowExecutionInForeground: false //允许任务在前台执行
+    });
+  }
+
+  @action
+  async settingBackgroundJob(brand, type, timer) {
+    if (['vivo', 'OPPO'].includes(brand)) {
+      this.runningAndroidTask(type, timer);
+    }
+    if (['HUAWEI'].includes(brand)) {
+      this.runningProviderTask(type, timer);
+    }
+  }
+
+  @action
+  async stopBackgroundJob(brand) {
+    if (['vivo', 'OPPO'].includes(brand)) {
+      await BackgroundService?.stop();
+    }
+    if (['HUAWEI'].includes(brand)) {
+      BackgroundJob.cancel({ jobKey: 'backgroundDownloadTask' });
+    }
+  }
+
   @action
   async backDeviceData() {
     this.devicesTimes = this.devicesTimes + 1;
-    // await this.sendActiveMessage(batterySign);
+    await this.sendActiveMessage(allDataSign(0));
     // await this.sendActiveMessage(allDataSleep(0));
     // await this.sendActiveMessage(allDataC(0));
   }
@@ -260,7 +352,6 @@ export class BlueToothStore {
       // if (date === 0) {
       //   await this.checkList(this.devicesInfo.id);
       // }
-      console.log(date || this.nearFuture, '此次数据向标data-for');
       await this.updateActiveDevices({ num: date || this.nearFuture }, base);
     } catch (err) {
       console.log(err, 'error');
@@ -298,7 +389,6 @@ export class BlueToothStore {
         if (['bd'].includes(value.slice(0, 2))) {
           return;
         }
-        console.log(value);
         if (this.backgroundActive) {
           let dateTime = new Date().getTime();
           let timeThan = this.dataChangeTime ? dateTime - this.dataChangeTime : dateTime;
@@ -773,7 +863,6 @@ export class BlueToothStore {
    */
   @action
   async updateDeviceList(): Promise<any> {
-    this.devicesTimes += 1;
     let data = this.deviceFormData;
     if (data['1']) await this.updateDeviceData({ type: '1', value: data['1'] });
     if (data['2']) await this.updateDeviceData({ type: '2', value: data['2'] });
@@ -781,6 +870,8 @@ export class BlueToothStore {
     if (data['4']) await this.updateDeviceData({ type: '4', value: data['4'] });
     if (data['5']) await this.updateDeviceData({ type: '5', value: data['5'] });
     this.currentDevice = { ...this.device };
+    this.aloneTimes = this.aloneTimes + 1;
+    ToastAndroid.show('更新数据', 1500);
     await AsyncStorage.setItem(UPDATE_TIME, moment().format('YYYY-MM-DD HH:mm'));
     setTimeout(async () => {
       let time = this.nearFuture - 1;

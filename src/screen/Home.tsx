@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AppState, BackHandler, Linking, RefreshControl, ScrollView, StatusBar, StyleSheet, Text, ToastAndroid, TouchableOpacity, View } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import moment from 'moment';
-import BackgroundFetch from 'react-native-background-fetch';
 import LinearGradient from 'react-native-linear-gradient';
 import FastImage from 'react-native-fast-image';
 import BluetoothStateManager from 'react-native-bluetooth-state-manager';
@@ -14,7 +13,7 @@ import { tw } from 'react-native-tailwindcss';
 import { Api } from '../common/api';
 import { RootEnum } from '../common/sign-module';
 import { defaultDataLog } from '../store/BlueToothStore';
-import { DEVICE_DATA, DEVICE_INFO, UPDATE_TIME } from '../common/constants';
+import { DEVICE_DATA, DEVICE_INFO, UPDATE_DEVICE_INFO, UPDATE_TIME } from '../common/constants';
 import { useStore } from '../store';
 import { observer } from 'mobx-react-lite';
 import { HeaderBar } from '../component/home/HeaderBar';
@@ -22,6 +21,7 @@ import { arrCount, arrToByte, eventTimes, getMinTen, hasAndroidPermission } from
 import { StatusText } from '../component/home/StatusText';
 import { Hexagon } from '../component/home/Hexagon';
 import BackgroundService from 'react-native-background-actions';
+import { getBrand } from 'react-native-device-info';
 
 let type = 0;
 
@@ -60,6 +60,7 @@ export const Home: ScreenComponent = observer(
         evalTitle: '最近',
         colors: ['#F2EFFF', '#F3F4FF', '#F7FAFF'],
         image: require('../assets/home/heartPulse.png'),
+        value: '',
         value: '',
         cap: 'bpm',
         time: '',
@@ -119,15 +120,6 @@ export const Home: ScreenComponent = observer(
       }
     ]);
     const [hasBack, setHasBack] = useState(false);
-    const [configureOptions] = useState({
-      minimumFetchInterval: 5,
-      enableHeadless: true,
-      forceAlarmManager: true,
-      stopOnTerminate: false,
-      startOnBoot: true,
-      periodic: true,
-      requiredNetworkType: BackgroundFetch.NETWORK_TYPE_UNMETERED
-    }); // 默认后台运行配置项
     const [refreshing, setRefreshing] = useState(false);
     const [dataLogCat, setDataLogCat] = useState(defaultDataLog);
     const [lastTime, setLastTime] = useState('');
@@ -186,47 +178,9 @@ export const Home: ScreenComponent = observer(
       }
     };
 
-    const options = {
-      taskName: '智能手表',
-      taskTitle: '正在运行中',
-      taskDesc: '运动数据实时检测中',
-      taskIcon: {
-        name: 'ic_launcher',
-        type: 'mipmap'
-      },
-      color: '#ff00ff',
-      linkingURI: 'youlu://com.cqqgsafe.watch', // See Deep Linking for more info
-      parameters: {
-        delay: 300000
-      }
-    };
-
-    const veryIntensiveTask = async (taskDataArguments) => {
-      const { delay } = taskDataArguments;
-      await new Promise(async (resolve) => {
-        for (let i = 0; BackgroundService.isRunning(); i++) {
-          // settingStore.getDeviceUpdate().then((res) => {
-          //   blueToothStore.devicesTimes = blueToothStore.devicesTimes + 1;
-          //   console.log(blueToothStore.devicesTimes);
-          // });
-          await sleep(delay);
-        }
-      });
-    };
-
-    const sleep = (time) =>
-      new Promise((resolve) =>
-        setTimeout(() => {
-          blueToothStore.getMsgUpload();
-          // let str = new Date().getTime().toString();
-          // settingStore.count = str.slice(str.length - 3, str.length);
-          resolve();
-        }, time)
-      );
-
     const showBackgroundActions = async () => {
       Linking.addEventListener('url', handleOpenURL);
-      await BackgroundService.start(veryIntensiveTask, options);
+      blueToothStore.settingBackgroundJob(getBrand(), UPDATE_DEVICE_INFO, 60000);
     };
 
     const handleOpenURL = (e) => {
@@ -249,12 +203,12 @@ export const Home: ScreenComponent = observer(
           await setHasBack(true);
           blueToothStore.backgroundActive = true;
           if (type) return;
-          // await initBackgroundFetch();
           await showBackgroundActions();
         }
         if (e === 'active') {
           blueToothStore.backgroundActive = false;
-          await BackgroundService.stop();
+          ToastAndroid.show('杀死后台进程' + getBrand(), 2000);
+          blueToothStore.stopBackgroundJob(getBrand());
           clearInterval(timer);
           timer = null;
           timer = setInterval(() => {
@@ -283,27 +237,6 @@ export const Home: ScreenComponent = observer(
       let res = await weChatStore.launchMiniProgram();
       if (res === 'notRegister') {
         navigation.navigate('OnePassLogin', {});
-      }
-    };
-
-    const initBackgroundFetch = async () => {
-      type = 1;
-      try {
-        console.log('root');
-        await BackgroundFetch.configure(
-          configureOptions,
-          async (taskId) => {
-            // await blueToothStore.listenActiveMessage(mainListen);
-            await blueToothStore.getMsgUpload();
-            BackgroundFetch.finish(taskId);
-          },
-          (taskId) => {
-            console.warn('后台任务超时: ', taskId, moment(new Date()).format('YYYY-MM-DD HH:mm:ss'));
-            BackgroundFetch.finish(taskId);
-          }
-        );
-      } catch (err) {
-        console.log(err);
       }
     };
 

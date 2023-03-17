@@ -16,3 +16,6 @@ export const WEATHER_UPDATE = 'WEATHER_UPDATE';
 
 export const USER_CONFIG = 'USER_CONFIG';
 export const TEST_TOKEN = 'TEST_TOKEN';
+
+// 特殊指令
+export const UPDATE_DEVICE_INFO = 'UPDATE_DEVICE_INFO';

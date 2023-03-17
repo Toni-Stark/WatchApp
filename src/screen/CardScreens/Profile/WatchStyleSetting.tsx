@@ -9,6 +9,9 @@ import { ScreenComponent } from '../../index';
 import FastImage from 'react-native-fast-image';
 import { StackBar } from '../../../component/home/StackBar';
 import BackgroundJob from 'react-native-background-job';
+import BackgroundService from 'react-native-background-actions';
+import { getBrand } from 'react-native-device-info';
+import { UPDATE_DEVICE_INFO } from '../../../common/constants';
 
 export const WatchStyleSetting: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -41,7 +44,6 @@ export const WatchStyleSetting: ScreenComponent = observer(
           job: () => {
             console.log('尝试启动后台服务');
             // BackgroundJob.cancel({ jobKey: 'backgroundDownloadTask' }).then(() => console.log('Success'));
-            blueToothStore.aloneUpdate();
             settingStore.getDeviceUpdate().then((res) => {
               console.log(res, blueToothStore.devicesTimes, blueToothStore.aloneTimes);
               blueToothStore.getMsgUpload();
@@ -57,8 +59,8 @@ export const WatchStyleSetting: ScreenComponent = observer(
           jobKey: 'backgroundDownloadTask', //后台运行任务的key
           notificationText: '启动后台',
           notificationTitle: '智能蓝牙手表',
-          period: 4000, //任务执行周期
-          timeout: 5000,
+          period: 60000, //任务执行周期
+          timeout: 86400000,
           persist: true,
           override: true,
           // requiresDeviceIdle: false,
@@ -70,6 +72,49 @@ export const WatchStyleSetting: ScreenComponent = observer(
         // }, 1000);
       }
     };
+
+    const sleep = (time) =>
+      new Promise((resolve) =>
+        setTimeout(() => {
+          settingStore.getDeviceUpdate().then((res) => {
+            blueToothStore.getMsgUpload();
+          });
+          console.log(blueToothStore.devicesTimes, blueToothStore.aloneTimes);
+          resolve();
+        }, time)
+      );
+    const veryIntensiveTask = async (taskDataArguments) => {
+      const { delay } = taskDataArguments;
+
+      await new Promise(async (resolve) => {
+        for (let i = 0; BackgroundService.isRunning(); i++) {
+          await sleep(delay);
+        }
+      });
+    };
+    const openDevice = async (item) => {
+      const options = {
+        taskName: '智能手表',
+        taskTitle: '正在运行中',
+        taskDesc: '运动数据实时检测中',
+        taskIcon: {
+          name: 'ic_launcher',
+          type: 'mipmap'
+        },
+        color: '#ff00ff',
+        linkingURI: 'youlu://com.cqqgsafe.watch', // See Deep Linking for more info
+        parameters: {
+          delay: 5000
+        }
+      };
+
+      await BackgroundService.start(veryIntensiveTask, options);
+    };
+
+    const updateActionStatus = () => {
+      blueToothStore.settingBackgroundJob(getBrand(), UPDATE_DEVICE_INFO, 90000);
+    };
+
     const backScreen = () => {
       navigation.goBack();
     };
@@ -86,8 +131,10 @@ export const WatchStyleSetting: ScreenComponent = observer(
               return (
                 <TouchableOpacity
                   key={item.value}
-                  onPress={() => {
-                    navigateToDevice(item);
+                  onPress={async () => {
+                    // navigateToDevice(item);
+                    // openDevice(item);
+                    // updateActionStatus();
                   }}
                 >
                   <View style={[styles.labelView, index === 0 && styles.labelTop, styles.labelBottom]}>
