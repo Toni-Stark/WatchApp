@@ -20,7 +20,6 @@ import { HeaderBar } from '../component/home/HeaderBar';
 import { arrCount, arrToByte, eventTimes, getMinTen, hasAndroidPermission } from '../common/tools';
 import { StatusText } from '../component/home/StatusText';
 import { Hexagon } from '../component/home/Hexagon';
-import BackgroundService from 'react-native-background-actions';
 import { getBrand } from 'react-native-device-info';
 
 let type = 0;
@@ -60,7 +59,6 @@ export const Home: ScreenComponent = observer(
         evalTitle: '最近',
         colors: ['#F2EFFF', '#F3F4FF', '#F7FAFF'],
         image: require('../assets/home/heartPulse.png'),
-        value: '',
         value: '',
         cap: 'bpm',
         time: '',
@@ -180,7 +178,7 @@ export const Home: ScreenComponent = observer(
 
     const showBackgroundActions = async () => {
       Linking.addEventListener('url', handleOpenURL);
-      blueToothStore.settingBackgroundJob(getBrand(), UPDATE_DEVICE_INFO, 60000);
+      blueToothStore.settingBackgroundJob(getBrand(), UPDATE_DEVICE_INFO, 120000);
     };
 
     const handleOpenURL = (e) => {
@@ -196,6 +194,7 @@ export const Home: ScreenComponent = observer(
         reConnectData();
       }, 300000);
       AppState.addEventListener('change', async (e) => {
+        console.log(e);
         if (!blueToothStore.devicesInfo?.id) return;
         if (e === 'background') {
           clearInterval(timer);

@@ -7110,6 +7110,11 @@ react-native-animated-spinkit@^1.4.1:
   resolved "https://registry.npmjs.org/react-native-animated-spinkit/-/react-native-animated-spinkit-1.4.1.tgz#dfad4de395be4b92bbb5b2f636177aa9e3454a78"
   integrity sha512-Cb0r2jPQsOR278mrXCJz1sT3jIy06gNr1nPhwQCVHzw+f0XtypWgH1aa83fNtiSk6747jRQprf8/2J6PD7W4bg==
 
+react-native-app-link@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.npmmirror.com/react-native-app-link/-/react-native-app-link-1.0.1.tgz#4a17c01df0230a5e49c117baa5037c5689cee1c6"
+  integrity sha512-usPcJMZMVvRs/lBSy/UU+ooB+h2YhMXGA47xvWVltyOQerQu4hKSWG+qG2BRKcpHmTkmFynDSf5cLWztXwAA1w==
+
 react-native-background-actions@2.6.7:
   version "2.6.7"
   resolved "https://registry.npmmirror.com/react-native-background-actions/-/react-native-background-actions-2.6.7.tgz#01637518814aa957b877bf8117cee01266d67f43"

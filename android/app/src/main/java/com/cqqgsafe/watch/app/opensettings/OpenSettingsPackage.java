@@ -15,6 +15,7 @@ public class OpenSettingsPackage implements ReactPackage {
     List<NativeModule> modules = new ArrayList<>();
 
     modules.add(new OpenSettingsModule(reactContext));
+    modules.add(new OpenSettingsSystem(reactContext));
 
     return modules;
   }

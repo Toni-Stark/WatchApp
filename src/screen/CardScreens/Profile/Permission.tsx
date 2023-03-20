@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity, Text, Platform, Linking } from 'react-native';
+import React, { useMemo, useRef, useState } from 'react';
+import { View, ScrollView, StyleSheet, TouchableOpacity, Text, Linking } from 'react-native';
 import BaseView from '../../../component/BaseView';
 import { useStore } from '../../../store';
 import { tw } from 'react-native-tailwindcss';
@@ -31,7 +31,7 @@ export const Permission: ScreenComponent = observer(
         name: '电池优化',
         type: 'better',
         title: '不在限制应用后台运行，以体验更多功能',
-        image: require('../../../assets/pro/clock.png')
+        image: require('../../../assets/pro/do-main.png')
       },
       {
         name: '后台运行',
@@ -43,7 +43,7 @@ export const Permission: ScreenComponent = observer(
 
     const jumpToSetting = (type) => {
       if (type === 'mine') {
-        NativeModules.OpenSettings.openBatterySettings((data) => {
+        NativeModules.OpenSystem.enterWhiteListSetting((data) => {
           console.log('设置自启动管理', data);
         });
         return;
@@ -61,16 +61,9 @@ export const Permission: ScreenComponent = observer(
         return;
       }
       if (type === 'back') {
-        Linking.canOpenURL('wechat://')
-          .then((isSupport) => {
-            console.log(isSupport);
-            if (isSupport) {
-              return Linking.openURL('wechat://');
-            }
-          })
-          .catch((e) => {
-            console.log(e);
-          });
+        NativeModules.OpenSettings.openNetworkSettings((data) => {
+          console.log('设置后台运行', data);
+        });
         return;
       }
     };
@@ -87,7 +80,7 @@ export const Permission: ScreenComponent = observer(
         <ScrollView style={[tw.flex1]}>
           <View style={styles.moduleView}>
             <Text style={styles.mainText}>智能手表APP为您提供以下服务</Text>
-            {switchList.map((item, index) => {
+            {switchList.map((item) => {
               return (
                 <TouchableOpacity
                   key={item.value}

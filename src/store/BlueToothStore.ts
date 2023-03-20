@@ -199,7 +199,7 @@ export class BlueToothStore {
       setTimeout(() => {
         if (type === UPDATE_DEVICE_INFO) {
           this.getMsgUpload();
-          ToastAndroid.show('更新数据' + type, 2000);
+          // ToastAndroid.show('更新数据' + type, 1000);
         }
         resolve();
       }, time)
@@ -211,7 +211,8 @@ export class BlueToothStore {
    * vivo、oppo
    */
   @action
-  async runningAndroidTask(type, timer) {
+  async runningAndroidTask(type, timer, brand, run) {
+    if (run) await this.stopBackgroundJob(brand);
     const options = {
       taskName: '智能手表',
       taskTitle: '正在运行中',
@@ -227,12 +228,14 @@ export class BlueToothStore {
       }
     };
     const veryIntensiveTask = async (taskDataArguments) => {
-      const { delay } = taskDataArguments;
-      await new Promise(async (resolve) => {
-        for (let i = 0; BackgroundService.isRunning(); i++) {
-          await this.sleepFunction({ time: delay, type });
-        }
-      });
+      if (run) {
+        const { delay } = taskDataArguments;
+        await new Promise(async (resolve) => {
+          for (let i = 0; BackgroundService.isRunning(); i++) {
+            await this.sleepFunction({ time: delay, type });
+          }
+        });
+      }
     };
     await BackgroundService.start(veryIntensiveTask, options);
   }
@@ -242,7 +245,8 @@ export class BlueToothStore {
    * HUAWEI
    */
   @action
-  async runningProviderTask(type, timer) {
+  async runningProviderTask(type, timer, brand) {
+    this.stopBackgroundJob(brand);
     if (Platform.OS !== 'android') {
       return;
     }
@@ -276,22 +280,23 @@ export class BlueToothStore {
 
   @action
   async settingBackgroundJob(brand, type, timer) {
-    if (['vivo', 'OPPO'].includes(brand)) {
+    if (['vivo', 'VIVO', 'oppo', 'OPPO'].includes(brand)) {
       ToastAndroid.show('应用程序已在后台运行', 1500);
-      this.runningAndroidTask(type, timer);
+      this.runningAndroidTask(type, timer, brand, true);
     }
-    if (['HUAWEI'].includes(brand)) {
+    if (['HUAWEI', 'huawei'].includes(brand)) {
       ToastAndroid.show('应用程序已在后台运行', 1500);
-      this.runningProviderTask(type, timer);
+      this.runningProviderTask(type, timer, brand);
+      this.runningAndroidTask(type, timer, brand, false);
     }
   }
 
   @action
   async stopBackgroundJob(brand) {
-    if (['vivo', 'OPPO'].includes(brand)) {
+    if (['vivo', 'VIVO', 'oppo', 'OPPO'].includes(brand)) {
       await BackgroundService?.stop();
     }
-    if (['HUAWEI'].includes(brand)) {
+    if (['HUAWEI', 'huawei'].includes(brand)) {
       BackgroundJob.cancel({ jobKey: 'backgroundDownloadTask' });
     }
   }
@@ -300,8 +305,8 @@ export class BlueToothStore {
   async backDeviceData() {
     this.devicesTimes = this.devicesTimes + 1;
     await this.sendActiveMessage(allDataSign(0));
-    // await this.sendActiveMessage(allDataSleep(0));
-    // await this.sendActiveMessage(allDataC(0));
+    await this.sendActiveMessage(allDataSleep(0));
+    await this.sendActiveMessage(allDataC(0));
   }
 
   @action
@@ -873,7 +878,7 @@ export class BlueToothStore {
     if (data['5']) await this.updateDeviceData({ type: '5', value: data['5'] });
     this.currentDevice = { ...this.device };
     this.aloneTimes = this.aloneTimes + 1;
-    ToastAndroid.show('更新数据', 1500);
+    // ToastAndroid.show('更新数据', 1500);
     await AsyncStorage.setItem(UPDATE_TIME, moment().format('YYYY-MM-DD HH:mm'));
     setTimeout(async () => {
       let time = this.nearFuture - 1;
