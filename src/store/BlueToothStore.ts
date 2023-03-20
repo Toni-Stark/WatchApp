@@ -199,7 +199,7 @@ export class BlueToothStore {
       setTimeout(() => {
         if (type === UPDATE_DEVICE_INFO) {
           this.getMsgUpload();
-          ToastAndroid.show('更新数据' + time + '更新时长' + type, 2000);
+          ToastAndroid.show('更新数据' + type, 2000);
         }
         resolve();
       }, time)
@@ -269,17 +269,19 @@ export class BlueToothStore {
       // requiresDeviceIdle: false,
       // requiresCharging: false,
       exact: true, //安排一个作业在提供的时间段内准确执行
-      allowWhileIdle: true //允许计划作业在睡眠模式下执行
-      // allowExecutionInForeground: false //允许任务在前台执行
+      allowWhileIdle: true, //允许计划作业在睡眠模式下执行
+      allowExecutionInForeground: true //允许任务在前台执行
     });
   }
 
   @action
   async settingBackgroundJob(brand, type, timer) {
     if (['vivo', 'OPPO'].includes(brand)) {
+      ToastAndroid.show('应用程序已在后台运行', 1500);
       this.runningAndroidTask(type, timer);
     }
     if (['HUAWEI'].includes(brand)) {
+      ToastAndroid.show('应用程序已在后台运行', 1500);
       this.runningProviderTask(type, timer);
     }
   }

@@ -14,7 +14,7 @@ export const Profile: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
     const { settingStore, weChatStore, blueToothStore } = useStore();
     const baseView = useRef<any>(undefined);
-    const [list, setList] = useState<any>([
+    const [list] = useState<any>([
       {
         title: '我的设备',
         icon: require('../assets/home/header-assets.png'),
@@ -24,6 +24,13 @@ export const Profile: ScreenComponent = observer(
         title: '共享信息',
         icon: require('../assets/home/binding.png'),
         tag: 'info'
+      }
+    ]);
+    const [helpList] = useState<any>([
+      {
+        title: '权限管理',
+        icon: require('../assets/pro/setting.png'),
+        tag: 'permission'
       }
     ]);
 
@@ -64,6 +71,10 @@ export const Profile: ScreenComponent = observer(
             }
             baseView.current.showToast({ text: '无绑定信息', delay: 1.5 });
           });
+          break;
+        case 'permission':
+          navigation.navigate('Permission', {});
+          break;
       }
     };
     const logOut = () => {
@@ -107,7 +118,19 @@ export const Profile: ScreenComponent = observer(
             <View style={styles.moduleView}>
               <Text style={styles.mainText}>我的设备</Text>
               {list.map((item, index) => (
-                <TouchableOpacity key={index} onPress={() => navigateToDevice(item)}>
+                <TouchableOpacity key={item.title} onPress={() => navigateToDevice(item)}>
+                  <View style={[styles.labelView, index === 0 ? styles.topBorder : null]}>
+                    <View style={styles.startLabel}>
+                      <FastImage style={styles.labelIcon} source={item.icon} resizeMode={FastImage.resizeMode.center} />
+                      <Text style={styles.labelText}>{item.title}</Text>
+                    </View>
+                    <FastImage style={styles.deviceIcon} source={require('../assets/home/right-gray.png')} resizeMode={FastImage.resizeMode.cover} />
+                  </View>
+                </TouchableOpacity>
+              ))}
+              <Text style={styles.mainText}>帮助</Text>
+              {helpList.map((item, index) => (
+                <TouchableOpacity key={item.title} onPress={() => navigateToDevice(item)}>
                   <View style={[styles.labelView, index === 0 ? styles.topBorder : null]}>
                     <View style={styles.startLabel}>
                       <FastImage style={styles.labelIcon} source={item.icon} resizeMode={FastImage.resizeMode.center} />
@@ -217,23 +240,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 15
   },
-  topBorder: {
-    borderTopWidth: 1
+  logText: {
+    color: '#ffffff'
   },
+  logView: {},
   loginView: {
     flex: 1
   },
   mainText: {
     color: color4,
     fontSize: 16,
-    marginBottom: 10
+    marginVertical: 10
   },
   moduleView: {
-    padding: 20
+    paddingHorizontal: 20,
+    paddingVertical: 10
   },
   startLabel: {
     alignItems: 'center',
     flexDirection: 'row'
+  },
+  topBorder: {
+    borderTopWidth: 1
   },
   userIcons: {
     alignItems: 'center',
@@ -243,16 +271,12 @@ const styles = StyleSheet.create({
     color: color1,
     fontSize: 18
   },
-  logView: {},
-  logText: {
-    color: '#ffffff'
+  versionText: {
+    color: '#908f8f',
+    fontSize: 14
   },
   versionView: {
     alignItems: 'center',
     justifyContent: 'center'
-  },
-  versionText: {
-    color: '#908f8f',
-    fontSize: 14
   }
 });
