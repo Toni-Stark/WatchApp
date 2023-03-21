@@ -178,7 +178,7 @@ export const Home: ScreenComponent = observer(
 
     const showBackgroundActions = async () => {
       Linking.addEventListener('url', handleOpenURL);
-      blueToothStore.settingBackgroundJob(getBrand(), UPDATE_DEVICE_INFO, 120000);
+      blueToothStore.settingBackgroundJob(getBrand(), UPDATE_DEVICE_INFO, 480000);
     };
 
     const handleOpenURL = (e) => {

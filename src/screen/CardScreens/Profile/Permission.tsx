@@ -28,9 +28,9 @@ export const Permission: ScreenComponent = observer(
         image: require('../../../assets/pro/do-main.png')
       },
       {
-        name: '电池优化',
-        type: 'better',
-        title: '不在限制应用后台运行，以体验更多功能',
+        name: '通知管理',
+        type: 'task',
+        title: '使应用能够在通知栏显示',
         image: require('../../../assets/pro/do-main.png')
       },
       {
@@ -43,25 +43,25 @@ export const Permission: ScreenComponent = observer(
 
     const jumpToSetting = (type) => {
       if (type === 'mine') {
-        NativeModules.OpenSystem.enterWhiteListSetting((data) => {
+        NativeModules.OpenSystem.enterSelfSetting((data) => {
           console.log('设置自启动管理', data);
         });
         return;
       }
       if (type === 'battery') {
-        NativeModules.OpenSettings.openBatterySettings((data) => {
+        NativeModules.OpenSystem.enterBatterySetting((data) => {
           console.log('设置电池管理', data);
         });
         return;
       }
-      if (type === 'better') {
-        NativeModules.OpenSettings.openNetworkSettings((data) => {
-          console.log('设置后台运行', data);
+      if (type === 'task') {
+        NativeModules.OpenSystem.enterTaskSetting((data) => {
+          console.log('设置应用通知管理', data);
         });
         return;
       }
       if (type === 'back') {
-        NativeModules.OpenSettings.openNetworkSettings((data) => {
+        NativeModules.OpenSystem.openNetworkSettings((data) => {
           console.log('设置后台运行', data);
         });
         return;

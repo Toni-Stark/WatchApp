@@ -1,6 +1,6 @@
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import React, { useMemo } from 'react';
-import { CardStyleInterpolators, createStackNavigator, StackNavigationOptions, StackScreenProps } from '@react-navigation/stack';
+import React from 'react';
+import { CardStyleInterpolators, createStackNavigator, StackNavigationOptions, StackScreenProps, TransitionSpecs } from '@react-navigation/stack';
 import { ActivityIndicator, useTheme } from 'react-native-paper';
 import type { ParamListBase } from '@react-navigation/native';
 import { NavigationContainer } from '@react-navigation/native';
@@ -13,7 +13,6 @@ import { CardScreens, ScreensParamList } from './CardScreens';
 import { View } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Profile } from './Profile';
-import { WeChatOnePassLogin } from './ModalScreens/WeChatOnePassLogin';
 
 const BottomIconSize = 22;
 const RootStack = createStackNavigator();
@@ -42,16 +41,6 @@ const BottomTabs = observer(() => {
           tabBarIcon: ({ focused, color }) => <Icon name={focused ? 'person' : 'account-circle'} color={color} size={BottomIconSize} />
         }}
       />
-      {/*{userStore.userInfoDetail.userType && userStore.userInfoDetail.userType !== USER_MODE_CLASS_STUDENT ? (*/}
-      {/*  <BottomTabStack.Screen*/}
-      {/*    name="CloudDisk"*/}
-      {/*    component={CloudDisk}*/}
-      {/*    options={{*/}
-      {/*      tabBarLabel: '网盘',*/}
-      {/*      tabBarIcon: ({ focused, color }) => <Icon name={focused ? 'cloud-queue' : 'cloud-circle'} color={color} size={BottomIconSize} />*/}
-      {/*    }}*/}
-      {/*  />*/}
-      {/*) : null}*/}
     </BottomTabStack.Navigator>
   );
 });
@@ -59,7 +48,15 @@ const BottomTabs = observer(() => {
 const MainScreens = () => {
   return (
     <MainStack.Navigator>
-      <RootStack.Screen name="BottomTabs" component={BottomTabs} options={{ headerShown: false, gestureEnabled: false }} />
+      <RootStack.Screen
+        name="BottomTabs"
+        component={BottomTabs}
+        options={{
+          headerShown: false,
+          gestureEnabled: false,
+          transitionSpec: { open: TransitionSpecs.FadeInFromBottomAndroidSpec, close: TransitionSpecs.FadeInFromBottomAndroidSpec }
+        }}
+      />
       {CardScreens.map((screen) => (
         <RootStack.Screen
           name={screen.name}

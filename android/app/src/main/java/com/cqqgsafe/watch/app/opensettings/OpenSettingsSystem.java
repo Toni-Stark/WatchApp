@@ -20,16 +20,40 @@ public class OpenSettingsSystem extends ReactContextBaseJavaModule {
         return "OpenSystem";
     }
     @ReactMethod
-    public void enterWhiteListSetting(Callback cb){
+    public void enterBatterySetting(Callback cb){
         Activity currentActivity = getCurrentActivity();
         try {
-            currentActivity.startActivity(getSettingIntent());
+            currentActivity.startActivity(getBatteryIntent());
+        }catch (Exception e){
+            currentActivity.startActivity(new Intent(android.provider.Settings.ACTION_SETTINGS));
+        }
+    }
+   @ReactMethod
+    public void enterTaskSetting(Callback cb){
+        Activity currentActivity = getCurrentActivity();
+        try {
+            currentActivity.startActivity(getTaskSetting());
         }catch (Exception e){
             currentActivity.startActivity(new Intent(android.provider.Settings.ACTION_SETTINGS));
         }
     }
     @ReactMethod
-    private Intent getSettingIntent(){
+    public void openNetworkSettings(Callback cb) {
+        Activity currentActivity = getCurrentActivity();
+        Intent i = new Intent();
+        if (currentActivity == null) {
+            cb.invoke(false);
+            return;
+        }
+        try {
+            currentActivity.startActivity(new Intent(android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS));
+            cb.invoke(true);
+        } catch (Exception e) {
+            cb.invoke(e.getMessage());
+        }
+    }
+    @ReactMethod
+    private Intent getBatteryIntent(){
         ComponentName componentName = null;
         String brand = android.os.Build.BRAND;
           System.out.println("———vivo-data———");
@@ -46,10 +70,54 @@ public class OpenSettingsSystem extends ReactContextBaseJavaModule {
                 componentName = new ComponentName("com.miui.securitycenter","com.miui.permcenter.autostart.AutoStartManagementActivity");
             break;
             case "vivo":
-                componentName = new ComponentName("com.iqoo.secure","com.iqoo.secure.MainActivity");
+                componentName = new ComponentName("com.iqoo.powersaving","com.iqoo.powersaving.PowerSavingManagerActivity");
             break;
-            case "oppo":
-                componentName = new ComponentName("com.coloros.oppoguardelf","com.coloros.powermanager.fuelgaue.PowerUsageModelActivity");
+            case "OPPO":
+                componentName = ComponentName.unflattenFromString("com.oppo.safe/.permission.startup.StartupAppListActivity");
+            break;
+            case "360":
+                componentName = new ComponentName("com.yulong.android.coolsafe","com.yulong.android.coolsafe.ui.activity.autorun.AutoRunListActivity");
+            break;
+            case "meizu":
+                componentName = new ComponentName("com.meizu.safe","com.meizu.safe.permission.SmartBGActivity");
+            break;
+            case "oneplus":
+                componentName = new ComponentName("com.oneplus.security","com.oneplus.security.chainlaunch.view.ChainLaunchAppListActivity");
+            break;
+            default:
+            break;
+        }
+        Intent intent = new Intent();
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        if(componentName!=null){
+            intent.setComponent(componentName);
+        }else{
+            intent.setAction(android.provider.Settings.ACTION_SETTINGS);
+        }
+        return intent;
+    }
+    @ReactMethod
+    private Intent getTaskSetting(){
+        ComponentName componentName = null;
+        String brand = android.os.Build.BRAND;
+          System.out.println("———vivo-data———");
+          System.out.println(brand);
+          System.out.println("———vivo-data———");
+        switch (brand.toLowerCase()){
+            case "samsung":
+                componentName = new ComponentName("com.samsung.android.sm","com.samsung.android.sm.app.dashboard.SmartManagerDashBoardActivity");
+            break;
+            case "huawei":
+                componentName = new ComponentName("com.huawei.systemmanager","com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity");
+            break;
+            case "xiaomi":
+                componentName = new ComponentName("com.miui.securitycenter","com.miui.permcenter.autostart.AutoStartManagementActivity");
+            break;
+            case "vivo":
+                componentName = new ComponentName("com.android.systemui","com.vivo.systemui.statusbar.notification.settings.StatusbarSettingActivity");
+            break;
+            case "OPPO":
+                componentName = ComponentName.unflattenFromString("com.coloros.phonemanager/.FakeActivity");
             break;
             case "360":
                 componentName = new ComponentName("com.yulong.android.coolsafe","com.yulong.android.coolsafe.ui.activity.autorun.AutoRunListActivity");
