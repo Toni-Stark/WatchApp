@@ -212,6 +212,8 @@ dependencies {
 
     compile project(':react-native-background-job')
 
+    compile project(':lottie-react-native')
+    
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
 
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {

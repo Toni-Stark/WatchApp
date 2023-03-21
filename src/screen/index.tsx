@@ -1,5 +1,4 @@
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { CardStyleInterpolators, createStackNavigator, StackNavigationOptions, StackScreenProps, TransitionSpecs } from '@react-navigation/stack';
 import { ActivityIndicator, useTheme } from 'react-native-paper';
 import type { ParamListBase } from '@react-navigation/native';
@@ -10,9 +9,10 @@ import { t } from '../common/tools';
 import { Home } from './Home';
 import { ModalScreens, ModalScreensRoot } from './ModalScreens';
 import { CardScreens, ScreensParamList } from './CardScreens';
-import { View } from 'react-native';
+import { Animated, View, Easing } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import { Profile } from './Profile';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const BottomIconSize = 22;
 const RootStack = createStackNavigator();
@@ -29,7 +29,36 @@ const BottomTabs = observer(() => {
         component={Home}
         options={{
           tabBarLabel: t('tabs.home'),
-          tabBarIcon: ({ focused, color }) => <Icon name={focused ? 'house' : 'home'} color={color} size={BottomIconSize} />
+          tabBarIcon: ({ focused, color }) => {
+            console.log(focused);
+            return <Icon name={focused ? 'person' : 'account-circle'} color={color} size={BottomIconSize} />;
+          }
+
+          // tabBarIcon: ({ focused }) => {
+          //   // iconRef.current?.play();
+          //   // Animated.timing(progress1, {
+          //   //   toValue: progress1 ? 0 : 1,
+          //   //   duration: 3000,
+          //   //   useNativeDriver: true
+          //   // }).start(() => {
+          //   //   progress1.setValue(progress1 ? 0 : 1);
+          //   // });
+          //   console.log(focused, progress1);
+          //   return (
+          //     <LottieView
+          //       ref={iconRef}
+          //       autoPlay={false}
+          //       style={[{ width: example.width }]}
+          //       // styles.lottieViewInvse
+          //       source={example.getSource()}
+          //       progress={focused ? progress1 : undefined}
+          //       loop={false}
+          //       onAnimationFinish={onAnimationFinish}
+          //       enableMergePathsAndroidForKitKatAndAbove
+          //       renderMode={renderMode}
+          //     />
+          //   );
+          // }
         }}
       />
       <BottomTabStack.Screen
@@ -39,6 +68,7 @@ const BottomTabs = observer(() => {
           tabBarLabel: t('tabs.profile'),
           // tabBarBadge: userStore.msg,
           tabBarIcon: ({ focused, color }) => <Icon name={focused ? 'person' : 'account-circle'} color={color} size={BottomIconSize} />
+          // tabBarIcon: ({ focused, color }) => <Lottie source={require('../path/to/animation.json')} progress={animationProgress.current} />
         }}
       />
     </BottomTabStack.Navigator>

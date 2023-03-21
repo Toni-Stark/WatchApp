@@ -13,6 +13,7 @@ import com.cqqgsafe.watch.opensettings.*;
 import com.theweflex.react.WeChatPackage;
 import com.github.wumke.RNExitApp.RNExitAppPackage;
 import com.pilloxa.backgroundjob.BackgroundJobPackage;
+import com.airbnb.android.react.lottie.LottiePackage;
 import org.wonday.orientation.OrientationActivityLifecycle;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -33,6 +34,7 @@ public class MainApplication extends Application implements ReactApplication {
           // packages.add(new MyReactNativePackage());
           packages.add(new WeChatPackage()); // Add this line
           packages.add(new OpenSettingsPackage()); // Add this line
+          packages.add(new LottiePackage()); // Add this line
           return packages;
         }
 
