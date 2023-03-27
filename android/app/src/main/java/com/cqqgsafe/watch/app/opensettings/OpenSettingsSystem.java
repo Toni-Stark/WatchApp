@@ -37,6 +37,52 @@ public class OpenSettingsSystem extends ReactContextBaseJavaModule {
             currentActivity.startActivity(new Intent(android.provider.Settings.ACTION_SETTINGS));
         }
     }
+   @ReactMethod
+    public void enterSelfSetting(Callback cb){
+        Activity currentActivity = getCurrentActivity();
+        try {
+        ComponentName componentName = null;
+            String brand = android.os.Build.BRAND;
+            switch (brand.toLowerCase()){
+                case "samsung":
+                    componentName = new ComponentName("com.samsung.android.sm","com.samsung.android.sm.app.dashboard.SmartManagerDashBoardActivity");
+                break;
+                case "huawei":
+                    componentName = new ComponentName("com.huawei.systemmanager","com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity");
+                break;
+                case "xiaomi":
+                    componentName = new ComponentName("com.miui.securitycenter","com.miui.permcenter.autostart.AutoStartManagementActivity");
+                break;
+                case "vivo":
+                    componentName = new ComponentName(" com.iqoo.secure","com.iqoo.secure/.MainActivity");
+                break;
+                case "OPPO":
+                    componentName = ComponentName.unflattenFromString("com.coloros.phonemanager/.FakeActivity");
+                break;
+                case "360":
+                    componentName = new ComponentName("com.yulong.android.coolsafe","com.yulong.android.coolsafe.ui.activity.autorun.AutoRunListActivity");
+                break;
+                case "meizu":
+                    componentName = new ComponentName("com.meizu.safe","com.meizu.safe.permission.SmartBGActivity");
+                break;
+                case "oneplus":
+                    componentName = new ComponentName("com.oneplus.security","com.oneplus.security.chainlaunch.view.ChainLaunchAppListActivity");
+                break;
+                default:
+                break;
+            }
+            Intent intent = new Intent();
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            if(componentName!=null){
+                intent.setComponent(componentName);
+            }else{
+                intent.setAction(android.provider.Settings.ACTION_SETTINGS);
+            }
+            currentActivity.startActivity(intent);
+        }catch (Exception e){
+            currentActivity.startActivity(new Intent(android.provider.Settings.ACTION_SETTINGS));
+        }
+    }
     @ReactMethod
     public void openNetworkSettings(Callback cb) {
         Activity currentActivity = getCurrentActivity();

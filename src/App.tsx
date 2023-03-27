@@ -128,9 +128,10 @@ const App = observer(() => {
     <Observer>
       {() => (
         <SafeAreaProvider style={{ backgroundColor: '#00D1DE' }}>
-          <StatusBar backgroundColor="#66b8ae" barStyle={'light-content'} hidden={false} />
+          <StatusBar backgroundColor="#00D1DE" barStyle={'light-content'} hidden={false} />
           <PaperProvider theme={systemStore.colorMode === 'dark' ? darkTheme : theme}>
-            <SideMenu menu={LayoutMenu()}>{showScreens()}</SideMenu>
+            {/*<SideMenu menu={LayoutMenu()}>{showScreens()}</SideMenu>*/}
+            {showScreens()}
           </PaperProvider>
         </SafeAreaProvider>
       )}

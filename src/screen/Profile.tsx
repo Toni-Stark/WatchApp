@@ -9,6 +9,9 @@ import { ProfilePlaceholder } from '../component/skeleton/ProfilePlaceholder';
 import { observer } from 'mobx-react-lite';
 import FastImage from 'react-native-fast-image';
 import DeviceInfo from 'react-native-device-info';
+import AsyncStorage from '@react-native-community/async-storage';
+import { TOKEN_NAME } from '../common/constants';
+import { allDataSign, batterySign } from '../common/watch-module';
 
 export const Profile: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -48,12 +51,12 @@ export const Profile: ScreenComponent = observer(
     const navigateToDevice = async (data) => {
       // navigation.navigate('BlueToolsList');
       // return;
-      // await blueToothStore.sendActiveMessage(allDataSign);
+      await blueToothStore.sendActiveWithoutMessage(allDataSign(0));
       // await blueToothStore.successDialog();
       // await blueToothStore.listenActiveMessage(mainListen);
       // blueToothStore.device = defaultDevice;
       // await blueToothStore.sendActiveMessage(allDataSign);
-
+      return;
       switch (data.tag) {
         case 'device':
           navigation.navigate('WatchStyleSetting', {});
@@ -74,6 +77,7 @@ export const Profile: ScreenComponent = observer(
           break;
         case 'permission':
           navigation.navigate('Permission', {});
+          // await AsyncStorage.removeItem(TOKEN_NAME);
           break;
       }
     };

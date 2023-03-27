@@ -31,7 +31,7 @@ export const Permission: ScreenComponent = observer(
         name: '通知管理',
         type: 'task',
         title: '使应用能够在通知栏显示',
-        image: require('../../../assets/pro/do-main.png')
+        image: require('../../../assets/pro/nogister.png')
       },
       {
         name: '后台运行',
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   },
   mainText: {
     color: color4,
-    fontSize: 17,
+    fontSize: 16,
     marginVertical: 10
   },
   moduleView: {

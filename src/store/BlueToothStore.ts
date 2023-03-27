@@ -281,11 +281,11 @@ export class BlueToothStore {
   @action
   async settingBackgroundJob(brand, type, timer) {
     if (['vivo', 'VIVO', 'oppo', 'OPPO'].includes(brand)) {
-      ToastAndroid.show('应用程序已在后台运行', 1500);
+      // ToastAndroid.show('应用程序已在后台运行', 1500);
       this.runningAndroidTask(type, timer, brand, true);
     }
     if (['HUAWEI', 'huawei'].includes(brand)) {
-      ToastAndroid.show('应用程序已在后台运行', 1500);
+      // ToastAndroid.show('应用程序已在后台运行', 1500);
       this.runningProviderTask(type, timer, brand);
       this.runningAndroidTask(type, timer, brand, false);
     }
@@ -371,12 +371,14 @@ export class BlueToothStore {
   @action
   async sendActiveMessage(params) {
     let storeRes = regCutString(params.value);
+    console.log(stringToByte(storeRes), 'res1');
     let buffer = Buffer.from(stringToByte(storeRes)).toString('base64');
     await this.devicesInfo.writeCharacteristicWithResponseForService(params.serviceUUID, params.uuid, buffer);
   }
   @action
   async sendActiveWithoutMessage(params) {
     let storeRes = regCutString(params.value);
+    console.log(stringToByte(storeRes), 'res2');
     let buffer = Buffer.from(stringToByte(storeRes)).toString('base64');
     await this.devicesInfo.writeCharacteristicWithoutResponseForService(params.serviceUUID, params.uuid, buffer);
   }
@@ -498,6 +500,7 @@ export class BlueToothStore {
         };
       },
       '-47': (e) => {
+        console.log(e);
         let list: any = this.device[hex] || {};
         let message = arrToByte(e.match(/([\d\D]{2})/g), true);
         let prototype = e.match(/([\d\D]{2})/g);
@@ -556,6 +559,7 @@ export class BlueToothStore {
         return data;
       },
       '-33': (e) => {
+        console.log(e);
         if (!bool) {
           this.deviceFormData['1'] += e + '\n';
           this.dataLogCat = { ...this.dataLogCat, 'new-date': true };

@@ -178,7 +178,7 @@ export const Home: ScreenComponent = observer(
 
     const showBackgroundActions = async () => {
       Linking.addEventListener('url', handleOpenURL);
-      blueToothStore.settingBackgroundJob(getBrand(), UPDATE_DEVICE_INFO, 480000);
+      blueToothStore.settingBackgroundJob(getBrand(), UPDATE_DEVICE_INFO, 600000);
     };
 
     const handleOpenURL = (e) => {
@@ -206,7 +206,7 @@ export const Home: ScreenComponent = observer(
         }
         if (e === 'active') {
           blueToothStore.backgroundActive = false;
-          ToastAndroid.show('杀死后台进程' + getBrand(), 2000);
+          // ToastAndroid.show('清理后台进程' + getBrand(), 2000);
           blueToothStore.stopBackgroundJob(getBrand());
           clearInterval(timer);
           timer = null;
@@ -659,16 +659,16 @@ export const Home: ScreenComponent = observer(
           }
         />
         {renderContext}
-        <TouchableOpacity
-          onPress={() => {
-            blueToothStore.devicesTimes = 0;
-            blueToothStore.aloneTimes = 0;
-          }}
-        >
-          <Text>
-            +++{blueToothStore.devicesTimes}---{blueToothStore.aloneTimes}+++
-          </Text>
-        </TouchableOpacity>
+        {/*<TouchableOpacity*/}
+        {/*  onPress={() => {*/}
+        {/*    blueToothStore.devicesTimes = 0;*/}
+        {/*    blueToothStore.aloneTimes = 0;*/}
+        {/*  }}*/}
+        {/*>*/}
+        {/*  <Text>*/}
+        {/*    +++{blueToothStore.devicesTimes}---{blueToothStore.aloneTimes}+++*/}
+        {/*  </Text>*/}
+        {/*</TouchableOpacity>*/}
         <View style={{ height: 65 }} />
       </BaseView>
     );

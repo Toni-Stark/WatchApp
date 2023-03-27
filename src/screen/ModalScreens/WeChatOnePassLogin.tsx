@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import BaseView from '../../component/BaseView';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useStore } from '../../store';
 import FastImage from 'react-native-fast-image';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -114,6 +114,7 @@ export const WeChatOnePassLogin = observer((props: Props) => {
 
   return (
     <BaseView useSafeArea={false} ref={baseView}>
+      <StatusBar backgroundColor="#66b8ae" barStyle={'light-content'} hidden={false} />
       {currentSwitch}
     </BaseView>
   );
