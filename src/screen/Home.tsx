@@ -13,7 +13,7 @@ import { tw } from 'react-native-tailwindcss';
 import { Api } from '../common/api';
 import { RootEnum } from '../common/sign-module';
 import { defaultDataLog } from '../store/BlueToothStore';
-import { DEVICE_DATA, DEVICE_INFO, UPDATE_DEVICE_INFO, UPDATE_TIME } from '../common/constants';
+import { DEVICE_DATA, DEVICE_INFO, NEAR_FUTURE, UPDATE_DEVICE_INFO, UPDATE_TIME } from '../common/constants';
 import { useStore } from '../store';
 import { observer } from 'mobx-react-lite';
 import { HeaderBar } from '../component/home/HeaderBar';
@@ -28,6 +28,7 @@ export const Home: ScreenComponent = observer(
   ({ navigation, route }): JSX.Element => {
     const { blueToothStore, weChatStore, settingStore } = useStore();
     const baseView = useRef<any>(undefined);
+    blueToothStore.baseView = baseView;
     const [contentList, setContentList] = useState<any>([
       {
         title: '运动',
@@ -129,28 +130,32 @@ export const Home: ScreenComponent = observer(
         if (isUpdate?.success) {
           return;
         }
+        // await AsyncStorage.setItem(NEAR_FUTURE, '{"F2:54:06:35:CA:F5":"2023/04/01"}');
+        // let data: any = await AsyncStorage.getItem(NEAR_FUTURE);
+        // console.log(data);
+        // return;
         await weChatStore.getUserInfo();
         const rePowered = await BluetoothStateManager.getState();
         if (rePowered !== 'PoweredOn') return;
         let deviceInfo: string | null = await AsyncStorage.getItem(DEVICE_INFO);
-        if (!blueToothStore?.devicesInfo) {
-          if (deviceInfo && JSON.parse(deviceInfo)) {
-            await blueToothStore.reConnectDevice(JSON.parse(deviceInfo), (res) => {
-              if (res.type === '1') {
-                blueToothStore.isRoot = RootEnum['无设备连接'];
-                blueToothStore.refreshing = false;
-                // baseView?.current?.showToast({ text: '重连失败', delay: 1 });
-              }
-              if (res.type === '5') {
-                // baseView?.current?.showToast({ text: '', delay: 1 });
-              }
-              if (res.type === '3') {
-                baseView.current?.showToast({ text: '未搜索到设备', delay: 1 });
-              }
-              return;
-            });
+        // console.log(blueToothStore?.devicesInfo, deviceInfo);
+        if (blueToothStore?.devicesInfo) return;
+        if (!deviceInfo) return;
+        deviceInfo = JSON.parse(deviceInfo);
+        await blueToothStore.reConnectDevice(deviceInfo, (res) => {
+          if (res.type === '1') {
+            blueToothStore.isRoot = RootEnum['无设备连接'];
+            blueToothStore.refreshing = false;
+            // baseView?.current?.showToast({ text: '重连失败', delay: 1 });
           }
-        }
+          if (res.type === '5') {
+            // baseView?.current?.showToast({ text: '', delay: 1 });
+          }
+          if (res.type === '3') {
+            baseView.current?.showToast({ text: '未搜索到设备', delay: 1 });
+          }
+          return;
+        });
         let bool = [RootEnum['初次进入'], RootEnum['连接中']].includes(blueToothStore.isRoot);
         if (blueToothStore?.devicesInfo && bool) {
           eventTimes(() => blueToothStore.successDialog({ date: blueToothStore.nearFuture }, baseView), 1000);
@@ -420,6 +425,10 @@ export const Home: ScreenComponent = observer(
       setDataLogCat({ ...blueToothStore.dataLogCat });
     }, [blueToothStore.dataLogCat]);
 
+    const batteryItem = (light) => {
+      return <View style={[styles.batteryContent, [{ backgroundColor: light ? '#ffffff' : '' }]]} key={Math.ceil(Math.random() * 10000).toString()} />;
+    };
+
     const currentDeviceView = useMemo(() => {
       let isTrue = blueToothStore.currentDevice['-96']?.power || 0;
 
@@ -463,12 +472,10 @@ export const Home: ScreenComponent = observer(
             <View style={styles.deviceView}>
               <Text style={styles.deviceText}>电量</Text>
               <View style={styles.battery}>
-                {[1, 2, 3, 4].map((item) => (
-                  <View
-                    style={[styles.batteryContent, [{ backgroundColor: item <= isTrue ? '#ffffff' : '' }]]}
-                    key={Math.ceil(Math.random() * 10000).toString()}
-                  />
-                ))}
+                {batteryItem(isTrue >= 0)}
+                {batteryItem(isTrue >= 1)}
+                {batteryItem(isTrue >= 2)}
+                {batteryItem(isTrue >= 3)}
               </View>
             </View>
             <Text style={styles.evalText}>数据记录时间：{lastTime}</Text>
@@ -499,62 +506,62 @@ export const Home: ScreenComponent = observer(
       ToastAndroid.show('已复制到粘贴板', 1500);
     };
 
-    const currentDeviceBanner = useMemo(() => {
-      let device = blueToothStore.devicesInfo;
-      return (
-        <View style={styles.card}>
-          <LinearGradient
-            colors={['#00bac4', '#06d1dc', '#00dbe5', '#00D1DE']}
-            style={styles.cardLinear}
-            start={{ x: 0.0, y: 0.25 }}
-            end={{ x: 0.5, y: 1.0 }}
-            locations={[0.2, 0.7, 0.5, 0.2]}
-          >
-            {device?.name ? (
-              <TouchableOpacity onPress={addEval} style={styles.evalButton}>
-                <Text style={styles.evalName}>操作</Text>
-              </TouchableOpacity>
-            ) : null}
-            <View style={styles.headerStart}>
-              {device?.id ? (
-                <View style={styles.imageView}>
-                  <FastImage style={styles.headerImg} source={require('../assets/home/header-assets.png')} resizeMode={FastImage.resizeMode.cover} />
-                </View>
-              ) : (
-                <View style={styles.imageViewEval} />
-              )}
-
-              <TouchableOpacity style={styles.loginView} onPress={onPressCopy}>
-                <View style={styles.headerContent}>
-                  {device?.name ? (
-                    <View style={styles.userView}>
-                      <Text ellipsizeMode="middle" numberOfLines={1} style={styles.userName} onLongPress={onLongPress}>
-                        {blueToothStore.getEvalName()}
-                      </Text>
-                    </View>
-                  ) : (
-                    <Text style={styles.userName}>{/*蓝牙手表App*/}</Text>
-                  )}
-                  {device?.id ? <Text style={styles.deviceMac}>MAC:{device.id}</Text> : null}
-                </View>
-              </TouchableOpacity>
-            </View>
-            {currentDeviceView}
-          </LinearGradient>
-        </View>
-      );
-    }, [
-      blueToothStore.evalName,
-      weChatStore.userInfo,
-      blueToothDetail,
-      blueToothStore.devicesInfo,
-      dataLogCat,
-      lastTime,
-      openBlueTooth,
-      blueToothStore.currentDevice,
-      blueToothStore.refreshInfo,
-      blueToothStore.refreshing
-    ]);
+    // const currentDeviceBanner = useMemo(() => {
+    //   let device = blueToothStore.devicesInfo;
+    //   return (
+    //     <View style={styles.card}>
+    //       <LinearGradient
+    //         colors={['#00bac4', '#06d1dc', '#00dbe5', '#00D1DE']}
+    //         style={styles.cardLinear}
+    //         start={{ x: 0.0, y: 0.25 }}
+    //         end={{ x: 0.5, y: 1.0 }}
+    //         locations={[0.2, 0.7, 0.5, 0.2]}
+    //       >
+    //         {device?.name ? (
+    //           <TouchableOpacity onPress={addEval} style={styles.evalButton}>
+    //             <Text style={styles.evalName}>操作</Text>
+    //           </TouchableOpacity>
+    //         ) : null}
+    //         <View style={styles.headerStart}>
+    //           {device?.id ? (
+    //             <View style={styles.imageView}>
+    //               <FastImage style={styles.headerImg} source={require('../assets/home/header-assets.png')} resizeMode={FastImage.resizeMode.cover} />
+    //             </View>
+    //           ) : (
+    //             <View style={styles.imageViewEval} />
+    //           )}
+    //
+    //           <TouchableOpacity style={styles.loginView} onPress={onPressCopy}>
+    //             <View style={styles.headerContent}>
+    //               {device?.name ? (
+    //                 <View style={styles.userView}>
+    //                   <Text ellipsizeMode="middle" numberOfLines={1} style={styles.userName} onLongPress={onLongPress}>
+    //                     {blueToothStore.getEvalName()}
+    //                   </Text>
+    //                 </View>
+    //               ) : (
+    //                 <Text style={styles.userName} />
+    //               )}
+    //               {device?.id ? <Text style={styles.deviceMac}>MAC:{device.id}</Text> : null}
+    //             </View>
+    //           </TouchableOpacity>
+    //         </View>
+    //         {currentDeviceView}
+    //       </LinearGradient>
+    //     </View>
+    //   );
+    // }, [
+    //   blueToothStore.evalName,
+    //   weChatStore.userInfo,
+    //   blueToothDetail,
+    //   blueToothStore.devicesInfo,
+    //   dataLogCat,
+    //   lastTime,
+    //   openBlueTooth,
+    //   blueToothStore.currentDevice,
+    //   blueToothStore.refreshInfo,
+    //   blueToothStore.refreshing
+    // ]);
 
     const currentResult = useMemo(() => {
       return (
@@ -628,14 +635,85 @@ export const Home: ScreenComponent = observer(
       );
     }, [contentList, blueToothStore.refreshing, blueToothStore.devicesInfo, blueToothStore.refreshBtn]);
 
+    // 控制按钮
+    const controlBtn = () => {
+      return (
+        <TouchableOpacity onPress={addEval} style={styles.evalButton}>
+          <Text style={styles.evalName}>操作</Text>
+        </TouchableOpacity>
+      );
+    };
+    // 手表logo
+    const renderDeviceLogo = (bool?: boolean | string) => {
+      if (bool) {
+        return (
+          <View style={styles.imageView}>
+            <FastImage style={styles.headerImg} source={require('../assets/home/header-assets.png')} resizeMode={FastImage.resizeMode.cover} />
+          </View>
+        );
+      }
+      return <View style={styles.imageViewEval} />;
+    };
+    // 设备全名
+    const renderDeviceName = useMemo(() => {
+      let name = blueToothStore.getEvalName();
+      let refresh =
+        (!blueToothStore.refreshing && blueToothStore?.refreshInfo && blueToothStore?.devicesInfo) ||
+        (blueToothStore.refreshing && blueToothStore?.refreshInfo && blueToothStore?.devicesInfo);
+      if (name && refresh) {
+        return (
+          <View style={styles.userView}>
+            <Text ellipsizeMode="middle" numberOfLines={1} style={styles.userName} onLongPress={onLongPress}>
+              {name}
+            </Text>
+          </View>
+        );
+      }
+      return <Text style={styles.userName} />;
+    }, [blueToothStore.refreshing, blueToothStore?.refreshInfo, blueToothStore?.devicesInfo]);
+    // 设备id
+
     const renderContext = useMemo(() => {
+      let { name, id } = blueToothStore?.devicesInfo || blueToothStore?.refreshInfo || {};
       return (
         <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />} contentContainerStyle={{ backgroundColor: '#f2f2f2' }}>
-          {currentDeviceBanner}
+          <View style={styles.card}>
+            <LinearGradient
+              colors={['#00bac4', '#06d1dc', '#00dbe5', '#00D1DE']}
+              style={styles.cardLinear}
+              start={{ x: 0.0, y: 0.25 }}
+              end={{ x: 0.5, y: 1.0 }}
+              locations={[0.2, 0.7, 0.5, 0.2]}
+            >
+              {name && controlBtn()}
+              <View style={styles.headerStart}>
+                {renderDeviceLogo(id)}
+                <TouchableOpacity style={styles.loginView} onPress={onPressCopy}>
+                  <View style={styles.headerContent}>
+                    {name && renderDeviceName}
+                    {id ? <Text style={styles.deviceMac}>MAC:{id}</Text> : null}
+                  </View>
+                </TouchableOpacity>
+              </View>
+              {currentDeviceView}
+            </LinearGradient>
+          </View>
           {currentResult}
         </ScrollView>
       );
-    }, [refreshing, onRefresh, contentList, currentResult, weChatStore.userInfo, dataLogCat, blueToothStore.evalName, lastTime]);
+    }, [
+      refreshing,
+      blueToothStore.devicesInfo,
+      onRefresh,
+      contentList,
+      currentResult,
+      weChatStore.userInfo,
+      dataLogCat,
+      blueToothStore.readyDevice,
+      blueToothStore.evalName,
+      blueToothStore.refreshInfo,
+      lastTime
+    ]);
 
     return (
       <BaseView
@@ -1016,9 +1094,9 @@ const styles = StyleSheet.create({
   userName: {
     alignItems: 'center',
     color: color3,
+    flex: 1,
     fontSize: 18,
-    fontWeight: 'bold',
-    flex: 1
+    fontWeight: 'bold'
   },
   userView: {
     alignItems: 'center',
