@@ -13,7 +13,7 @@ import { tw } from 'react-native-tailwindcss';
 import { Api } from '../common/api';
 import { RootEnum } from '../common/sign-module';
 import { defaultDataLog } from '../store/BlueToothStore';
-import { DEVICE_DATA, DEVICE_INFO, NEAR_FUTURE, UPDATE_DEVICE_INFO, UPDATE_TIME } from '../common/constants';
+import { DEVICE_DATA, DEVICE_INFO, UPDATE_DEVICE_INFO, UPDATE_TIME } from '../common/constants';
 import { useStore } from '../store';
 import { observer } from 'mobx-react-lite';
 import { HeaderBar } from '../component/home/HeaderBar';
@@ -138,8 +138,7 @@ export const Home: ScreenComponent = observer(
         const rePowered = await BluetoothStateManager.getState();
         if (rePowered !== 'PoweredOn') return;
         let deviceInfo: string | null = await AsyncStorage.getItem(DEVICE_INFO);
-        // console.log(blueToothStore?.devicesInfo, deviceInfo);
-        if (blueToothStore?.devicesInfo) return;
+        // if (blueToothStore?.devicesInfo) return;
         if (!deviceInfo) return;
         deviceInfo = JSON.parse(deviceInfo);
         await blueToothStore.reConnectDevice(deviceInfo, (res) => {
@@ -157,7 +156,8 @@ export const Home: ScreenComponent = observer(
           return;
         });
         let bool = [RootEnum['初次进入'], RootEnum['连接中']].includes(blueToothStore.isRoot);
-        if (blueToothStore?.devicesInfo && bool) {
+        if (blueToothStore?.devicesInfo && bool && !blueToothStore?.reConnectionDevice) {
+          console.log('监听到状态变化，更新数据', blueToothStore.devicesInfo?.id);
           eventTimes(() => blueToothStore.successDialog({ date: blueToothStore.nearFuture }, baseView), 1000);
           blueToothStore.userDeviceSetting(true).then((res) => {});
         }
@@ -174,7 +174,6 @@ export const Home: ScreenComponent = observer(
 
     const reConnectData = async () => {
       if (blueToothStore.devicesInfo) {
-        console.log(blueToothStore.activeDeviceConnect, '蓝牙连接状态');
         if (blueToothStore.activeDeviceConnect) {
           await blueToothStore.successDialog({ date: 0 });
         }
@@ -197,9 +196,8 @@ export const Home: ScreenComponent = observer(
       timer = null;
       timer = setInterval(() => {
         reConnectData();
-      }, 300000);
+      }, 1000000);
       AppState.addEventListener('change', async (e) => {
-        console.log(e);
         if (!blueToothStore.devicesInfo?.id) return;
         if (e === 'background') {
           clearInterval(timer);
@@ -207,12 +205,12 @@ export const Home: ScreenComponent = observer(
           await setHasBack(true);
           blueToothStore.backgroundActive = true;
           if (type) return;
-          await showBackgroundActions();
+          // await showBackgroundActions();
         }
         if (e === 'active') {
           blueToothStore.backgroundActive = false;
           // ToastAndroid.show('清理后台进程' + getBrand(), 2000);
-          blueToothStore.stopBackgroundJob(getBrand());
+          // blueToothStore.stopBackgroundJob(getBrand());
           clearInterval(timer);
           timer = null;
           timer = setInterval(() => {
@@ -275,51 +273,6 @@ export const Home: ScreenComponent = observer(
     const updateMenuState = () => {
       console.log('打开分享链接');
     };
-
-    const openBlueTooth = useCallback(() => {
-      navigation.navigate('BlueToothDetail', {});
-    }, [navigation]);
-
-    const currentSetContentList: Function = async (device) => {
-      let list: any = contentList;
-      if (device['-47']) {
-        const { intValue2, i8, i9, i10, xinlvTime, xueyaTime } = device['-47'];
-        list[0].value = `${arrCount(intValue2)}`;
-
-        // list[4].value = (list[0].value > 0 && '97%') || '无';
-        list[2].value = i8[i8.length - 1] || 0;
-        list[2].time = xinlvTime[i8.length - 1] || '';
-        if (i9.length > 0 && i10.length > 0) {
-          list[3].value = `${i9[i9.length - 1] || 0}/${i10[i10.length - 1] || 0}`;
-          list[3].time = xueyaTime[i9.length - 1] || '';
-        }
-      }
-      if (device['-120']) {
-        const { temperature } = device['-120'];
-        if (temperature) {
-          list[5].value = temperature.toFixed(2);
-        }
-      }
-      if (device['-32']) {
-        let data = device['-32'];
-        if (data['05']) {
-          let five = arrToByte(data['05'].toString().split(','), true);
-          if (data) {
-            let startTime = `${getMinTen(five[5])}-${getMinTen(five[6])} ${getMinTen(five[7])}:${getMinTen(five[8])}`;
-            let endTime = `${getMinTen(five[9])}-${getMinTen(five[10])} ${getMinTen(five[11])}:${getMinTen(five[12])}`;
-            const date1 = moment(startTime, 'MM-DD hh:mm');
-            const date2 = moment(endTime, 'MM-DD hh:mm');
-            let time = date2.diff(date1, 'minute');
-            const h = Math.floor(time / 60);
-            const mm = time % 60;
-            list[1].value = `${h}小时${mm}分钟`;
-          }
-        }
-      }
-      setContentList([...list]);
-      await AsyncStorage.setItem(DEVICE_DATA, JSON.stringify(device));
-    };
-
     const updateTime = async () => {
       let time: any = await AsyncStorage.getItem(UPDATE_TIME);
       setLastTime(time);
@@ -435,7 +388,7 @@ export const Home: ScreenComponent = observer(
       if (blueToothStore.refreshing) {
         return (
           <TouchableOpacity style={styles.modalModule} onPress={blueToothDetail}>
-            {!blueToothStore?.devicesInfo ? (
+            {!blueToothStore?.devicesInfo && blueToothStore?.refreshInfo ? (
               <View style={styles.refCard}>
                 <View style={styles.refreshContent}>
                   <Text style={styles.refCardTitle}>设备名称：{blueToothStore.getEvalName()}</Text>

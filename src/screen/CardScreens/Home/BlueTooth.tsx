@@ -41,10 +41,8 @@ export const BlueTooth: ScreenComponent = observer(
       blueToothStore.manager.startDeviceScan(null, { scanMode: 2 }, (error, device) => {
         if (error) {
           // 处理错误（扫描会自动停止）
-          console.log('设备连接', error);
           return;
         }
-        console.log(device.name);
         if (device.name && !list.find((item) => item?.id === device.id)) {
           list.push(device);
           setDevicesList([...list]);

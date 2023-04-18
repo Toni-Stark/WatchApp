@@ -9,7 +9,7 @@ import { allDataC, allDataSign, allDataSleep, batterySign, mainListen, passRegSi
 import { RootEnum } from '../common/sign-module';
 import { Api, ApiResult } from '../common/api';
 import BackgroundService from 'react-native-background-actions';
-import { Platform, ToastAndroid } from 'react-native';
+import { Platform } from 'react-native';
 import BackgroundJob from 'react-native-background-job';
 
 export const defaultDevice = {
@@ -74,7 +74,7 @@ export class BlueToothStore {
   @observable logcatDetailed: any = {};
   @observable refreshing: boolean = false;
   @observable refreshBtn: boolean = false;
-  @observable refreshInfo: any = {};
+  @observable refreshInfo: any = undefined;
   @observable hadBackgroundFetch: boolean = false;
   @observable hadStateListener: boolean = false;
   @observable isCheckHeart: boolean = false;
@@ -98,6 +98,7 @@ export class BlueToothStore {
   @observable nearFuture: any = 0;
   @observable baseView: any = null;
   @observable versionCode: string = '';
+  @observable reConnectionDevice: boolean = false;
 
   constructor() {
     makeAutoObservable(this);
@@ -134,6 +135,8 @@ export class BlueToothStore {
   async updateGetDataTime() {
     this.dataNowTime = moment(new Date()).format('YYYY-MM-DD hh:mm');
     this.dataLogCat = defaultDataLog;
+    this.reConnectionDevice = false;
+    console.log('正常加载已结束');
   }
 
   @action
@@ -143,7 +146,7 @@ export class BlueToothStore {
     }
     this.currentDevice = this.device;
     this.refreshBtn = false;
-    this.refreshInfo = {};
+    this.refreshInfo = undefined;
     this.deviceFormData = defaultData;
 
     try {
@@ -173,7 +176,7 @@ export class BlueToothStore {
 
   @action
   getEvalName() {
-    let name = this.readyDevice?.device_name || this.refreshInfo.name;
+    let name = this.readyDevice?.device_name || this.refreshInfo?.name;
     if (this.evalName) {
       name = name + '-' + this.evalName;
     } else {
@@ -254,14 +257,11 @@ export class BlueToothStore {
     const backgroundJob = {
       jobKey: 'backgroundDownloadTask',
       job: () => {
-        // BackgroundJob.cancel({ jobKey: 'backgroundDownloadTask' }).then(() => console.log('Success'));
         this.sleepFunction({ type });
       }
     };
     BackgroundJob.register(backgroundJob);
-    BackgroundJob.isAppIgnoringBatteryOptimization((error, ignoringOptimization) => {
-      console.log(ignoringOptimization);
-    });
+    BackgroundJob.isAppIgnoringBatteryOptimization((error, ignoringOptimization) => {});
     // setTimeout(() => {
     BackgroundJob.schedule({
       jobKey: 'backgroundDownloadTask', //后台运行任务的key
@@ -362,9 +362,9 @@ export class BlueToothStore {
       // if (date === 0) {
       //   await this.checkList(this.devicesInfo.id);
       // }
+      console.log(this.nearFuture, 'nearFuture');
       await this.updateActiveDevices({ num: date || this.nearFuture }, base);
     } catch (err) {
-      console.log(err, 'error');
       await this.closeDevices((res) => {
         return callback && callback(res);
       }, true);
@@ -374,14 +374,12 @@ export class BlueToothStore {
   @action
   async sendActiveMessage(params) {
     let storeRes = regCutString(params.value);
-    console.log(storeRes, 'res1');
     let buffer = Buffer.from(stringToByte(storeRes)).toString('base64');
     await this.devicesInfo.writeCharacteristicWithResponseForService(params.serviceUUID, params.uuid, buffer);
   }
   @action
   async sendActiveWithoutMessage(params) {
     let storeRes = regCutString(params.value);
-    console.log(stringToByte(storeRes), 'res2');
     let buffer = Buffer.from(stringToByte(storeRes)).toString('base64');
     await this.devicesInfo.writeCharacteristicWithoutResponseForService(params.serviceUUID, params.uuid, buffer);
   }
@@ -393,7 +391,6 @@ export class BlueToothStore {
       this.listenDevices = this.devicesInfo.monitorCharacteristicForService(params.serviceUUID, params.uuid, (error, characteristic) => {
         if (error) return;
         let value = baseToHex(characteristic.value);
-        // console.log(value);
         this.blueRootList = [...this.blueRootList, value];
         let regValue = ['a1', 'a0', 'd1', 'd0', 'd8', '88', '80', 'd2', 'e0', 'df'].includes(value.slice(0, 2));
         if (regValue) {
@@ -419,26 +416,18 @@ export class BlueToothStore {
           this.currentDevice = { ...this.device };
           return;
         }
-        // console.log(value, this.backgroundActive);
         clearTimeout(timer);
         timer = setTimeout(() => {
           this.updateDeviceList();
         }, 1500);
-        // eventTimes(() => {
-        //   // this.setBasicInfo();
-        //   this.updateDeviceList();
-        // }, 1000);
       });
     } catch (err) {
-      // this.baseView?.current.hideLoading();
       console.log('打印报错', err);
     }
   }
 
   @action
-  async setBasicInfo() {
-    // RSJournalStore.writeDataCache(this.logcatDetailed);
-  }
+  async setBasicInfo() {}
 
   @action
   async getDescriptorsForDeviceInfo(params) {
@@ -449,11 +438,6 @@ export class BlueToothStore {
   @action
   async devicesModules(val, bool) {
     let hex = parseInt(val.slice(0, 2), 16) - 256;
-    // console.log(hex, val);
-    // if (!this.logcatDetailed[hex]) {
-    //   this.logcatDetailed[hex] = '';
-    // }
-    // this.logcatDetailed[hex] += val + '\n';
     if (bool) {
       switch (hex) {
         case -47:
@@ -472,28 +456,20 @@ export class BlueToothStore {
     }
     let params = {
       '-95': (e) => {
-        console.log(e);
         if (e.length >= 20) {
           let str = e.match(/([\d\D]{2})/g);
           let com = `${str[6]}.${str[7]}.${str[8]}.${str[9]}-${parseInt(str[4] + str[5], 16)}`;
-          console.log(com, '版本号');
           this.versionCode = com;
           this.userDeviceSetting(true);
         }
-
-        // if (reg) {
-        //   this.needRegPassword = true;
-        // }
       },
       '-96': (e) => {
         let battery = e.match(/([\d\D]{2})/g);
         let batteryNum = Math.ceil((parseInt(battery[6], 16) / 100) * 4);
-        console.log(batteryNum);
         if (!bool && !this.dataLogCat?.power) {
           this.dataLogCat = { ...this.dataLogCat, power: true };
           dateTimes(
             () => {
-              console.log('获取电量数据完成');
               this.dataLogCat = { ...this.dataLogCat, power: false };
             },
             1000,
@@ -505,14 +481,12 @@ export class BlueToothStore {
         };
       },
       '-47': (e) => {
-        // console.log(e);
         let list: any = this.device[hex] || {};
         if (!bool) {
           this.deviceFormData['1'] += e + '\n';
           this.dataLogCat = { ...this.dataLogCat, list: true };
           dateTimes(
             () => {
-              console.log('获取日常数据完成');
               this.dataLogCat = { ...this.dataLogCat, list: false };
             },
             1000,
@@ -522,7 +496,6 @@ export class BlueToothStore {
         return list;
       },
       '-32': (e) => {
-        console.log(e);
         let battery = e.match(/([\d\D]{2})/g);
         let data: any = this.device[hex] || {};
         data[battery[1]] = battery;
@@ -531,7 +504,6 @@ export class BlueToothStore {
           this.dataLogCat = { ...this.dataLogCat, battery: true };
           dateTimes(
             () => {
-              console.log('获取睡眠数据完成');
               this.dataLogCat.battery = false;
               this.dataLogCat = { ...this.dataLogCat, battery: false };
             },
@@ -542,7 +514,6 @@ export class BlueToothStore {
         return data;
       },
       '-33': (e) => {
-        // console.log(e);
         if (!bool) {
           this.deviceFormData['1'] += e + '\n';
           this.dataLogCat = { ...this.dataLogCat, 'new-date': true };
@@ -563,7 +534,6 @@ export class BlueToothStore {
           this.dataLogCat = { ...this.dataLogCat, temperature: true };
           dateTimes(
             () => {
-              console.log('获取温度数据完成');
               this.dataLogCat = { ...this.dataLogCat, temperature: false };
             },
             1000,
@@ -581,9 +551,7 @@ export class BlueToothStore {
           };
         }
       },
-      '-46': () => {
-        // console.log(e, '血氧数据');
-      },
+      '-46': () => {},
       '-48': (e) => {
         let battery = e.match(/([\d\D]{2})/g);
         if (battery[1]) {
@@ -591,7 +559,6 @@ export class BlueToothStore {
             this.dataLogCat = { ...this.dataLogCat, 'heart-jump': true };
             dateTimes(
               () => {
-                console.log('获取详细心率数据完成');
                 this.dataLogCat = { ...this.dataLogCat, 'heart-jump': false };
               },
               1000,
@@ -701,7 +668,6 @@ export class BlueToothStore {
         brr[4] = i;
         brr[5] = 2;
         let result = arrToByte(brr) + ' ' + arrToByte(msg);
-        console.log(result, 'result', msg);
         const obj = {
           value: result,
           serviceUUID: 'f0080001-0451-4000-B000-000000000000',
@@ -732,9 +698,9 @@ export class BlueToothStore {
         this.devicesInfo = devices;
         this.isConnected = true;
         this.activeDeviceConnect = true;
+        this.reConnectionDevice = true;
         this.listenActiveMessage(mainListen);
         if (devices?.id) this.checkList(devices.id);
-
         this.successDialog({ date: this.nearFuture });
         return callback({ type: '2', delay: 1 });
       })

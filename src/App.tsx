@@ -74,6 +74,8 @@ const App = observer(() => {
   }, []);
 
   useEffect(() => {
+    // AsyncStorage.removeItem(NEAR_FUTURE);
+
     AsyncStorage.getItem(NEAR_FUTURE).then((res) => {
       if (!res) return;
       let data = JSON.parse(res);
