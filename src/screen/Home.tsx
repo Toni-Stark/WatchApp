@@ -120,7 +120,7 @@ export const Home: ScreenComponent = observer(
     ]);
     const [hasBack, setHasBack] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
-    const [dataLogCat, setDataLogCat] = useState(defaultDataLog);
+    const [dataLogCat, setDataLogCat] = useState({ ...defaultDataLog });
     const [lastTime, setLastTime] = useState('');
     const [isRefresh, setIsRefresh] = useState(false);
 
@@ -141,22 +141,26 @@ export const Home: ScreenComponent = observer(
         // if (blueToothStore?.devicesInfo) return;
         if (!deviceInfo) return;
         deviceInfo = JSON.parse(deviceInfo);
-        await blueToothStore.reConnectDevice(deviceInfo, (res) => {
-          if (res.type === '1') {
-            blueToothStore.isRoot = RootEnum['无设备连接'];
-            blueToothStore.refreshing = false;
-            // baseView?.current?.showToast({ text: '重连失败', delay: 1 });
-          }
-          if (res.type === '5') {
-            // baseView?.current?.showToast({ text: '', delay: 1 });
-          }
-          if (res.type === '3') {
-            baseView.current?.showToast({ text: '未搜索到设备', delay: 1 });
-          }
-          return;
-        });
+        if (!blueToothStore.devicesInfo) {
+          await blueToothStore.reConnectDevice(deviceInfo, (res) => {
+            if (res.type === '1') {
+              blueToothStore.isRoot = RootEnum['无设备连接'];
+              console.log('无设备连接');
+              blueToothStore.refreshing = false;
+              // baseView?.current?.showToast({ text: '重连失败', delay: 1 });
+            }
+            if (res.type === '5') {
+              // baseView?.current?.showToast({ text: '', delay: 1 });
+            }
+            if (res.type === '3') {
+              // baseView.current?.showToast({ text: '未搜索到设备', delay: 1 });
+            }
+            return;
+          });
+        }
+
         let bool = [RootEnum['初次进入'], RootEnum['连接中']].includes(blueToothStore.isRoot);
-        if (blueToothStore?.devicesInfo && bool && !blueToothStore?.reConnectionDevice) {
+        if (blueToothStore?.devicesInfo && (bool || !blueToothStore?.reConnectionDevice)) {
           console.log('监听到状态变化，更新数据', blueToothStore.devicesInfo?.id);
           eventTimes(() => blueToothStore.successDialog({ date: blueToothStore.nearFuture }, baseView), 1000);
           blueToothStore.userDeviceSetting(true).then((res) => {});
@@ -195,7 +199,9 @@ export const Home: ScreenComponent = observer(
       clearInterval(timer);
       timer = null;
       timer = setInterval(() => {
-        reConnectData();
+        if (!blueToothStore.refreshing) {
+          reConnectData();
+        }
       }, 1000000);
       AppState.addEventListener('change', async (e) => {
         if (!blueToothStore.devicesInfo?.id) return;
@@ -215,7 +221,7 @@ export const Home: ScreenComponent = observer(
           timer = null;
           timer = setInterval(() => {
             reConnectData();
-          }, 300000);
+          }, 1000000);
         }
         let result = await blueToothStore.regDeviceConnect();
         if (!result) {
@@ -264,11 +270,11 @@ export const Home: ScreenComponent = observer(
                 blueToothStore.updateGetDataTime().then();
               });
             }
-            blueToothStore.refreshing = false;
+            // blueToothStore.refreshing = false;
           });
         }
       }, 500);
-    }, [blueToothStore, blueToothStore.currentDevice]);
+    }, [blueToothStore.currentDevice, blueToothStore.refreshing]);
 
     const updateMenuState = () => {
       console.log('打开分享链接');
@@ -384,7 +390,7 @@ export const Home: ScreenComponent = observer(
 
     const currentDeviceView = useMemo(() => {
       let isTrue = blueToothStore.currentDevice['-96']?.power || 0;
-
+      // console.log(blueToothStore.refreshing, !blueToothStore.devicesInfo, '页面数据变化');
       if (blueToothStore.refreshing) {
         return (
           <TouchableOpacity style={styles.modalModule} onPress={blueToothDetail}>

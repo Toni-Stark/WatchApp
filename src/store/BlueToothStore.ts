@@ -88,7 +88,7 @@ export class BlueToothStore {
   @observable backgroundActive = false;
   @observable dataChangeTime: any = '';
   @observable dataNowTime: any = moment(new Date()).format('YYYY-MM-DD hh:mm');
-  @observable dataLogCat: any = defaultDataLog;
+  @observable dataLogCat: any = { ...defaultDataLog };
   @observable evalName: string = '';
   @observable isConnected: boolean = false;
   @observable readyDevice: any = undefined;
@@ -134,9 +134,8 @@ export class BlueToothStore {
   @action
   async updateGetDataTime() {
     this.dataNowTime = moment(new Date()).format('YYYY-MM-DD hh:mm');
-    this.dataLogCat = defaultDataLog;
+    this.dataLogCat = { ...defaultDataLog };
     this.reConnectionDevice = false;
-    console.log('正常加载已结束');
   }
 
   @action
@@ -145,10 +144,11 @@ export class BlueToothStore {
       return;
     }
     this.currentDevice = this.device;
+    this.versionCode = '';
     this.refreshBtn = false;
     this.refreshInfo = undefined;
     this.deviceFormData = defaultData;
-
+    console.log('断开连接');
     try {
       this.needRegPassword = false;
       this.isConnected = false;
@@ -362,7 +362,6 @@ export class BlueToothStore {
       // if (date === 0) {
       //   await this.checkList(this.devicesInfo.id);
       // }
-      console.log(this.nearFuture, 'nearFuture');
       await this.updateActiveDevices({ num: date || this.nearFuture }, base);
     } catch (err) {
       await this.closeDevices((res) => {
@@ -389,8 +388,11 @@ export class BlueToothStore {
     try {
       let timer: any = null;
       this.listenDevices = this.devicesInfo.monitorCharacteristicForService(params.serviceUUID, params.uuid, (error, characteristic) => {
-        if (error) return;
+        if (error) {
+          return;
+        }
         let value = baseToHex(characteristic.value);
+        console.log(value);
         this.blueRootList = [...this.blueRootList, value];
         let regValue = ['a1', 'a0', 'd1', 'd0', 'd8', '88', '80', 'd2', 'e0', 'df'].includes(value.slice(0, 2));
         if (regValue) {
@@ -399,7 +401,6 @@ export class BlueToothStore {
         if (['bd'].includes(value.slice(0, 2))) {
           return;
         }
-        console.log(value);
         if (this.backgroundActive) {
           let dateTime = new Date().getTime();
           let timeThan = this.dataChangeTime ? dateTime - this.dataChangeTime : dateTime;
@@ -466,8 +467,10 @@ export class BlueToothStore {
       '-96': (e) => {
         let battery = e.match(/([\d\D]{2})/g);
         let batteryNum = Math.ceil((parseInt(battery[6], 16) / 100) * 4);
+        console.log(e, 'power');
         if (!bool && !this.dataLogCat?.power) {
           this.dataLogCat = { ...this.dataLogCat, power: true };
+          // this.currentDevice = { ...this.device };
           dateTimes(
             () => {
               this.dataLogCat = { ...this.dataLogCat, power: false };
@@ -514,6 +517,7 @@ export class BlueToothStore {
         return data;
       },
       '-33': (e) => {
+        // console.log(e);
         if (!bool) {
           this.deviceFormData['1'] += e + '\n';
           this.dataLogCat = { ...this.dataLogCat, 'new-date': true };
@@ -705,6 +709,7 @@ export class BlueToothStore {
         return callback({ type: '2', delay: 1 });
       })
       .catch(() => {
+        console.log('断开了设备连接');
         this.closeDevices();
         return callback({ type: '1', delay: 1 });
       });
@@ -724,6 +729,7 @@ export class BlueToothStore {
   @action
   async reConnectDevice(params, callback) {
     this.refreshInfo = { ...params };
+    console.log('重新连接');
     this.refreshing = true;
     let isDevice = false;
     try {
@@ -738,7 +744,10 @@ export class BlueToothStore {
           eventTimer(
             () => {
               this.manager?.stopDeviceScan();
-              this.refreshing = false;
+              console.log('断开设备连接');
+              if (!this.devicesInfo) {
+                this.refreshing = false;
+              }
               if (isDevice) {
                 callback({ type: '5', delay: 1 });
               } else {
@@ -845,12 +854,13 @@ export class BlueToothStore {
     if (data['3']) {
       await this.updateDeviceData({ type: '3', device_ver: code, value: data['3'] }).then(() => {
         this.deviceFormData['3'] = '';
+        this.dataLogCat = { ...defaultDataLog };
       });
-      this.currentDevice = { ...this.device };
       await AsyncStorage.setItem(UPDATE_TIME, moment().format('YYYY-MM-DD HH:mm'));
       setTimeout(async () => {
         let time = this.nearFuture - 1;
         await this.setTimesNow(this.devicesInfo.id, time);
+        this.refreshing = false;
         if (this.nearFuture > 0) {
           this.nearFuture = time;
           await this.successDialog({ date: this.nearFuture });
