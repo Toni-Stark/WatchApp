@@ -137,8 +137,8 @@ android {
         multiDexEnabled true  // 开启 multiDex 支持
         missingDimensionStrategy 'react-native-camera', 'general'
         renderscriptSupportModeEnabled true
-        versionCode 1020601
-        versionName "1.2.6"
+        versionCode 1020701
+        versionName "1.2.7"
     }
     splits {
         abi {
@@ -213,7 +213,7 @@ dependencies {
     compile project(':react-native-background-job')
 
     compile project(':lottie-react-native')
-    
+
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
 
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {

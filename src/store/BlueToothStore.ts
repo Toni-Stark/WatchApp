@@ -401,6 +401,10 @@ export class BlueToothStore {
         if (['bd'].includes(value.slice(0, 2))) {
           return;
         }
+        if (['a0'].includes(value.slice(0, 2))) {
+          this.currentDevice = { ...this.device };
+          return;
+        }
         if (this.backgroundActive) {
           let dateTime = new Date().getTime();
           let timeThan = this.dataChangeTime ? dateTime - this.dataChangeTime : dateTime;
@@ -467,7 +471,7 @@ export class BlueToothStore {
       '-96': (e) => {
         let battery = e.match(/([\d\D]{2})/g);
         let batteryNum = Math.ceil((parseInt(battery[6], 16) / 100) * 4);
-        console.log(e, 'power');
+        console.log(batteryNum, 'power');
         if (!bool && !this.dataLogCat?.power) {
           this.dataLogCat = { ...this.dataLogCat, power: true };
           // this.currentDevice = { ...this.device };
@@ -687,7 +691,8 @@ export class BlueToothStore {
   async connectDevice(device, callback) {
     device
       .connect({
-        autoConnect: true
+        autoConnect: true,
+        requestMTU: 247
       })
       .then((res) => {
         this.manager?.stopDeviceScan();

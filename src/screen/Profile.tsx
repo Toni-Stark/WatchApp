@@ -51,13 +51,13 @@ export const Profile: ScreenComponent = observer(
     const navigateToDevice = async (data) => {
       // navigation.navigate('BlueToolsList');
       // return;
-      // await blueToothStore.sendActiveMessage(allDataSign(0));
+      await blueToothStore.sendActiveMessage(batterySign);
       // await blueToothStore.sendActiveWithoutMessage(allDataC(0));
       // await blueToothStore.successDialog();
       // await blueToothStore.listenActiveMessage(mainListen);
       // blueToothStore.device = defaultDevice;
       // await blueToothStore.sendActiveMessage(allDataSign);
-      // return;
+      return;
       switch (data.tag) {
         case 'device':
           navigation.navigate('WatchStyleSetting', {});

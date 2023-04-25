@@ -64,7 +64,10 @@ export const BlueTooth: ScreenComponent = observer(
       } else {
         setSpinner(true);
         item
-          .connect()
+          .connect({
+            autoConnect: true,
+            requestMTU: 512
+          })
           .then((res) => {
             if (res.id) {
               return res.discoverAllServicesAndCharacteristics();
