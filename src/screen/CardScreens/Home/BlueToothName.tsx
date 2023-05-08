@@ -43,11 +43,11 @@ export const BlueToothName: ScreenComponent = observer(
         baseView.current.hideLoading();
         if (res.success) {
           baseView.current.showToast({ text: '修改成功', delay: 1 });
-          blueToothStore.devicesInfo.name = res.name;
-          blueToothStore.device.name = res.name;
-          blueToothStore.currentDevice.name = res.name;
-          blueToothStore.refreshInfo.name = res.name;
-          blueToothStore.readyDevice.device_name = res.name;
+          // blueToothStore.devicesInfo = { ...blueToothStore.devicesInfo, name: res.name };
+          // blueToothStore.device.name = res.name;
+          // blueToothStore.currentDevice.name = res.name;
+          // blueToothStore.refreshInfo.name = res.name;
+          blueToothStore.readyDevice = { ...blueToothStore.readyDevice, device_name: res.name };
           setTimeout(() => {
             baseView.current.hideLoading();
             backScreen();
@@ -99,6 +99,10 @@ export const BlueToothName: ScreenComponent = observer(
 let color1 = '#9e9e9e';
 let color3 = '#ffffff';
 export const styles = StyleSheet.create({
+  contextView: {
+    flex: 1,
+    justifyContent: 'space-between'
+  },
   headerInput: {
     borderBottomWidth: 1,
     borderColor: color1
@@ -123,9 +127,5 @@ export const styles = StyleSheet.create({
   },
   touchView: {
     margin: 20
-  },
-  contextView: {
-    flex: 1,
-    justifyContent: 'space-between'
   }
 });

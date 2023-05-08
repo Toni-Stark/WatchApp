@@ -9,9 +9,6 @@ import { ProfilePlaceholder } from '../component/skeleton/ProfilePlaceholder';
 import { observer } from 'mobx-react-lite';
 import FastImage from 'react-native-fast-image';
 import DeviceInfo from 'react-native-device-info';
-import AsyncStorage from '@react-native-community/async-storage';
-import { TOKEN_NAME } from '../common/constants';
-import { allDataC, allDataSign, allDataSleep, batterySign, passRegSign } from '../common/watch-module';
 
 export const Profile: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -51,20 +48,19 @@ export const Profile: ScreenComponent = observer(
     const navigateToDevice = async (data) => {
       // navigation.navigate('BlueToolsList');
       // return;
-      await blueToothStore.sendActiveMessage(batterySign);
+      // await blueToothStore.sendActiveMessage(batterySign);
       // await blueToothStore.sendActiveWithoutMessage(allDataC(0));
       // await blueToothStore.successDialog();
       // await blueToothStore.listenActiveMessage(mainListen);
       // blueToothStore.device = defaultDevice;
       // await blueToothStore.sendActiveMessage(allDataSign);
-      return;
+      // return;
       switch (data.tag) {
         case 'device':
           navigation.navigate('WatchStyleSetting', {});
           break;
         case 'info':
           blueToothStore.userDeviceSetting(false, true).then((res) => {
-            console.log(res);
             if (!res.success) {
               baseView.current.showToast({ text: res.msg, delay: 1.5 });
               return;
@@ -166,6 +162,8 @@ let color1 = '#ffffff';
 let color2 = '#00D1DE';
 let color3 = '#e3e3e3';
 let color4 = '#a6a6a6';
+let color5 = '#908f8f';
+
 const styles = StyleSheet.create({
   context: {
     flex: 1
@@ -246,7 +244,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15
   },
   logText: {
-    color: '#ffffff'
+    color: color1
   },
   logView: {},
   loginView: {
@@ -277,7 +275,7 @@ const styles = StyleSheet.create({
     fontSize: 18
   },
   versionText: {
-    color: '#908f8f',
+    color: color5,
     fontSize: 14
   },
   versionView: {

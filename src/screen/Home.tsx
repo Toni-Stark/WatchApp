@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, BackHandler, Linking, RefreshControl, ScrollView, StatusBar, StyleSheet, Text, ToastAndroid, TouchableOpacity, View } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import moment from 'moment';
 import LinearGradient from 'react-native-linear-gradient';
 import FastImage from 'react-native-fast-image';
 import BluetoothStateManager from 'react-native-bluetooth-state-manager';
@@ -17,7 +16,7 @@ import { DEVICE_DATA, DEVICE_INFO, UPDATE_DEVICE_INFO, UPDATE_TIME } from '../co
 import { useStore } from '../store';
 import { observer } from 'mobx-react-lite';
 import { HeaderBar } from '../component/home/HeaderBar';
-import { arrCount, arrToByte, eventTimes, getMinTen, hasAndroidPermission } from '../common/tools';
+import { eventTimes, hasAndroidPermission } from '../common/tools';
 import { StatusText } from '../component/home/StatusText';
 import { Hexagon } from '../component/home/Hexagon';
 import { getBrand } from 'react-native-device-info';
@@ -158,12 +157,10 @@ export const Home: ScreenComponent = observer(
             return;
           });
         }
-
         let bool = [RootEnum['初次进入'], RootEnum['连接中']].includes(blueToothStore.isRoot);
         if (blueToothStore?.devicesInfo && (bool || !blueToothStore?.reConnectionDevice)) {
-          console.log('监听到状态变化，更新数据', blueToothStore.devicesInfo?.id);
           eventTimes(() => blueToothStore.successDialog({ date: blueToothStore.nearFuture }, baseView), 1000);
-          blueToothStore.userDeviceSetting(true).then((res) => {});
+          blueToothStore.userDeviceSetting(true).then(() => {});
         }
       })();
     }, [blueToothStore.isRoot, blueToothStore.devicesInfo]);
@@ -186,7 +183,7 @@ export const Home: ScreenComponent = observer(
 
     const showBackgroundActions = async () => {
       Linking.addEventListener('url', handleOpenURL);
-      blueToothStore.settingBackgroundJob(getBrand(), UPDATE_DEVICE_INFO, 600000);
+      await blueToothStore.settingBackgroundJob(getBrand(), UPDATE_DEVICE_INFO, 600000);
     };
 
     const handleOpenURL = (e) => {
@@ -230,11 +227,11 @@ export const Home: ScreenComponent = observer(
             .successDialog({
               callback: (res) => {
                 setRefreshing(false);
-                baseView.current.showToast(res);
+                baseView?.current?.showToast(res);
               },
               date: 0
             })
-            .then((res) => {
+            .then(() => {
               setRefreshing(false);
             });
         }
@@ -266,7 +263,7 @@ export const Home: ScreenComponent = observer(
         if (blueToothStore?.devicesInfo?.id) {
           blueToothStore.getDeviceInfo({ id: blueToothStore.devicesInfo.id }).then((res) => {
             if (res.success) {
-              currentSetList(res.data).then((upload) => {
+              currentSetList(res.data).then(() => {
                 blueToothStore.updateGetDataTime().then();
               });
             }
@@ -329,18 +326,18 @@ export const Home: ScreenComponent = observer(
         .successDialog({
           callback: (res) => {
             setRefreshing(false);
-            baseView.current.showToast(res);
+            baseView?.current?.showToast(res);
           },
           date: 0
         })
-        .then((res) => {
+        .then(() => {
           setRefreshing(false);
         });
     }, []);
 
     const onRefreshing = async (bool?: boolean) => {
       if (!blueToothStore?.devicesInfo) {
-        if (!bool) baseView.current.showToast({ text: '请连接设备', delay: 1.5 });
+        if (!bool) baseView?.current?.showToast({ text: '请连接设备', delay: 1.5 });
         return;
       }
       if (blueToothStore?.devicesInfo?.id) {
@@ -351,7 +348,7 @@ export const Home: ScreenComponent = observer(
               blueToothStore.updateGetDataTime().then();
             });
           }
-          if (!bool) baseView.current.showToast({ text: res.msg, delay: 1.5 });
+          if (!bool) baseView?.current?.showToast({ text: res.msg, delay: 1.5 });
           blueToothStore.refreshBtn = false;
         });
       }
@@ -390,6 +387,7 @@ export const Home: ScreenComponent = observer(
 
     const currentDeviceView = useMemo(() => {
       let isTrue = blueToothStore.currentDevice['-96']?.power || 0;
+      let name = blueToothStore.getEvalName();
       // console.log(blueToothStore.refreshing, !blueToothStore.devicesInfo, '页面数据变化');
       if (blueToothStore.refreshing) {
         return (
@@ -397,7 +395,7 @@ export const Home: ScreenComponent = observer(
             {!blueToothStore?.devicesInfo && blueToothStore?.refreshInfo ? (
               <View style={styles.refCard}>
                 <View style={styles.refreshContent}>
-                  <Text style={styles.refCardTitle}>设备名称：{blueToothStore.getEvalName()}</Text>
+                  <Text style={styles.refCardTitle}>设备名称：{name}</Text>
                   <Text style={styles.refCardMac}>MAC：{blueToothStore.refreshInfo.deviceID}</Text>
                   <Text style={styles.refCardTime}>上次连接时间：{blueToothStore.refreshInfo.time}</Text>
                 </View>
@@ -431,10 +429,11 @@ export const Home: ScreenComponent = observer(
             <View style={styles.deviceView}>
               <Text style={styles.deviceText}>电量</Text>
               <View style={styles.battery}>
-                {batteryItem(isTrue >= 0)}
-                {batteryItem(isTrue >= 1)}
-                {batteryItem(isTrue >= 2)}
-                {batteryItem(isTrue >= 3)}
+                {/*{batteryItem(isTrue >= 0)}*/}
+                {/*{batteryItem(isTrue >= 1)}*/}
+                {/*{batteryItem(isTrue >= 2)}*/}
+                {/*{batteryItem(isTrue >= 3)}*/}
+                <View style={{ width: isTrue + '%', display: 'flex', backgroundColor: color3, height: '100%' }} />
               </View>
             </View>
             <Text style={styles.evalText}>数据记录时间：{lastTime}</Text>
@@ -452,7 +451,8 @@ export const Home: ScreenComponent = observer(
       blueToothStore.devicesInfo,
       blueToothStore.dataNowTime,
       blueToothDetail,
-      blueToothStore.evalName
+      blueToothStore.evalName,
+      blueToothStore.readyDevice
     ]);
     const onPressCopy = () => {
       let str = blueToothStore.devicesInfo.id;
@@ -629,7 +629,7 @@ export const Home: ScreenComponent = observer(
         );
       }
       return <Text style={styles.userName} />;
-    }, [blueToothStore.refreshing, blueToothStore?.refreshInfo, blueToothStore?.devicesInfo]);
+    }, [blueToothStore.readyDevice, blueToothStore.evalName, blueToothStore.refreshing, blueToothStore?.refreshInfo, blueToothStore?.devicesInfo]);
     // 设备id
 
     const renderContext = useMemo(() => {
@@ -644,12 +644,12 @@ export const Home: ScreenComponent = observer(
               end={{ x: 0.5, y: 1.0 }}
               locations={[0.2, 0.7, 0.5, 0.2]}
             >
-              {name && controlBtn()}
+              {name ? controlBtn() : null}
               <View style={styles.headerStart}>
                 {renderDeviceLogo(id)}
                 <TouchableOpacity style={styles.loginView} onPress={onPressCopy}>
                   <View style={styles.headerContent}>
-                    {name && renderDeviceName}
+                    {name ? renderDeviceName : null}
                     {id ? <Text style={styles.deviceMac}>MAC:{id}</Text> : null}
                   </View>
                 </TouchableOpacity>
@@ -713,19 +713,11 @@ export const Home: ScreenComponent = observer(
 );
 const color1 = '#00D1DE';
 const color3 = '#ffffff';
-const color5 = '#cecece';
 const color7 = '#3d3d3d';
 const color8 = '#00bac4';
-const color9 = '#FF002F';
-const color10 = '#8f8f8f';
-const color11 = 'transparent';
 const color12 = '#6a6a6a';
 
 const styles = StyleSheet.create({
-  barText: {
-    color: color5,
-    fontSize: 16
-  },
   battery: {
     borderColor: color3,
     borderRadius: 2,
@@ -734,7 +726,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     height: 15,
     padding: 1,
-    paddingLeft: 0,
     width: 37
   },
   batteryContent: {
@@ -766,11 +757,6 @@ const styles = StyleSheet.create({
   card: {
     height: 200,
     margin: 10
-  },
-  cardDevicesView: {
-    flexDirection: 'row',
-    flex: 1,
-    alignItems: 'center'
   },
   cardLinear: {
     borderRadius: 15,
@@ -839,17 +825,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
     marginTop: 5
   },
-  evalTitle: {
-    color: color3,
-    marginTop: 2,
-    textAlign: 'center'
-  },
   evalValue: {
     color: color12,
     fontSize: 16
-  },
-  footerText: {
-    marginTop: 3
   },
   headerContent: {
     flexDirection: 'column',
@@ -864,9 +842,6 @@ const styles = StyleSheet.create({
   },
   headerStart: {
     flexDirection: 'row'
-  },
-  headerTitle: {
-    fontSize: 18
   },
   iconPosi: {
     position: 'absolute',
@@ -896,41 +871,11 @@ const styles = StyleSheet.create({
     color: color3,
     marginLeft: 10
   },
-  labelData: {
-    fontSize: 15
-  },
   labelReady: {
     fontSize: 18
   },
-  labelText: {
-    fontSize: 13
-  },
-  labelView: {
-    borderColor: color3,
-    borderRadius: 8,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    paddingHorizontal: 6,
-    paddingVertical: 3
-  },
-  linkModule: {
-    backgroundColor: color8,
-    height: 50,
-    width: '100%'
-  },
-  linkStatus: {
-    backgroundColor: color9,
-    height: 50,
-    width: '100%'
-  },
   loginView: {
     flex: 1
-  },
-  mainTitle: {
-    color: color3,
-    fontFamily: 'SimpleLineIcons',
-    fontSize: 35,
-    textAlign: 'center'
   },
   modalModule: {
     flex: 1
@@ -990,21 +935,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 10
   },
-  tabBar: {
-    alignItems: 'center',
-    flex: 1
-  },
-  tabRow: {
-    flexDirection: 'row'
-  },
-  tableEnd: {
-    alignItems: 'flex-end'
-  },
-  tableHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between'
-  },
   tableItem: {
     backgroundColor: color3,
     marginBottom: 15,
@@ -1039,16 +969,6 @@ const styles = StyleSheet.create({
     color: color3,
     fontSize: 25,
     fontWeight: 'bold'
-  },
-  triangle: {
-    borderColor: color11,
-    borderStyle: 'solid',
-    borderTopColor: color10,
-    borderTopWidth: 8,
-    borderWidth: 5,
-    height: 0,
-    marginTop: 3,
-    width: 0
   },
   userName: {
     alignItems: 'center',

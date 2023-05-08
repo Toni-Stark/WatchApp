@@ -1,17 +1,25 @@
-import { action, makeAutoObservable, observable } from 'mobx';
+import moment from 'moment';
+import BackgroundJob from 'react-native-background-job';
+import BackgroundService from 'react-native-background-actions';
 import AsyncStorage from '@react-native-community/async-storage';
+import { Buffer } from 'buffer';
+import { Platform } from 'react-native';
+import { BleManager } from 'react-native-ble-plx';
+import { action, makeAutoObservable, observable } from 'mobx';
+import { allDataC, allDataSign, allDataSleep, batterySign, mainListen, passRegSign, settingName } from '../common/watch-module';
 import { DEVICE_DATA, DEVICE_INFO, NEAR_FUTURE, TOKEN_NAME, UPDATE_DEVICE_INFO, UPDATE_TIME } from '../common/constants';
 import { arrToByte, baseToHex, dateTimes, eventTimer, getBytesList, regCutString, stringToByte } from '../common/tools';
-import { BleManager } from 'react-native-ble-plx';
-import { Buffer } from 'buffer';
-import moment from 'moment';
-import { allDataC, allDataSign, allDataSleep, batterySign, mainListen, passRegSign, settingName } from '../common/watch-module';
 import { RootEnum } from '../common/sign-module';
 import { Api, ApiResult } from '../common/api';
-import BackgroundService from 'react-native-background-actions';
-import { Platform } from 'react-native';
-import BackgroundJob from 'react-native-background-job';
 
+export const defaultDataLog = {
+  power: null,
+  list: null,
+  battery: null,
+  'new-date': null,
+  temperature: null,
+  'heart-jump': null
+};
 export const defaultDevice = {
   '-47': {
     i8: [],
@@ -40,14 +48,6 @@ const defaultData = {
   '3': '',
   '4': '',
   '5': ''
-};
-export const defaultDataLog = {
-  power: null,
-  list: null,
-  battery: null,
-  'new-date': null,
-  temperature: null,
-  'heart-jump': null
 };
 
 export class BlueToothStore {
@@ -120,7 +120,6 @@ export class BlueToothStore {
     this.device = defaultDevice;
     this.deviceFormData = defaultData;
   }
-
   @action
   async removeBlueToothListen(bool?: boolean) {
     this.isRoot = RootEnum['断开连接'];
@@ -130,14 +129,12 @@ export class BlueToothStore {
       await this.closeDevices();
     }, 1000);
   }
-
   @action
   async updateGetDataTime() {
     this.dataNowTime = moment(new Date()).format('YYYY-MM-DD hh:mm');
     this.dataLogCat = { ...defaultDataLog };
     this.reConnectionDevice = false;
   }
-
   @action
   async closeDevices(callback?: Function, bool?: boolean) {
     if (!this.devicesInfo?.id) {
@@ -148,7 +145,6 @@ export class BlueToothStore {
     this.refreshBtn = false;
     this.refreshInfo = undefined;
     this.deviceFormData = defaultData;
-    console.log('断开连接');
     try {
       this.needRegPassword = false;
       this.isConnected = false;
@@ -173,7 +169,6 @@ export class BlueToothStore {
       // });
     }
   }
-
   @action
   getEvalName() {
     let name = this.readyDevice?.device_name || this.refreshInfo?.name;
@@ -188,15 +183,10 @@ export class BlueToothStore {
     }
     return name;
   }
-
   @action
   async getMsgUpload() {
     await this.backDeviceData();
   }
-
-  /**
-   * 最终执行方法
-   */
   @action
   async sleepFunction({ time, type }: { time?: any; type?: string }) {
     return new Promise((resolve) =>
@@ -209,7 +199,6 @@ export class BlueToothStore {
       }, time)
     );
   }
-
   /**
    * android系统普遍使用方式
    * vivo、oppo
@@ -234,7 +223,7 @@ export class BlueToothStore {
     const veryIntensiveTask = async (taskDataArguments) => {
       if (run) {
         const { delay } = taskDataArguments;
-        await new Promise(async (resolve) => {
+        await new Promise(async () => {
           for (let i = 0; BackgroundService.isRunning(); i++) {
             await this.sleepFunction({ time: delay, type });
           }
@@ -243,14 +232,13 @@ export class BlueToothStore {
     };
     await BackgroundService.start(veryIntensiveTask, options);
   }
-
   /**
    * 特殊第三方服务商android系统使用方式
    * HUAWEI
    */
   @action
   async runningProviderTask(type, timer, brand) {
-    this.stopBackgroundJob(brand);
+    await this.stopBackgroundJob(brand);
     if (Platform.OS !== 'android') {
       return;
     }
@@ -261,7 +249,7 @@ export class BlueToothStore {
       }
     };
     BackgroundJob.register(backgroundJob);
-    BackgroundJob.isAppIgnoringBatteryOptimization((error, ignoringOptimization) => {});
+    BackgroundJob.isAppIgnoringBatteryOptimization(() => {});
     // setTimeout(() => {
     BackgroundJob.schedule({
       jobKey: 'backgroundDownloadTask', //后台运行任务的key
@@ -278,20 +266,18 @@ export class BlueToothStore {
       allowExecutionInForeground: true //允许任务在前台执行
     });
   }
-
   @action
   async settingBackgroundJob(brand, type, timer) {
     if (['vivo', 'VIVO', 'oppo', 'OPPO'].includes(brand)) {
       // ToastAndroid.show('应用程序已在后台运行', 1500);
-      this.runningAndroidTask(type, timer, brand, true);
+      await this.runningAndroidTask(type, timer, brand, true);
     }
     if (['HUAWEI', 'huawei'].includes(brand)) {
       // ToastAndroid.show('应用程序已在后台运行', 1500);
-      this.runningProviderTask(type, timer, brand);
-      this.runningAndroidTask(type, timer, brand, false);
+      await this.runningProviderTask(type, timer, brand);
+      await this.runningAndroidTask(type, timer, brand, false);
     }
   }
-
   @action
   async stopBackgroundJob(brand) {
     if (['vivo', 'VIVO', 'oppo', 'OPPO'].includes(brand)) {
@@ -301,7 +287,6 @@ export class BlueToothStore {
       BackgroundJob.cancel({ jobKey: 'backgroundDownloadTask' });
     }
   }
-
   @action
   async backDeviceData() {
     this.devicesTimes = this.devicesTimes + 1;
@@ -309,7 +294,6 @@ export class BlueToothStore {
     // await this.sendActiveMessage(allDataSleep(1));
     // await this.sendActiveMessage(allDataC(0));
   }
-
   @action
   async setDeviceStorage(devices) {
     let deviceInfo = {
@@ -319,7 +303,6 @@ export class BlueToothStore {
     };
     await AsyncStorage.setItem(DEVICE_INFO, JSON.stringify(deviceInfo));
   }
-
   @action
   async updateActiveDevices({ num }, base) {
     if (base) {
@@ -339,7 +322,6 @@ export class BlueToothStore {
     // await this.sendActiveMessage(allDataSleep(num + 1));
     // await this.sendActiveMessage(allDataC(num));
   }
-
   @action
   async successDialog({ pass, callback, date = 0 }: { pass?: string; callback?: Function; date: number }, base?: any) {
     if (!this.devicesInfo?.id) {
@@ -369,7 +351,6 @@ export class BlueToothStore {
       }, true);
     }
   }
-
   @action
   async sendActiveMessage(params) {
     let storeRes = regCutString(params.value);
@@ -382,7 +363,6 @@ export class BlueToothStore {
     let buffer = Buffer.from(stringToByte(storeRes)).toString('base64');
     await this.devicesInfo.writeCharacteristicWithoutResponseForService(params.serviceUUID, params.uuid, buffer);
   }
-
   @action
   async listenActiveMessage(params) {
     try {
@@ -430,16 +410,13 @@ export class BlueToothStore {
       console.log('打印报错', err);
     }
   }
-
   @action
   async setBasicInfo() {}
-
   @action
   async getDescriptorsForDeviceInfo(params) {
     const { data } = params;
     await this.manager.descriptorsForDevice(data.deviceID, data.serviceUUID, data.uuid);
   }
-
   @action
   async devicesModules(val, bool) {
     let hex = parseInt(val.slice(0, 2), 16) - 256;
@@ -463,14 +440,14 @@ export class BlueToothStore {
       '-95': (e) => {
         if (e.length >= 20) {
           let str = e.match(/([\d\D]{2})/g);
-          let com = `${str[6]}.${str[7]}.${str[8]}.${str[9]}-${parseInt(str[4] + str[5], 16)}`;
-          this.versionCode = com;
+          this.versionCode = `${str[6]}.${str[7]}.${str[8]}.${str[9]}-${parseInt(str[4] + str[5], 16)}`;
           this.userDeviceSetting(true);
         }
       },
       '-96': (e) => {
         let battery = e.match(/([\d\D]{2})/g);
-        let batteryNum = Math.ceil((parseInt(battery[6], 16) / 100) * 4);
+        // let batteryNum = Math.ceil((parseInt(battery[6], 16) / 100) * 4);
+        let batteryNum = Math.ceil(parseInt(battery[6], 16));
         console.log(batteryNum, 'power');
         if (!bool && !this.dataLogCat?.power) {
           this.dataLogCat = { ...this.dataLogCat, power: true };
@@ -521,7 +498,6 @@ export class BlueToothStore {
         return data;
       },
       '-33': (e) => {
-        // console.log(e);
         if (!bool) {
           this.deviceFormData['1'] += e + '\n';
           this.dataLogCat = { ...this.dataLogCat, 'new-date': true };
@@ -588,19 +564,17 @@ export class BlueToothStore {
     this.device = { ...this.device, [hex]: params[hex](val) };
     return this.device;
   }
-
   @action
   async getDataTime(times) {
     this.nearFuture = times;
   }
-
   @action
   async setTimesNow(deviceId, times) {
     let oneDay = 60 * 60 * 24 * 1000;
     let data: any = await AsyncStorage.getItem(NEAR_FUTURE);
     let json: any = data ? JSON.parse(data) : {};
     let today = moment().format('YYYY-MM-DD');
-    let date: any = '';
+    let date: any;
     if (times === 2) {
       date = moment(new Date(today).getTime() - 2 * oneDay).format('YYYY/MM/DD');
     } else {
@@ -609,7 +583,6 @@ export class BlueToothStore {
     json[deviceId] = date;
     await AsyncStorage.setItem(NEAR_FUTURE, JSON.stringify(json));
   }
-
   @action
   async checkList(deviceId) {
     let data: any = await AsyncStorage.getItem(NEAR_FUTURE);
@@ -631,7 +604,6 @@ export class BlueToothStore {
       await this.getDataTime(2);
     }
   }
-
   @action
   async changeDeviceName(params): Promise<any> {
     return new Promise(async (resolve) => {
@@ -658,7 +630,6 @@ export class BlueToothStore {
       });
     });
   }
-
   @action
   async sendMessageOfDevice(params): Promise<any> {
     return new Promise(async (resolve) => {
@@ -686,7 +657,6 @@ export class BlueToothStore {
       return resolve({ success: true, text: '推送成功' });
     });
   }
-
   @action
   async connectDevice(device, callback) {
     device
@@ -719,7 +689,6 @@ export class BlueToothStore {
         return callback({ type: '1', delay: 1 });
       });
   }
-
   @action
   async regDeviceConnect() {
     let result = await this.manager.isDeviceConnected(this.devicesInfo.id);
@@ -730,11 +699,9 @@ export class BlueToothStore {
     this.activeDeviceConnect = false;
     return false;
   }
-
   @action
   async reConnectDevice(params, callback) {
     this.refreshInfo = { ...params };
-    console.log('重新连接');
     this.refreshing = true;
     let isDevice = false;
     try {
@@ -749,7 +716,6 @@ export class BlueToothStore {
           eventTimer(
             () => {
               this.manager?.stopDeviceScan();
-              console.log('断开设备连接');
               if (!this.devicesInfo) {
                 this.refreshing = false;
               }
@@ -776,7 +742,6 @@ export class BlueToothStore {
       this.refreshing = false;
     }
   }
-
   /**
    * get UserDeviceSetting
    * url: /watch/device/list
@@ -833,7 +798,6 @@ export class BlueToothStore {
       return resolve({ data: res.data, success: true });
     });
   }
-
   /**
    * get updateDeviceList
    * url:
@@ -874,7 +838,6 @@ export class BlueToothStore {
       return;
     }
   }
-
   /**
    * get updateDeviceData
    * url: /watch/device/list
@@ -896,7 +859,6 @@ export class BlueToothStore {
       return resolve(res);
     });
   }
-
   /**
    * get bindUserDevice
    * url: /watch/device/binding
@@ -923,7 +885,6 @@ export class BlueToothStore {
       }, 2000);
     });
   }
-
   /**
    * get getDeviceInfo
    * url: /watch/device/newest-stat

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View, PermissionsAndroid, TouchableOpacity, Text, ScrollView } from 'react-native';
-import { init, Geolocation } from 'react-native-amap-geolocation';
+import { init } from 'react-native-amap-geolocation';
 import { ScreenComponent } from '../../index';
 import BaseView from '../../../component/BaseView';
 import { tw } from 'react-native-tailwindcss';
@@ -11,7 +11,6 @@ import { addLocationListener, start, stop } from 'react-native-amap-geolocation/
 import moment from 'moment';
 import { getWeek } from '../../../common/tools';
 import FastImage from 'react-native-fast-image';
-import { Fade, Placeholder, PlaceholderLine } from 'rn-placeholder';
 import { ProfilePlaceholder } from '../../../component/skeleton/ProfilePlaceholder';
 
 export const GeoWeather: ScreenComponent = observer(
@@ -37,7 +36,6 @@ export const GeoWeather: ScreenComponent = observer(
     const getWeather = (e) => {
       let weatherUrl = 'https://restapi.amap.com/v3/weather/weatherInfo';
       let webKey = '554ba62e047b6431be1a6042ffd900f2';
-      console.log(e.adCode);
       fetch(`${weatherUrl}?key=${webKey}&extensions=all&city=${e?.adCode}`)
         .then((response) => response.json())
         .then((responseJson) => {

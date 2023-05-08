@@ -23,8 +23,8 @@ export const BlueToolsList: ScreenComponent = observer(
         cate: 'info',
         type: 'label',
         fun: () => {
-          if (!blueToothStore.readyDevice) return baseView?.current?.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
-          baseView?.current?.showLoading({ text: '加载中...' });
+          // if (!blueToothStore.readyDevice) return baseView?.current?.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
+          baseView?.current?.showLoading({ text: '加载中...', delay: 1.5 });
           navigation.navigate('BlueToothDeviceName');
           setTimeout(() => {
             baseView?.current?.hideLoading();
@@ -38,8 +38,8 @@ export const BlueToolsList: ScreenComponent = observer(
         cate: 'device',
         type: 'label',
         fun: async () => {
-          if (!blueToothStore.readyDevice) return baseView?.current?.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
-          baseView?.current?.showLoading({ text: '加载中...' });
+          // if (!blueToothStore.readyDevice) return baseView?.current?.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
+          baseView?.current?.showLoading({ text: '加载中...', delay: 1.5 });
           navigation.navigate('BlueToothName');
           setTimeout(() => {
             baseView?.current?.hideLoading();
@@ -53,7 +53,7 @@ export const BlueToolsList: ScreenComponent = observer(
         cate: 'device',
         type: 'switch',
         fun: async (e) => {
-          if (!blueToothStore.readyDevice) return baseView?.current?.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
+          // if (!blueToothStore.readyDevice) return baseView?.current?.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
           // baseView.current.showLoading({ text: '加载中...' });
           await blueToothStore.sendActiveMessage(updateWeather(e ? 1 : 0));
           await AsyncStorage.setItem(WEATHER_UPDATE, JSON.stringify(e));
@@ -65,7 +65,7 @@ export const BlueToolsList: ScreenComponent = observer(
         image: require('../../../assets/home/weather.png'),
         cate: 'device',
         type: 'label',
-        fun: async (e) => {
+        fun: async () => {
           // if (!blueToothStore.readyDevice) return baseView.current.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
           baseView?.current?.showLoading({ text: '加载中...' });
           navigation.navigate('GeoWeather');
@@ -80,8 +80,8 @@ export const BlueToolsList: ScreenComponent = observer(
         image: require('../../../assets/home/message.png'),
         cate: 'device',
         type: 'label',
-        fun: async (e) => {
-          if (!blueToothStore.readyDevice) return baseView?.current?.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
+        fun: async () => {
+          // if (!blueToothStore.readyDevice) return baseView?.current?.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
           baseView?.current?.showLoading({ text: '加载中...' });
           navigation.navigate('BlueToothMessage');
           setTimeout(() => {
@@ -113,7 +113,6 @@ export const BlueToolsList: ScreenComponent = observer(
       });
 
       let subscription = DeviceEventEmitter.addListener('EventType', (param) => {
-        console.log(param, '页面监听');
         let list: any = [...dataList];
         if (param?.name) {
           list[1].value = param?.name;
@@ -121,7 +120,6 @@ export const BlueToolsList: ScreenComponent = observer(
         if (param?.note) {
           list[0].value = param?.note;
         }
-        console.log(list);
         setDataList(list);
         // 刷新界面等
       });
@@ -168,9 +166,4 @@ export const BlueToolsList: ScreenComponent = observer(
   }
 );
 
-let color2 = '#000000';
-let color3 = '#00D1DE';
-let color4 = '#ffffff';
-let color5 = '#e7e7e7';
-let color6 = '#9e9e9e';
 export const styles = StyleSheet.create({});
