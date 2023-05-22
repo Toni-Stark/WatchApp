@@ -1,13 +1,13 @@
 import React, { useMemo, useRef } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity, Text } from 'react-native';
-import BaseView from '../../../component/BaseView';
-import { useStore } from '../../../store';
-import { tw } from 'react-native-tailwindcss';
-import { ProfilePlaceholder } from '../../../component/skeleton/ProfilePlaceholder';
-import { observer } from 'mobx-react-lite';
-import { ScreenComponent } from '../../index';
 import FastImage from 'react-native-fast-image';
+import { View, ScrollView, StyleSheet, Text } from 'react-native';
+import { tw } from 'react-native-tailwindcss';
+import { observer } from 'mobx-react-lite';
+import { ProfilePlaceholder } from '../../../component/skeleton/ProfilePlaceholder';
 import { StackBar } from '../../../component/home/StackBar';
+import { ScreenComponent } from '../../index';
+import { useStore } from '../../../store';
+import BaseView from '../../../component/BaseView';
 
 export const UserInfo: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -52,25 +52,28 @@ export const UserInfo: ScreenComponent = observer(
   }
 );
 const color1 = '#00D1DE';
+const color2 = '#f8f8f8';
+const color3 = '#e3e3e3';
+const color4 = '#a6a6a6';
 const styles = StyleSheet.create({
   context: {
-    flex: 1,
-    alignItems: 'center'
+    alignItems: 'center',
+    flex: 1
   },
   deviceIcon: {
     height: 20,
     width: 20
   },
   fastView: {
-    backgroundColor: '#f8f8f8',
-    padding: 20,
-    width: 120,
-    height: 120,
+    alignItems: 'center',
+    backgroundColor: color2,
     borderRadius: 200,
     display: 'flex',
-    alignItems: 'center',
+    height: 120,
     justifyContent: 'center',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    padding: 20,
+    width: 120
   },
   headerStart: {
     flexDirection: 'row'
@@ -86,7 +89,7 @@ const styles = StyleSheet.create({
   labelView: {
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderColor: '#e3e3e3',
+    borderColor: color3,
     borderStyle: 'solid',
     borderTopWidth: 1,
     flexDirection: 'row',
@@ -95,15 +98,15 @@ const styles = StyleSheet.create({
     paddingVertical: 15
   },
   mainText: {
-    color: '#a6a6a6',
+    color: color4,
     fontSize: 16,
     marginBottom: 10
   },
   moduleView: {
-    padding: 20,
-    height: 250,
     alignItems: 'center',
+    height: 250,
     justifyContent: 'center',
+    padding: 20,
     paddingTop: 50
   },
   startLabel: {
@@ -111,8 +114,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row'
   },
   textView: {
-    fontSize: 26,
     color: color1,
+    fontSize: 26,
     fontWeight: 'bold'
   }
 });

@@ -12,7 +12,11 @@ export const DEVICE_DATA = 'DEVICE_DATA';
 export const DEVICE_CONFIG = 'DEVICE_CONFIG';
 export const UPDATE_TIME = 'UPDATE_TIME';
 export const NEAR_FUTURE = 'NEAR_FUTURE';
+
+// 天气开关状态
 export const WEATHER_UPDATE = 'WEATHER_UPDATE';
+// 血氧监控开关状态
+export const BLOOD_UPDATE = 'BLOOD_UPDATE';
 
 export const USER_CONFIG = 'USER_CONFIG';
 export const TEST_TOKEN = 'TEST_TOKEN';

@@ -22,6 +22,11 @@ import { BlueToothName } from './Home/BlueToothName';
 import { GeoWeather } from './Home/GeoWeather';
 import { BlueToothMessage } from './Home/BlueToothMessage';
 import { Permission } from './Profile/Permission';
+import { LanguageSet } from './Profile/LanguageSet';
+import { MessageControl } from './Profile/MessageControl';
+import { HeartSetting } from './Profile/HeartSetting';
+import { LongSet } from './Profile/LongSet';
+import { LightScreen } from './Profile/LightScreen';
 
 export type ScreensParamList = {
   Login: { message?: string };
@@ -30,6 +35,7 @@ export type ScreensParamList = {
   BlueToothWhite: { item?: any };
   BlueListener: { item?: any; type?: string };
   BindingInfo: { mac?: string };
+  MessageControl: { message: string };
 };
 
 export const CardScreens: Array<ScreenList> = [
@@ -51,5 +57,10 @@ export const CardScreens: Array<ScreenList> = [
   { name: 'BlueToothName', component: BlueToothName },
   { name: 'GeoWeather', component: GeoWeather },
   { name: 'BlueToothMessage', component: BlueToothMessage },
-  { name: 'Permission', component: Permission }
+  { name: 'Permission', component: Permission },
+  { name: 'LanguageSet', component: LanguageSet },
+  { name: 'MessageControl', component: MessageControl },
+  { name: 'HeartSetting', component: HeartSetting },
+  { name: 'LongSet', component: LongSet },
+  { name: 'LightScreen', component: LightScreen }
 ];

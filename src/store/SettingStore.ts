@@ -1,8 +1,8 @@
-import { action, makeAutoObservable, observable } from 'mobx';
-import { Api } from '../common/api';
-import { versionThanOld } from '../common/tools';
-import { Platform } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
+import { action, makeAutoObservable, observable } from 'mobx';
+import { Platform } from 'react-native';
+import { versionThanOld } from '../common/tools';
+import { Api } from '../common/api';
 
 export class SettingStore {
   @observable loading = false;

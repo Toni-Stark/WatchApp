@@ -2,11 +2,27 @@ import moment from 'moment';
 import BackgroundJob from 'react-native-background-job';
 import BackgroundService from 'react-native-background-actions';
 import AsyncStorage from '@react-native-community/async-storage';
-import { Buffer } from 'buffer';
-import { Platform } from 'react-native';
-import { BleManager } from 'react-native-ble-plx';
 import { action, makeAutoObservable, observable } from 'mobx';
-import { allDataC, allDataSign, allDataSleep, batterySign, mainListen, passRegSign, settingName } from '../common/watch-module';
+import { BleManager } from 'react-native-ble-plx';
+import { Platform } from 'react-native';
+import { Buffer } from 'buffer';
+import {
+  allDataC,
+  allDataSign,
+  allDataSleep,
+  batterySign,
+  mainListen,
+  passRegSign,
+  settingDevicesAlarm,
+  settingDevicesHeart,
+  settingDevicesLang,
+  settingDevicesLongSit,
+  settingDevicesMessage,
+  settingDevicesOxygen,
+  settingDevicesScreenLight,
+  settingName,
+  updateWeather
+} from '../common/watch-module';
 import { DEVICE_DATA, DEVICE_INFO, NEAR_FUTURE, TOKEN_NAME, UPDATE_DEVICE_INFO, UPDATE_TIME } from '../common/constants';
 import { arrToByte, baseToHex, dateTimes, eventTimer, getBytesList, regCutString, stringToByte } from '../common/tools';
 import { RootEnum } from '../common/sign-module';
@@ -99,6 +115,7 @@ export class BlueToothStore {
   @observable baseView: any = null;
   @observable versionCode: string = '';
   @observable reConnectionDevice: boolean = false;
+  @observable deviceControls: any = {};
 
   constructor() {
     makeAutoObservable(this);
@@ -339,7 +356,6 @@ export class BlueToothStore {
     try {
       if (!this.versionCode) {
         await this.sendActiveMessage(passRegSign(pass));
-        await this.sendActiveMessage(batterySign);
       }
       // if (date === 0) {
       //   await this.checkList(this.devicesInfo.id);
@@ -349,6 +365,32 @@ export class BlueToothStore {
       await this.closeDevices((res) => {
         return callback && callback(res);
       }, true);
+    }
+  }
+  @action
+  async openDeviceControl(isOpen) {
+    if (isOpen) {
+      // 打开第一部分健康开关
+      let open1 = '00 00 01 01 00 00 00 00 01 00 00 00 01 00 01';
+      await this.sendActiveMessage(settingDevicesHeart(open1));
+      // 打开第二部分健康开关
+      let open2 = '00 00 01 00 00 01 00 00 00 00 00 00 00 00 00 00 00 01';
+      await this.sendActiveMessage(settingDevicesHeart(open2));
+      // 打开血氧夜间监控开关
+      await this.sendActiveMessage(settingDevicesOxygen(18, 0, 8, 0, 1));
+      // 打开心率报警开关
+      await this.sendActiveMessage(settingDevicesAlarm(115, 55, 1));
+      // 打开久坐提醒开关
+      await this.sendActiveMessage(settingDevicesLongSit('08', '00', '12', '00', '1e', 1));
+      // 打开消息通知开关
+      let arr = Array(18).fill(1);
+      await this.sendActiveMessage(settingDevicesMessage(arr));
+      // 设置中文
+      await this.sendActiveMessage(settingDevicesLang(1));
+      // 打开天气推送开关
+      await this.sendActiveMessage(updateWeather(1));
+      // 翻转手腕亮屏设置
+      await this.sendActiveMessage(settingDevicesScreenLight(1, '08', '00', '12', '00', '09'));
     }
   }
   @action
@@ -372,16 +414,21 @@ export class BlueToothStore {
           return;
         }
         let value = baseToHex(characteristic.value);
-        console.log(value);
         this.blueRootList = [...this.blueRootList, value];
-        let regValue = ['a1', 'a0', 'd1', 'd0', 'd8', '88', '80', 'd2', 'e0', 'df'].includes(value.slice(0, 2));
+        let regValue = ['a1', 'a0', 'ad', 'd1', 'd0', 'd8', '88', '80', 'd2', 'e0', 'df'].includes(value.slice(0, 2));
         if (regValue) {
           this.devicesModules(value, this.backgroundActive);
         }
+        // console.log(value);
+
         if (['bd'].includes(value.slice(0, 2))) {
           return;
         }
         if (['a0'].includes(value.slice(0, 2))) {
+          this.currentDevice = { ...this.device };
+          return;
+        }
+        if (['ad'].includes(value.slice(0, 2))) {
           this.currentDevice = { ...this.device };
           return;
         }
@@ -437,18 +484,30 @@ export class BlueToothStore {
       }
     }
     let params = {
+      '-83': (e) => {
+        // 消息设置
+        this.deviceControls = { ...this.deviceControls, message: val };
+      },
+      '-72': (e) => {
+        // 健康开关设置
+        if (val.slice(-2, val.length) === '01') {
+          this.deviceControls = { ...this.deviceControls, healthy: val.slice(-2, val.length) };
+        } else {
+          this.deviceControls = { ...this.deviceControls, health: val };
+        }
+      },
       '-95': (e) => {
         if (e.length >= 20) {
           let str = e.match(/([\d\D]{2})/g);
           this.versionCode = `${str[6]}.${str[7]}.${str[8]}.${str[9]}-${parseInt(str[4] + str[5], 16)}`;
           this.userDeviceSetting(true);
+          // this.openDeviceControl(true);
         }
       },
       '-96': (e) => {
         let battery = e.match(/([\d\D]{2})/g);
         // let batteryNum = Math.ceil((parseInt(battery[6], 16) / 100) * 4);
         let batteryNum = Math.ceil(parseInt(battery[6], 16));
-        console.log(batteryNum, 'power');
         if (!bool && !this.dataLogCat?.power) {
           this.dataLogCat = { ...this.dataLogCat, power: true };
           // this.currentDevice = { ...this.device };
@@ -828,6 +887,7 @@ export class BlueToothStore {
       await AsyncStorage.setItem(UPDATE_TIME, moment().format('YYYY-MM-DD HH:mm'));
       setTimeout(async () => {
         let time = this.nearFuture - 1;
+        await this.sendActiveMessage(batterySign);
         await this.setTimesNow(this.devicesInfo.id, time);
         this.refreshing = false;
         if (this.nearFuture > 0) {

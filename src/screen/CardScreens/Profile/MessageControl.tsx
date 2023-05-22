@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, ScrollView, StyleSheet, Text, TouchableWithoutFeedback } from 'react-native';
 import { tw } from 'react-native-tailwindcss';
 import { observer } from 'mobx-react-lite';
@@ -7,34 +7,39 @@ import { ProfilePlaceholder } from '../../../component/skeleton/ProfilePlacehold
 import { StackBar } from '../../../component/home/StackBar';
 import { ScreenComponent } from '../../index';
 import { useStore } from '../../../store';
-import { settingDevicesStyles } from '../../../common/watch-module';
+import { passRegSign, settingDevicesMessage } from '../../../common/watch-module';
 
-export const ClockDial: ScreenComponent = observer(
-  ({ navigation }): JSX.Element => {
+export const MessageControl: ScreenComponent = observer(
+  ({ navigation, route }): JSX.Element => {
     const { settingStore, blueToothStore } = useStore();
+
     const baseView = useRef<any>(undefined);
-    const [switchValue, setSwitchValue] = useState<number>(1);
-    const [switchList] = useState<any>([
-      {
-        name: '表盘一',
-        value: 0
-      },
-      {
-        name: '表盘二',
-        value: 1
-      },
-      {
-        name: '表盘三',
-        value: 2
-      }
-    ]);
+    const [switchList, setSwitchList] = useState<any>(message_list);
+
+    useEffect(() => {
+      blueToothStore.sendActiveMessage(passRegSign('0000'));
+    }, []);
+    useEffect(() => {
+      const { message } = blueToothStore.deviceControls;
+      let list = message.slice(4, message.length)?.match(/([\d\D]{2})/g);
+      let switchArr = switchList.map((item) => {
+        return { ...item, status: list[item.index] === '01' };
+      });
+      setSwitchList(switchArr);
+    }, [blueToothStore.deviceControls]);
 
     const backScreen = () => {
       navigation.goBack();
     };
-    const currentAgree = async (val) => {
-      setSwitchValue(val);
-      await blueToothStore.sendActiveMessage(settingDevicesStyles(val));
+    const currentAgree = async (index) => {
+      let list: Array<any> = [...switchList];
+      list[index].status = !list[index]?.status;
+      let arr = Array(18).fill(0);
+      list.map((item) => {
+        arr[item.index] = item.status ? 1 : 2;
+      });
+      setSwitchList([...list]);
+      await blueToothStore.sendActiveMessage(settingDevicesMessage(arr));
     };
 
     const renderContent = useMemo(() => {
@@ -42,16 +47,16 @@ export const ClockDial: ScreenComponent = observer(
         return <ProfilePlaceholder />;
       }
       return (
-        <ScrollView style={[tw.flex1, [{ marginBottom: 60 }]]}>
+        <ScrollView style={[tw.flex1]}>
           <View style={styles.moduleView}>
             <Text style={styles.mainText}>我的设备</Text>
-            {switchList.map((item, index) => {
+            {switchList?.map((item, index) => {
               return (
-                <TouchableWithoutFeedback key={Math.ceil(Math.random() * 1000).toString()} onPress={() => currentAgree(item.value)}>
+                <TouchableWithoutFeedback key={index.toString()} onPress={() => currentAgree(index)}>
                   <View style={[styles.labelView, !index && styles.firstBorder]}>
                     <Text style={styles.labelText}>{item.name}</Text>
                     <View style={styles.agree}>
-                      <View style={styles.agreeView}>{switchValue === item.value ? <View style={styles.agreeMain} /> : null}</View>
+                      <View style={styles.agreeView}>{item?.status ? <View style={styles.agreeMain} /> : null}</View>
                     </View>
                   </View>
                 </TouchableWithoutFeedback>
@@ -60,11 +65,11 @@ export const ClockDial: ScreenComponent = observer(
           </View>
         </ScrollView>
       );
-    }, [settingStore.loading, switchValue]);
+    }, [settingStore.loading, switchList]);
 
     return (
       <BaseView ref={baseView} style={[tw.flex1, [{ backgroundColor: 'blue' }]]}>
-        <StackBar title="表盘设置" onBack={() => backScreen()} />
+        <StackBar title="消息设置" onBack={() => backScreen()} />
         {renderContent}
       </BaseView>
     );
@@ -98,13 +103,6 @@ const styles = StyleSheet.create({
   firstBorder: {
     borderTopWidth: 1
   },
-  headerStart: {
-    flexDirection: 'row'
-  },
-  labelIcon: {
-    height: 25,
-    width: 25
-  },
   labelText: {
     fontSize: 18,
     marginLeft: 5
@@ -128,3 +126,61 @@ const styles = StyleSheet.create({
     padding: 20
   }
 });
+export const message_list = [
+  {
+    name: '来电',
+    index: 0
+  },
+  {
+    name: '短信',
+    index: 1
+  },
+  {
+    name: '微信',
+    index: 2
+  },
+  {
+    name: 'QQ',
+    index: 3
+  },
+  {
+    name: 'Facebook',
+    index: 5
+  },
+  {
+    name: 'Twitter',
+    index: 6
+  },
+  {
+    name: 'LinkedIn',
+    index: 8
+  },
+  {
+    name: 'WhatsApp',
+    index: 9
+  },
+  {
+    name: 'LINE',
+    index: 10
+  },
+  {
+    name: 'Instagram',
+    index: 11
+  },
+  {
+    name: 'Snapchat',
+    index: 12
+  },
+  {
+    name: 'Skype',
+    index: 13
+  },
+  {
+    name: 'Gmail',
+    index: 14
+  },
+  {
+    name: '其他',
+    index: 17
+  }
+];

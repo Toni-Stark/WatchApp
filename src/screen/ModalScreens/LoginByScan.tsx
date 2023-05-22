@@ -1,17 +1,17 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { KeyboardAvoidingView, ScrollView, View } from 'react-native';
-import { TransitionPresets } from '@react-navigation/stack';
-import { ScreenComponent } from '../index';
-import BaseView from '../../component/BaseView';
-import { tw } from 'react-native-tailwindcss';
-import { Text, useTheme } from 'react-native-paper';
-import { throttle } from '../../common/tools';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import FastImage from 'react-native-fast-image';
 import RNQRGenerator from 'rn-qr-generator';
+import { KeyboardAvoidingView, ScrollView, View } from 'react-native';
+import { TransitionPresets } from '@react-navigation/stack';
 import { Grid } from 'react-native-animated-spinkit';
+import { Text, useTheme } from 'react-native-paper';
+import { tw } from 'react-native-tailwindcss';
 import { observer } from 'mobx-react-lite';
+import { throttle } from '../../common/tools';
+import { ScreenComponent } from '../index';
 import { t } from '../../common/tools';
+import BaseView from '../../component/BaseView';
 
 export const LoginByScan: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {

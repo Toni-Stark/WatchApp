@@ -1,14 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
+import AsyncStorage from '@react-native-community/async-storage';
+import LinearGradient from 'react-native-linear-gradient';
 import { DeviceEventEmitter, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { ScreenComponent } from '../../index';
-import BaseView from '../../../component/BaseView';
 import { tw } from 'react-native-tailwindcss';
 import { observer } from 'mobx-react-lite';
-import { useStore } from '../../../store';
 import { StackBar } from '../../../component/home/StackBar';
-import AsyncStorage from '@react-native-community/async-storage';
 import { DEVICE_INFO } from '../../../common/constants';
-import LinearGradient from 'react-native-linear-gradient';
+import { ScreenComponent } from '../../index';
+import { useStore } from '../../../store';
+import BaseView from '../../../component/BaseView';
 
 export const BlueToothName: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {

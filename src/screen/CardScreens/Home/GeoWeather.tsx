@@ -1,17 +1,17 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import moment from 'moment';
+import FastImage from 'react-native-fast-image';
+import LinearGradient from 'react-native-linear-gradient';
 import { StyleSheet, View, PermissionsAndroid, TouchableOpacity, Text, ScrollView } from 'react-native';
+import { addLocationListener, start, stop } from 'react-native-amap-geolocation/lib/js';
 import { init } from 'react-native-amap-geolocation';
+import { observer } from 'mobx-react-lite';
+import { tw } from 'react-native-tailwindcss';
+import { ProfilePlaceholder } from '../../../component/skeleton/ProfilePlaceholder';
+import { StackBar } from '../../../component/home/StackBar';
+import { getWeek } from '../../../common/tools';
 import { ScreenComponent } from '../../index';
 import BaseView from '../../../component/BaseView';
-import { tw } from 'react-native-tailwindcss';
-import { observer } from 'mobx-react-lite';
-import LinearGradient from 'react-native-linear-gradient';
-import { StackBar } from '../../../component/home/StackBar';
-import { addLocationListener, start, stop } from 'react-native-amap-geolocation/lib/js';
-import moment from 'moment';
-import { getWeek } from '../../../common/tools';
-import FastImage from 'react-native-fast-image';
-import { ProfilePlaceholder } from '../../../component/skeleton/ProfilePlaceholder';
 
 export const GeoWeather: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {

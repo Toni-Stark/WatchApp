@@ -1,10 +1,10 @@
 import React from 'react';
-import { Text } from 'react-native';
 import { Button } from 'react-native-paper';
-import { ScreenComponent } from '../index';
-import BaseView from '../../component/BaseView';
 import { observer } from 'mobx-react-lite';
+import { Text } from 'react-native';
+import { ScreenComponent } from '../index';
 import { t } from '../../common/tools';
+import BaseView from '../../component/BaseView';
 
 export const NotFound: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {

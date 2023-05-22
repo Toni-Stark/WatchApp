@@ -1,22 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { enableScreens } from 'react-native-screens';
-import AsyncStorage from '@react-native-community/async-storage';
-import * as RNLocalize from 'react-native-localize';
-import { StatusBar, TextInput, Text, BackHandler, ToastAndroid, View } from 'react-native';
-import { Provider as PaperProvider } from 'react-native-paper';
-import { NavigatorStack } from './screen';
-import { APP_LANGUAGE, NEAR_FUTURE, TOKEN_NAME } from './common/constants';
-import { darkTheme, theme } from './common/theme';
-import { useStore } from './store';
-import { getStorage, hasAndroidPermission } from './common/tools';
-import { observer, Observer } from 'mobx-react-lite';
 import BluetoothStateManager from 'react-native-bluetooth-state-manager';
+import AsyncStorage from '@react-native-community/async-storage';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import * as RNLocalize from 'react-native-localize';
 import RNBootSplash from 'react-native-bootsplash';
 import RNExitApp from 'react-native-exit-app';
-import SideMenu from 'react-native-side-menu';
-import { LayoutMenu } from './screen/LayoutMenu';
+import { StatusBar, TextInput, Text, BackHandler, ToastAndroid } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Provider as PaperProvider } from 'react-native-paper';
+import { observer, Observer } from 'mobx-react-lite';
+import { enableScreens } from 'react-native-screens';
+import { APP_LANGUAGE, NEAR_FUTURE, TOKEN_NAME } from './common/constants';
+import { getStorage, hasAndroidPermission } from './common/tools';
+import { darkTheme, theme } from './common/theme';
+import { NavigatorStack } from './screen';
+import { useStore } from './store';
 
 const App = observer(() => {
   const { systemStore, blueToothStore, settingStore } = useStore();

@@ -1,10 +1,10 @@
 import React, { useRef } from 'react';
+import RNBootSplash from 'react-native-bootsplash';
 import { Appbar, Button, Text, useTheme } from 'react-native-paper';
+import { tw } from 'react-native-tailwindcss';
+import { Linking, View } from 'react-native';
 import { observer } from 'mobx-react-lite';
 import BaseView from '../../component/BaseView';
-import { Linking, View } from 'react-native';
-import { tw } from 'react-native-tailwindcss';
-import RNBootSplash from 'react-native-bootsplash';
 
 export type Props = {
   outApp: () => void;

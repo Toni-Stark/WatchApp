@@ -1,14 +1,13 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity, Text, Linking } from 'react-native';
-import BaseView from '../../../component/BaseView';
-import { useStore } from '../../../store';
-import { tw } from 'react-native-tailwindcss';
-import { ProfilePlaceholder } from '../../../component/skeleton/ProfilePlaceholder';
-import { observer } from 'mobx-react-lite';
-import { ScreenComponent } from '../../index';
 import FastImage from 'react-native-fast-image';
+import { View, ScrollView, StyleSheet, TouchableOpacity, Text, NativeModules } from 'react-native';
+import { tw } from 'react-native-tailwindcss';
+import { observer } from 'mobx-react-lite';
+import BaseView from '../../../component/BaseView';
+import { ProfilePlaceholder } from '../../../component/skeleton/ProfilePlaceholder';
 import { StackBar } from '../../../component/home/StackBar';
-import { NativeModules } from 'react-native';
+import { ScreenComponent } from '../../index';
+import { useStore } from '../../../store';
 
 export const Permission: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -114,7 +113,6 @@ export const Permission: ScreenComponent = observer(
 );
 
 let color1 = '#252525';
-let color2 = '#00D1DE';
 let color3 = '#8d8d8d';
 let color4 = '#a6a6a6';
 const styles = StyleSheet.create({

@@ -1,16 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { ScreenComponent } from '../../index';
-import { Text } from 'react-native-paper';
-import BaseView from '../../../component/BaseView';
-import { tw } from 'react-native-tailwindcss';
-import { observer } from 'mobx-react-lite';
-import { useStore } from '../../../store';
-import { StackBar } from '../../../component/home/StackBar';
 import Spinner from 'react-native-loading-spinner-overlay/src/index';
 import AsyncStorage from '@react-native-community/async-storage';
+import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { tw } from 'react-native-tailwindcss';
+import { observer } from 'mobx-react-lite';
+import { Text } from 'react-native-paper';
+import { StackBar } from '../../../component/home/StackBar';
 import { DEVICE_INFO } from '../../../common/constants';
 import { RootEnum } from '../../../common/sign-module';
+import { ScreenComponent } from '../../index';
+import { useStore } from '../../../store';
+import BaseView from '../../../component/BaseView';
 
 export const BlueToothDetail: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {

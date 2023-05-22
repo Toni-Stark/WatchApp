@@ -1,14 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Text } from 'react-native-paper';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
-import BaseView from '../component/BaseView';
-import { useStore } from '../store';
-import { ScreenComponent } from './index';
-import { tw } from 'react-native-tailwindcss';
-import { ProfilePlaceholder } from '../component/skeleton/ProfilePlaceholder';
-import { observer } from 'mobx-react-lite';
-import FastImage from 'react-native-fast-image';
 import DeviceInfo from 'react-native-device-info';
+import FastImage from 'react-native-fast-image';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { tw } from 'react-native-tailwindcss';
+import { observer } from 'mobx-react-lite';
+import { Text } from 'react-native-paper';
+import { ProfilePlaceholder } from '../component/skeleton/ProfilePlaceholder';
+import { ScreenComponent } from './index';
+import { useStore } from '../store';
+import BaseView from '../component/BaseView';
 
 export const Profile: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {

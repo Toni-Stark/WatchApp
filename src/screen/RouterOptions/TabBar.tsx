@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, Text, StyleSheet, Animated } from 'react-native';
 import LottieView from 'lottie-react-native';
-import { EXAMPLES } from '../../lottie/constants';
 import { AnimatedLottieViewProps } from 'lottie-react-native/packages/core/lib/typescript/LottieView.types';
+import { View, TouchableOpacity, Text, StyleSheet, Animated } from 'react-native';
+import { EXAMPLES } from '../../lottie/constants';
 
 export const TabBar = ({ state, descriptors, navigation }) => {
   // console.log('state', state);

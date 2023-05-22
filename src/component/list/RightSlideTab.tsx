@@ -3,11 +3,17 @@ import { StyleSheet, View, Text, TouchableOpacity, Switch } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { useState } from 'react';
 
+interface PropsType {
+  data: any;
+  cate: any;
+  onPress: (val: any) => void;
+  navigate: () => void;
+}
 export const RightSlideTab = (props): JSX.Element => {
-  const { data, cate, onPress } = props;
+  const { data, cate, onPress, navigate }: PropsType = props;
   const [isEnabled, setIsEnabled] = useState(cate);
   return (
-    <TouchableOpacity style={styles.itemStyle} onPress={onPress}>
+    <TouchableOpacity style={styles.itemStyle} onPress={navigate}>
       {data.image ? <FastImage style={styles.imageIcon} source={data.image} /> : null}
       <View style={[styles.itemData, cate ? styles.borderB : styles.borderNull]}>
         <Text style={styles.itemName}>{data.name}</Text>
@@ -34,10 +40,14 @@ export const RightSlideTab = (props): JSX.Element => {
 };
 
 let color1 = '#ffffff';
-let color2 = '#00D1DE';
 let color3 = '#e3e3e3';
-let color4 = '#a6a6a6';
 const styles = StyleSheet.create({
+  borderB: {
+    borderBottomWidth: 0.3
+  },
+  borderNull: {
+    borderWidth: 0
+  },
   imageIcon: {
     height: 30,
     marginRight: 15,
@@ -51,12 +61,6 @@ const styles = StyleSheet.create({
     borderColor: color3,
     justifyContent: 'space-between',
     paddingRight: 15
-  },
-  borderNull: {
-    borderWidth: 0
-  },
-  borderB: {
-    borderBottomWidth: 0.3
   },
   itemName: {
     fontSize: 15

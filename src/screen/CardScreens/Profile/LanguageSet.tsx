@@ -7,34 +7,21 @@ import { ProfilePlaceholder } from '../../../component/skeleton/ProfilePlacehold
 import { StackBar } from '../../../component/home/StackBar';
 import { ScreenComponent } from '../../index';
 import { useStore } from '../../../store';
-import { settingDevicesStyles } from '../../../common/watch-module';
+import { settingDevicesLang } from '../../../common/watch-module';
 
-export const ClockDial: ScreenComponent = observer(
+export const LanguageSet: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
     const { settingStore, blueToothStore } = useStore();
     const baseView = useRef<any>(undefined);
     const [switchValue, setSwitchValue] = useState<number>(1);
-    const [switchList] = useState<any>([
-      {
-        name: '表盘一',
-        value: 0
-      },
-      {
-        name: '表盘二',
-        value: 1
-      },
-      {
-        name: '表盘三',
-        value: 2
-      }
-    ]);
+    const [switchList] = useState<any>(language_list);
 
     const backScreen = () => {
       navigation.goBack();
     };
     const currentAgree = async (val) => {
       setSwitchValue(val);
-      await blueToothStore.sendActiveMessage(settingDevicesStyles(val));
+      await blueToothStore.sendActiveMessage(settingDevicesLang(val));
     };
 
     const renderContent = useMemo(() => {
@@ -42,12 +29,12 @@ export const ClockDial: ScreenComponent = observer(
         return <ProfilePlaceholder />;
       }
       return (
-        <ScrollView style={[tw.flex1, [{ marginBottom: 60 }]]}>
+        <ScrollView style={[tw.flex1]}>
           <View style={styles.moduleView}>
             <Text style={styles.mainText}>我的设备</Text>
             {switchList.map((item, index) => {
               return (
-                <TouchableWithoutFeedback key={Math.ceil(Math.random() * 1000).toString()} onPress={() => currentAgree(item.value)}>
+                <TouchableWithoutFeedback key={index.toString()} onPress={() => currentAgree(item.value)}>
                   <View style={[styles.labelView, !index && styles.firstBorder]}>
                     <Text style={styles.labelText}>{item.name}</Text>
                     <View style={styles.agree}>
@@ -64,7 +51,7 @@ export const ClockDial: ScreenComponent = observer(
 
     return (
       <BaseView ref={baseView} style={[tw.flex1, [{ backgroundColor: 'blue' }]]}>
-        <StackBar title="表盘设置" onBack={() => backScreen()} />
+        <StackBar title="语言设置" onBack={() => backScreen()} />
         {renderContent}
       </BaseView>
     );
@@ -128,3 +115,73 @@ const styles = StyleSheet.create({
     padding: 20
   }
 });
+export const language_list = [
+  {
+    name: '简体中文',
+    value: 1
+  },
+  {
+    name: 'English',
+    value: 2
+  }
+  // {
+  //   name: 'にほんご',
+  //   value: 3
+  // },
+  // {
+  //   name: '한국어',
+  //   value: 4
+  // },
+  // {
+  //   name: 'Deutsch',
+  //   value: 5
+  // },
+  // {
+  //   name: 'Россия',
+  //   value: 6
+  // },
+  // {
+  //   name: 'castellano',
+  //   value: 7
+  // },
+  // {
+  //   name: 'italiano',
+  //   value: 8
+  // },
+  // {
+  //   name: 'En français',
+  //   value: 9
+  // },
+  // {
+  //   name: 'Tiếng Việt',
+  //   value: 10
+  // },
+  // {
+  //   name: 'Português',
+  //   value: 11
+  // },
+  // {
+  //   name: 'ภาษาไทย',
+  //   value: 12
+  // },
+  // {
+  //   name: 'فارسی',
+  //   value: 13
+  // },
+  // {
+  //   name: 'Svenska',
+  //   value: 14
+  // },
+  // {
+  //   name: 'Turkish',
+  //   value: 15
+  // },
+  // {
+  //   name: 'svenska',
+  //   value: 16
+  // },
+  // {
+  //   name: 'Čeština',
+  //   value: 17
+  // }
+];

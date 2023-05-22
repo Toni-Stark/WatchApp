@@ -1,4 +1,4 @@
-import { action, makeAutoObservable, observable } from 'mobx';
+import { makeAutoObservable } from 'mobx';
 import { deviceStatus } from '../common/sign-module';
 const RNFS = require('react-native-fs');
 

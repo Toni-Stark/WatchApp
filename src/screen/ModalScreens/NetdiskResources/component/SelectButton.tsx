@@ -1,9 +1,9 @@
 import React from 'react';
-import { useTheme } from 'react-native-paper';
-import { observer } from 'mobx-react-lite';
-import { TouchableOpacity, View } from 'react-native';
-import { tw } from 'react-native-tailwindcss';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { TouchableOpacity, View } from 'react-native';
+import { useTheme } from 'react-native-paper';
+import { tw } from 'react-native-tailwindcss';
+import { observer } from 'mobx-react-lite';
 
 type SelectButtonProps = {
   changeSelect: (string) => void;

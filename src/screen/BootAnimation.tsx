@@ -1,10 +1,8 @@
 import React, { useEffect } from 'react';
-// import { Animated, Easing, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-// import LottieView from 'lottie-react-native';
 import RNBootSplash from 'react-native-bootsplash';
-import { useStore } from '../store';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { observer } from 'mobx-react-lite';
+import { useStore } from '../store';
 
 export const BootAnimation: React.FC = observer(
   (): JSX.Element => {

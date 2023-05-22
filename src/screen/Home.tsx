@@ -1,25 +1,26 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, BackHandler, Linking, RefreshControl, ScrollView, StatusBar, StyleSheet, Text, ToastAndroid, TouchableOpacity, View } from 'react-native';
+import BluetoothStateManager from 'react-native-bluetooth-state-manager';
+import AsyncStorage from '@react-native-community/async-storage';
 import Clipboard from '@react-native-clipboard/clipboard';
 import LinearGradient from 'react-native-linear-gradient';
 import FastImage from 'react-native-fast-image';
-import BluetoothStateManager from 'react-native-bluetooth-state-manager';
-import AsyncStorage from '@react-native-community/async-storage';
-import Spinkit from 'react-native-spinkit';
 import BaseView from '../component/BaseView';
-import { ScreenComponent } from './index';
+import Spinkit from 'react-native-spinkit';
+import { getBrand } from 'react-native-device-info';
 import { tw } from 'react-native-tailwindcss';
-import { Api } from '../common/api';
-import { RootEnum } from '../common/sign-module';
-import { defaultDataLog } from '../store/BlueToothStore';
-import { DEVICE_DATA, DEVICE_INFO, UPDATE_DEVICE_INFO, UPDATE_TIME } from '../common/constants';
-import { useStore } from '../store';
 import { observer } from 'mobx-react-lite';
-import { HeaderBar } from '../component/home/HeaderBar';
+import { DEVICE_DATA, DEVICE_INFO, UPDATE_DEVICE_INFO, UPDATE_TIME } from '../common/constants';
 import { eventTimes, hasAndroidPermission } from '../common/tools';
 import { StatusText } from '../component/home/StatusText';
+import { defaultDataLog } from '../store/BlueToothStore';
+import { HeaderBar } from '../component/home/HeaderBar';
 import { Hexagon } from '../component/home/Hexagon';
-import { getBrand } from 'react-native-device-info';
+import { RootEnum } from '../common/sign-module';
+import { ScreenComponent } from './index';
+import { useStore } from '../store';
+import { Api } from '../common/api';
+import { batterySign } from '../common/watch-module';
 
 let type = 0;
 
@@ -322,6 +323,7 @@ export const Home: ScreenComponent = observer(
 
     const onRefresh = useCallback(async () => {
       setRefreshing(true);
+      // await blueToothStore.sendActiveMessage(batterySign);
       await blueToothStore
         .successDialog({
           callback: (res) => {
@@ -429,10 +431,6 @@ export const Home: ScreenComponent = observer(
             <View style={styles.deviceView}>
               <Text style={styles.deviceText}>电量</Text>
               <View style={styles.battery}>
-                {/*{batteryItem(isTrue >= 0)}*/}
-                {/*{batteryItem(isTrue >= 1)}*/}
-                {/*{batteryItem(isTrue >= 2)}*/}
-                {/*{batteryItem(isTrue >= 3)}*/}
                 <View style={{ width: isTrue + '%', display: 'flex', backgroundColor: color3, height: '100%' }} />
               </View>
             </View>
@@ -464,64 +462,6 @@ export const Home: ScreenComponent = observer(
       Clipboard.setString(str);
       ToastAndroid.show('已复制到粘贴板', 1500);
     };
-
-    // const currentDeviceBanner = useMemo(() => {
-    //   let device = blueToothStore.devicesInfo;
-    //   return (
-    //     <View style={styles.card}>
-    //       <LinearGradient
-    //         colors={['#00bac4', '#06d1dc', '#00dbe5', '#00D1DE']}
-    //         style={styles.cardLinear}
-    //         start={{ x: 0.0, y: 0.25 }}
-    //         end={{ x: 0.5, y: 1.0 }}
-    //         locations={[0.2, 0.7, 0.5, 0.2]}
-    //       >
-    //         {device?.name ? (
-    //           <TouchableOpacity onPress={addEval} style={styles.evalButton}>
-    //             <Text style={styles.evalName}>操作</Text>
-    //           </TouchableOpacity>
-    //         ) : null}
-    //         <View style={styles.headerStart}>
-    //           {device?.id ? (
-    //             <View style={styles.imageView}>
-    //               <FastImage style={styles.headerImg} source={require('../assets/home/header-assets.png')} resizeMode={FastImage.resizeMode.cover} />
-    //             </View>
-    //           ) : (
-    //             <View style={styles.imageViewEval} />
-    //           )}
-    //
-    //           <TouchableOpacity style={styles.loginView} onPress={onPressCopy}>
-    //             <View style={styles.headerContent}>
-    //               {device?.name ? (
-    //                 <View style={styles.userView}>
-    //                   <Text ellipsizeMode="middle" numberOfLines={1} style={styles.userName} onLongPress={onLongPress}>
-    //                     {blueToothStore.getEvalName()}
-    //                   </Text>
-    //                 </View>
-    //               ) : (
-    //                 <Text style={styles.userName} />
-    //               )}
-    //               {device?.id ? <Text style={styles.deviceMac}>MAC:{device.id}</Text> : null}
-    //             </View>
-    //           </TouchableOpacity>
-    //         </View>
-    //         {currentDeviceView}
-    //       </LinearGradient>
-    //     </View>
-    //   );
-    // }, [
-    //   blueToothStore.evalName,
-    //   weChatStore.userInfo,
-    //   blueToothDetail,
-    //   blueToothStore.devicesInfo,
-    //   dataLogCat,
-    //   lastTime,
-    //   openBlueTooth,
-    //   blueToothStore.currentDevice,
-    //   blueToothStore.refreshInfo,
-    //   blueToothStore.refreshing
-    // ]);
-
     const currentResult = useMemo(() => {
       return (
         <View style={styles.resultView}>
@@ -644,7 +584,7 @@ export const Home: ScreenComponent = observer(
               end={{ x: 0.5, y: 1.0 }}
               locations={[0.2, 0.7, 0.5, 0.2]}
             >
-              {name ? controlBtn() : null}
+              {name && !blueToothStore.refreshing ? controlBtn() : null}
               <View style={styles.headerStart}>
                 {renderDeviceLogo(id)}
                 <TouchableOpacity style={styles.loginView} onPress={onPressCopy}>
@@ -814,7 +754,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     position: 'absolute',
     right: 0,
-    top: 0
+    top: 0,
+    zIndex: 900
   },
   evalName: {
     color: color3,

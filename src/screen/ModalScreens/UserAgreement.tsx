@@ -1,12 +1,12 @@
 import React from 'react';
-import { NavigatorComponentProps } from '../index';
-import { WebView } from 'react-native-webview';
-import BaseView from '../../component/BaseView';
-import { tw } from 'react-native-tailwindcss';
 import { Appbar, useTheme } from 'react-native-paper';
-import { t } from '../../common/tools';
+import { WebView } from 'react-native-webview';
+import { tw } from 'react-native-tailwindcss';
 import { observer } from 'mobx-react-lite';
 import { SERVER_URL } from '../../common/app.config';
+import { NavigatorComponentProps } from '../index';
+import { t } from '../../common/tools';
+import BaseView from '../../component/BaseView';
 
 type Props = {};
 

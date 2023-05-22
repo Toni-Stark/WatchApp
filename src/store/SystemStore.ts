@@ -1,11 +1,11 @@
-import { action, makeAutoObservable, observable } from 'mobx';
 import * as RNLocalize from 'react-native-localize';
 import AsyncStorage from '@react-native-community/async-storage';
 import i18n from 'i18n-js';
 import { Appearance, Platform, StatusBar } from 'react-native';
+import { action, makeAutoObservable, observable } from 'mobx';
 import { APP_COLOR_MODE, APP_LANGUAGE } from '../common/constants';
-import { t } from '../common/tools';
 import { darkTheme, theme } from '../common/theme';
+import { t } from '../common/tools';
 
 const translationGetters = {
   en: () => require('../i18n/en.json'),

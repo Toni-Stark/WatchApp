@@ -1,24 +1,23 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import BaseView from '../../../component/BaseView';
-import { useStore } from '../../../store';
-import { tw } from 'react-native-tailwindcss';
-import { ProfilePlaceholder } from '../../../component/skeleton/ProfilePlaceholder';
-import { observer } from 'mobx-react-lite';
-import { ScreenComponent } from '../../index';
-import FastImage from 'react-native-fast-image';
-import { StackBar } from '../../../component/home/StackBar';
-import DropDownPicker from 'react-native-dropdown-picker';
-import { SERVER_URL } from '../../../common/app.config';
 import Spinkit from 'react-native-spinkit';
+import FastImage from 'react-native-fast-image';
+import DropDownPicker from 'react-native-dropdown-picker';
+import { observer } from 'mobx-react-lite';
+import { tw } from 'react-native-tailwindcss';
+import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import BaseView from '../../../component/BaseView';
+import { ProfilePlaceholder } from '../../../component/skeleton/ProfilePlaceholder';
+import { StackBar } from '../../../component/home/StackBar';
+import { SERVER_URL } from '../../../common/app.config';
 import { UserStore } from '../../../store/UserStore';
-import { eventTimes } from '../../../common/tools';
+import { ScreenComponent } from '../../index';
+import { useStore } from '../../../store';
 
 let timer = true; // 连点管理器
 
 export const BindingInfo: ScreenComponent = observer(
   ({ navigation, route }): JSX.Element => {
-    const { blueToothStore, userStore } = useStore();
+    const { blueToothStore } = useStore();
     const { mac }: any = route.params;
     const baseView = useRef<any>(undefined);
 

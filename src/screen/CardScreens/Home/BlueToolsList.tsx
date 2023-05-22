@@ -1,15 +1,24 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { DeviceEventEmitter, ScrollView, StyleSheet, View } from 'react-native';
-import { ScreenComponent } from '../../index';
-import BaseView from '../../../component/BaseView';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import AsyncStorage from '@react-native-community/async-storage';
+import { DeviceEventEmitter, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { tw } from 'react-native-tailwindcss';
 import { observer } from 'mobx-react-lite';
-import { StackBar } from '../../../component/home/StackBar';
-import { RightSlideTab } from '../../../component/list/RightSlideTab';
-import AsyncStorage from '@react-native-community/async-storage';
 import { DEVICE_INFO, WEATHER_UPDATE } from '../../../common/constants';
+import { RightSlideTab } from '../../../component/list/RightSlideTab';
+import {
+  passRegSign,
+  settingDevicesAlarm,
+  settingDevicesHeart,
+  settingDevicesLongSit,
+  settingDevicesMessage,
+  settingDevicesOxygen,
+  settingDevicesScreenLight,
+  updateWeather
+} from '../../../common/watch-module';
+import { StackBar } from '../../../component/home/StackBar';
+import { ScreenComponent } from '../../index';
 import { useStore } from '../../../store';
-import { updateWeather } from '../../../common/watch-module';
+import BaseView from '../../../component/BaseView';
 
 export const BlueToolsList: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -22,8 +31,7 @@ export const BlueToolsList: ScreenComponent = observer(
         image: require('../../../assets/home/name.png'),
         cate: 'info',
         type: 'label',
-        fun: () => {
-          // if (!blueToothStore.readyDevice) return baseView?.current?.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
+        navigate: () => {
           baseView?.current?.showLoading({ text: '加载中...', delay: 1.5 });
           navigation.navigate('BlueToothDeviceName');
           setTimeout(() => {
@@ -37,8 +45,7 @@ export const BlueToolsList: ScreenComponent = observer(
         image: require('../../../assets/home/setting.png'),
         cate: 'device',
         type: 'label',
-        fun: async () => {
-          // if (!blueToothStore.readyDevice) return baseView?.current?.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
+        navigate: async () => {
           baseView?.current?.showLoading({ text: '加载中...', delay: 1.5 });
           navigation.navigate('BlueToothName');
           setTimeout(() => {
@@ -53,8 +60,6 @@ export const BlueToolsList: ScreenComponent = observer(
         cate: 'device',
         type: 'switch',
         fun: async (e) => {
-          // if (!blueToothStore.readyDevice) return baseView?.current?.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
-          // baseView.current.showLoading({ text: '加载中...' });
           await blueToothStore.sendActiveMessage(updateWeather(e ? 1 : 0));
           await AsyncStorage.setItem(WEATHER_UPDATE, JSON.stringify(e));
         }
@@ -65,8 +70,7 @@ export const BlueToolsList: ScreenComponent = observer(
         image: require('../../../assets/home/weather.png'),
         cate: 'device',
         type: 'label',
-        fun: async () => {
-          // if (!blueToothStore.readyDevice) return baseView.current.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
+        navigate: async () => {
           baseView?.current?.showLoading({ text: '加载中...' });
           navigation.navigate('GeoWeather');
           setTimeout(() => {
@@ -80,16 +84,162 @@ export const BlueToolsList: ScreenComponent = observer(
         image: require('../../../assets/home/message.png'),
         cate: 'device',
         type: 'label',
-        fun: async () => {
-          // if (!blueToothStore.readyDevice) return baseView?.current?.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
+        navigate: async () => {
           baseView?.current?.showLoading({ text: '加载中...' });
           navigation.navigate('BlueToothMessage');
           setTimeout(() => {
             baseView?.current?.hideLoading();
           }, 100);
         }
+      },
+      {
+        name: '表盘设置',
+        value: '',
+        image: require('../../../assets/home/clock.png'),
+        cate: 'device',
+        type: 'label',
+        navigate: async () => {
+          baseView?.current?.showLoading({ text: '加载中...' });
+          navigation.navigate('ClockDial');
+          setTimeout(() => {
+            baseView?.current?.hideLoading();
+          }, 100);
+        }
+      },
+      {
+        name: '语言设置',
+        value: '',
+        image: require('../../../assets/home/translation.png'),
+        cate: 'device',
+        type: 'label',
+        navigate: async () => {
+          // if (!blueToothStore.readyDevice) return baseView?.current?.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
+          // baseView?.current?.showLoading({ text: '加载中...' });
+          navigation.navigate('LanguageSet');
+          setTimeout(() => {
+            baseView?.current?.hideLoading();
+          }, 100);
+        }
+      },
+      {
+        name: '消息设置',
+        value: '',
+        image: require('../../../assets/home/message-setting.png'),
+        cate: 'device',
+        type: 'label',
+        navigate: async () => {
+          // if (!blueToothStore.readyDevice) return baseView?.current?.showToast({ text: '请连接蓝牙手表', delay: 1.5 });
+          // baseView?.current?.showLoading({ text: '加载中...' });
+          navigation.navigate('MessageControl');
+          setTimeout(() => {
+            baseView?.current?.hideLoading();
+          }, 100);
+        }
+        // fun: async (e) => {
+        //   if (e) {
+        //     await blueToothStore.sendActiveMessage(settingDevicesMessage(Array(18).fill(1)));
+        //   } else {
+        //     await blueToothStore.sendActiveMessage(settingDevicesMessage(Array(18).fill(2)));
+        //   }
+        // }
       }
     ]);
+    const [controlList, setControlList] = useState([
+      {
+        name: '久坐提醒设置',
+        value: '',
+        image: require('../../../assets/home/set.png'),
+        cate: 'device',
+        type: 'switch',
+        navigate: async () => {
+          navigation.navigate('LongSet');
+        },
+        fun: async (e) => {
+          if (e) {
+            await blueToothStore.sendActiveMessage(settingDevicesLongSit('08', '00', '12', '00', '1e', 1));
+          } else {
+            await blueToothStore.sendActiveMessage(settingDevicesLongSit('00', '00', '00', '00', '00', 0));
+          }
+        }
+      },
+      {
+        name: '转手腕亮屏设置',
+        value: '',
+        image: require('../../../assets/home/transform.png'),
+        cate: 'device',
+        type: 'switch',
+        navigate: async () => {
+          navigation.navigate('LightScreen');
+        },
+        fun: async (e) => {
+          if (e) {
+            await blueToothStore.sendActiveMessage(settingDevicesScreenLight(1, '08', '00', '12', '00', '09'));
+          } else {
+            await blueToothStore.sendActiveMessage(settingDevicesScreenLight(0, '08', '00', '12', '00', '09'));
+          }
+        }
+      }
+    ]);
+    const [healthList, setHealthList] = useState([
+      {
+        name: '心率警报设置',
+        value: '',
+        image: require('../../../assets/home/heart-setting.png'),
+        cate: 'device',
+        type: 'switch',
+        navigate: async () => {
+          navigation.navigate('HeartSetting');
+        },
+        fun: async (e) => {
+          if (e) {
+            await blueToothStore.sendActiveMessage(settingDevicesAlarm(115, 55, 1));
+          } else {
+            await blueToothStore.sendActiveMessage(settingDevicesAlarm(0, 0, 0));
+          }
+        }
+      },
+      {
+        name: '血氧夜间监控',
+        value: '',
+        image: require('../../../assets/home/blood_ox.png'),
+        cate: 'device',
+        type: 'switch',
+        fun: async (e) => {
+          if (e) {
+            await blueToothStore.sendActiveMessage(settingDevicesOxygen(16, 0, 8, 0, 1));
+          } else {
+            await blueToothStore.sendActiveMessage(settingDevicesOxygen(16, 0, 8, 0, 0));
+          }
+        }
+      },
+      {
+        name: '一键打开健康监测开关',
+        value: '',
+        image: require('../../../assets/home/blood_ox.png'),
+        cate: 'device',
+        type: 'switch',
+        fun: async () => {
+          blueToothStore.sendActiveMessage(passRegSign('0000'));
+          let open1 = '00 00 01 01 00 00 00 00 01 00 00 00 01 00 01';
+          blueToothStore.sendActiveMessage(settingDevicesHeart(open1));
+          let open2 = '00 00 01 00 00 01 00 00 00 00 00 00 00 00 00 00 00 01';
+          blueToothStore.sendActiveMessage(settingDevicesHeart(open2));
+          // if (e) {
+          //   // 第一部分开关
+          //   let open1 = '00 00 01 01 00 00 00 00 01 00 00 00 01 00 01';
+          //   await blueToothStore.sendActiveMessage(settingDevicesHeart(open1));
+          //   let open2 = '00 00 01 00 00 01 00 00 00 00 00 00 00 00 00 00 00 01';
+          //   await blueToothStore.sendActiveMessage(settingDevicesHeart(open2));
+          // } else {
+          //   let open1 = '00 00 02 02 00 00 00 00 02 00 00 00 02 00 02';
+          //   await blueToothStore.sendActiveMessage(settingDevicesHeart(open1));
+          //   let open2 = '00 00 02 00 00 02 00 00 00 00 00 00 00 00 00 00 00 01';
+          //   await blueToothStore.sendActiveMessage(settingDevicesHeart(open2));
+          // }
+        }
+      }
+    ]);
+
     useEffect(() => {
       baseView?.current?.showLoading({ text: '加载中...' });
       AsyncStorage.getItem(WEATHER_UPDATE).then((weather) => {
@@ -123,6 +273,11 @@ export const BlueToolsList: ScreenComponent = observer(
         setDataList(list);
         // 刷新界面等
       });
+      blueToothStore.sendActiveMessage(passRegSign('0000'));
+      let open1 = '00 00 01 01 00 00 00 00 01 00 00 00 01 00 01';
+      blueToothStore.sendActiveMessage(settingDevicesHeart(open1));
+      let open2 = '00 00 01 00 00 01 00 00 00 00 00 00 00 00 00 00 00 01';
+      blueToothStore.sendActiveMessage(settingDevicesHeart(open2));
       return () => {
         subscription.remove();
       };
@@ -139,21 +294,41 @@ export const BlueToolsList: ScreenComponent = observer(
     const renderView = useMemo(() => {
       let isCate = { value: true, cate: dataList[0].cate };
       return (
-        <ScrollView style={[tw.flex1, { backgroundColor: '#e8e8e8' }]}>
+        <ScrollView style={styles.scrollView}>
+          <Text style={styles.btnText}>设备设置</Text>
           {dataList.map((item, index) => {
-            if (index !== 0) {
-              if (isCate.cate !== item.cate) {
-                isCate.value = false;
-                isCate.cate = item.cate;
-              } else {
-                isCate.value = true;
-              }
+            if (index !== 0 && isCate.cate !== item.cate) {
+              isCate.value = false;
+              isCate.cate = item.cate;
+            } else if (index !== 0) {
+              isCate.value = true;
             }
-            return <RightSlideTab key={index + Math.random() * 1000} data={item} cate={isCate.value} onPress={item.fun} />;
+            return <RightSlideTab key={index + Math.random() * 1000} data={item} cate={isCate.value} onPress={item.fun} navigate={item.navigate} />;
           })}
+          <Text style={styles.healthStyle}>开关设置</Text>
+          {controlList.map((item, index) => {
+            if (index !== 0 && isCate.cate !== item.cate) {
+              isCate.value = false;
+              isCate.cate = item.cate;
+            } else if (index !== 0) {
+              isCate.value = true;
+            }
+            return <RightSlideTab key={index + Math.random() * 1000} data={item} cate={isCate.value} onPress={item.fun} navigate={item?.navigate} />;
+          })}
+          <Text style={styles.healthStyle}>健康设置</Text>
+          {healthList.map((item, index) => {
+            if (index !== 0 && isCate.cate !== item.cate) {
+              isCate.value = false;
+              isCate.cate = item.cate;
+            } else if (index !== 0) {
+              isCate.value = true;
+            }
+            return <RightSlideTab key={index + Math.random() * 1000} data={item} cate={isCate.value} onPress={item.fun} navigate={item.navigate} />;
+          })}
+          <View style={styles.bottomView} />
         </ScrollView>
       );
-    }, [dataList]);
+    }, [dataList, healthList]);
 
     return (
       <BaseView ref={baseView}>
@@ -166,4 +341,11 @@ export const BlueToolsList: ScreenComponent = observer(
   }
 );
 
-export const styles = StyleSheet.create({});
+const color1 = '#868686';
+const color2 = '#f3f3f3';
+export const styles = StyleSheet.create({
+  bottomView: { height: 70, width: '100%' },
+  btnText: { color: color1, fontSize: 18, paddingHorizontal: 15, paddingVertical: 10 },
+  healthStyle: { color: color1, fontSize: 18, paddingHorizontal: 15, paddingVertical: 10 },
+  scrollView: { backgroundColor: color2, flex: 1 }
+});

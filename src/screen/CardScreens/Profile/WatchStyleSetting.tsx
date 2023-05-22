@@ -1,18 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity, Text, Platform } from 'react-native';
-import BaseView from '../../../component/BaseView';
-import { useStore } from '../../../store';
-import { tw } from 'react-native-tailwindcss';
-import { ProfilePlaceholder } from '../../../component/skeleton/ProfilePlaceholder';
-import { observer } from 'mobx-react-lite';
-import { ScreenComponent } from '../../index';
 import FastImage from 'react-native-fast-image';
-import { StackBar } from '../../../component/home/StackBar';
-import BackgroundJob from 'react-native-background-job';
-import BackgroundService from 'react-native-background-actions';
-import { getBrand } from 'react-native-device-info';
-import { UPDATE_DEVICE_INFO } from '../../../common/constants';
+import { View, ScrollView, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { tw } from 'react-native-tailwindcss';
+import { observer } from 'mobx-react-lite';
 import { NativeModules } from 'react-native';
+import { ProfilePlaceholder } from '../../../component/skeleton/ProfilePlaceholder';
+import { StackBar } from '../../../component/home/StackBar';
+import { ScreenComponent } from '../../index';
+import { useStore } from '../../../store';
+import BaseView from '../../../component/BaseView';
 
 export const WatchStyleSetting: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {

@@ -1,9 +1,9 @@
 import { action, makeAutoObservable, observable } from 'mobx';
-import * as WeChat from 'react-native-wechat-lib';
-import { Alert, ToastAndroid } from 'react-native';
-import { Api, ApiResult, ErrorLog } from '../common/api';
-import { TOKEN_NAME, USER_CONFIG } from '../common/constants';
 import AsyncStorage from '@react-native-community/async-storage';
+import * as WeChat from 'react-native-wechat-lib';
+import { Alert } from 'react-native';
+import { TOKEN_NAME, USER_CONFIG } from '../common/constants';
+import { Api, ApiResult, ErrorLog } from '../common/api';
 import { appConfig } from '../common/app.config';
 
 export type AppColorModeType = 'light' | 'dark' | 'system';

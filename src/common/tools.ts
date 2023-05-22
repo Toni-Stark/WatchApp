@@ -203,12 +203,17 @@ export const getBytesList = (str) => {
   return result;
 };
 
-// 10进制16进制转换
+// 10进制16进制转换(限制大小)
 export const strToHex = (num): string => {
   if (num > -128 && num < 0) return (256 + num).toString(16);
   if (num >= 0 && num <= 15) return '0' + (num + 0).toString(16);
   if (num > 15 && num < 127) return (num + 0).toString(16);
   return (num + 0).toString(16);
+};
+// 10进制16进制转换(不限大小)
+export const strToHexEny = (num): string => {
+  if (num >= 0 && num <= 15) return '0' + parseInt(num).toString(16);
+  return parseInt(num).toString(16);
 };
 
 export const getWeek = (num): string => {

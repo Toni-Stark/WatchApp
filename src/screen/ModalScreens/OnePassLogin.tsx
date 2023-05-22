@@ -1,8 +1,8 @@
 import React, { useRef, useState } from 'react';
-import { observer } from 'mobx-react-lite';
-import BaseView from '../../component/BaseView';
 import RNBootSplash from 'react-native-bootsplash';
 import { StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { observer } from 'mobx-react-lite';
+import BaseView from '../../component/BaseView';
 import { ScreenComponent } from '../index';
 import { useStore } from '../../store';
 

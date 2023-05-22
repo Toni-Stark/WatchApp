@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { ScreenComponent } from '../../index';
-import { Text } from 'react-native-paper';
-import BaseView from '../../../component/BaseView';
 import { tw } from 'react-native-tailwindcss';
 import { observer } from 'mobx-react-lite';
-import { useStore } from '../../../store';
+import { Text } from 'react-native-paper';
 import { StackBar } from '../../../component/home/StackBar';
+import { ScreenComponent } from '../../index';
+import { useStore } from '../../../store';
+import BaseView from '../../../component/BaseView';
 
 export const BlueToothValue: ScreenComponent = observer(
   (props): JSX.Element => {

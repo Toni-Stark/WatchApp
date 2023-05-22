@@ -1,14 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Easing, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { ScreenComponent } from '../../../index';
-import { Text } from 'react-native-paper';
-import BaseView from '../../../../component/BaseView';
+import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { tw } from 'react-native-tailwindcss';
 import { observer } from 'mobx-react-lite';
-import { useStore } from '../../../../store';
-import { StackBar } from '../../../../component/home/StackBar';
+import { Text } from 'react-native-paper';
 import { allDataHeartEnd, allDataHeartStart } from '../../../../common/watch-module';
 import { CirCleHeart } from '../../../../component/home/CirCleHeart';
+import { StackBar } from '../../../../component/home/StackBar';
+import { ScreenComponent } from '../../../index';
+import { useStore } from '../../../../store';
+import BaseView from '../../../../component/BaseView';
 
 export const HeartTest: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {

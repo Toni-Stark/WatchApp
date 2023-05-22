@@ -1,13 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { observer } from 'mobx-react-lite';
-import BaseView from '../../component/BaseView';
-import { StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useStore } from '../../store';
-import FastImage from 'react-native-fast-image';
 import AsyncStorage from '@react-native-community/async-storage';
-import { NEAR_FUTURE, USER_AGREEMENT } from '../../common/constants';
-import RNBootSplash from 'react-native-bootsplash';
 import LinearGradient from 'react-native-linear-gradient';
+import RNBootSplash from 'react-native-bootsplash';
+import FastImage from 'react-native-fast-image';
+import { StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { observer } from 'mobx-react-lite';
+import { NEAR_FUTURE, USER_AGREEMENT } from '../../common/constants';
+import { useStore } from '../../store';
+import BaseView from '../../component/BaseView';
+
 export type Props = {
   outApp: () => void;
   goInApp: (e: any) => void;
