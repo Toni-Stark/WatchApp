@@ -17,9 +17,13 @@ export const NEAR_FUTURE = 'NEAR_FUTURE';
 export const WEATHER_UPDATE = 'WEATHER_UPDATE';
 // 血氧监控开关状态
 export const BLOOD_UPDATE = 'BLOOD_UPDATE';
+// 久坐开关状态
+export const SET_LONG_TIME = 'SET_LONG_TIME';
 
 export const USER_CONFIG = 'USER_CONFIG';
 export const TEST_TOKEN = 'TEST_TOKEN';
 
 // 特殊指令
 export const UPDATE_DEVICE_INFO = 'UPDATE_DEVICE_INFO';
+
+export const CONTROL_LIST = 'CONTROL_LIST';

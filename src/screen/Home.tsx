@@ -21,6 +21,7 @@ import { ScreenComponent } from './index';
 import { useStore } from '../store';
 import { Api } from '../common/api';
 import { batterySign } from '../common/watch-module';
+import { blue } from 'react-native-reanimated/lib/types';
 
 let type = 0;
 
@@ -584,7 +585,7 @@ export const Home: ScreenComponent = observer(
               end={{ x: 0.5, y: 1.0 }}
               locations={[0.2, 0.7, 0.5, 0.2]}
             >
-              {name && !blueToothStore.refreshing ? controlBtn() : null}
+              {name && !blueToothStore.refreshing && blueToothStore?.devicesInfo ? controlBtn() : null}
               <View style={styles.headerStart}>
                 {renderDeviceLogo(id)}
                 <TouchableOpacity style={styles.loginView} onPress={onPressCopy}>

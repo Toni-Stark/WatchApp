@@ -13,7 +13,6 @@ export const StatusText = (props) => {
       isNull = false;
     }
   }
-
   return (
     <View style={styles.loadingView}>
       {isOut && isNull ? <Text style={[styles.labelColor, styles.labelReady]}>正在读取数据...</Text> : null}

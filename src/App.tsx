@@ -15,7 +15,9 @@ import { getStorage, hasAndroidPermission } from './common/tools';
 import { darkTheme, theme } from './common/theme';
 import { NavigatorStack } from './screen';
 import { useStore } from './store';
+import { en, registerTranslation } from 'react-native-paper-dates';
 
+registerTranslation('en', en);
 const App = observer(() => {
   const { systemStore, blueToothStore, settingStore } = useStore();
   const [isLogin, setIsLogin] = useState<boolean>(false);

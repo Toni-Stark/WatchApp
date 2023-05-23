@@ -415,11 +415,10 @@ export class BlueToothStore {
         }
         let value = baseToHex(characteristic.value);
         this.blueRootList = [...this.blueRootList, value];
-        let regValue = ['a1', 'a0', 'ad', 'd1', 'd0', 'd8', '88', '80', 'd2', 'e0', 'df'].includes(value.slice(0, 2));
+        let regValue = ['aa', 'a1', 'a0', 'ad', 'd1', 'd0', 'd8', '88', '80', 'd2', 'e0', 'df'].includes(value.slice(0, 2));
         if (regValue) {
           this.devicesModules(value, this.backgroundActive);
         }
-        // console.log(value);
 
         if (['bd'].includes(value.slice(0, 2))) {
           return;
@@ -484,6 +483,10 @@ export class BlueToothStore {
       }
     }
     let params = {
+      '-86': (e) => {
+        // 接受返回消息
+        this.refreshing = false;
+      },
       '-83': (e) => {
         // 消息设置
         this.deviceControls = { ...this.deviceControls, message: val };
@@ -866,6 +869,7 @@ export class BlueToothStore {
     let data = this.deviceFormData;
     let code = this.versionCode;
     if (data['1']) {
+      await this.sendActiveMessage(batterySign);
       await this.updateDeviceData({ type: '1', device_ver: code, value: data['1'] }).then(() => {
         this.deviceFormData['1'] = '';
         return this.sendActiveMessage(allDataSleep(this.nearFuture + 1));
@@ -887,9 +891,9 @@ export class BlueToothStore {
       await AsyncStorage.setItem(UPDATE_TIME, moment().format('YYYY-MM-DD HH:mm'));
       setTimeout(async () => {
         let time = this.nearFuture - 1;
-        await this.sendActiveMessage(batterySign);
+        await this.openDeviceControl(true);
         await this.setTimesNow(this.devicesInfo.id, time);
-        this.refreshing = false;
+        // this.refreshing = false;
         if (this.nearFuture > 0) {
           this.nearFuture = time;
           await this.successDialog({ date: this.nearFuture });

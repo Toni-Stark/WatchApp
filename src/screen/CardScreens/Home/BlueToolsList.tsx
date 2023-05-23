@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-community/async-storage';
-import { DeviceEventEmitter, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { DeviceEventEmitter, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { tw } from 'react-native-tailwindcss';
 import { observer } from 'mobx-react-lite';
-import { DEVICE_INFO, WEATHER_UPDATE } from '../../../common/constants';
+import { DEVICE_INFO, SET_LONG_TIME, WEATHER_UPDATE } from '../../../common/constants';
 import { RightSlideTab } from '../../../component/list/RightSlideTab';
 import {
   passRegSign,
@@ -19,6 +19,7 @@ import { StackBar } from '../../../component/home/StackBar';
 import { ScreenComponent } from '../../index';
 import { useStore } from '../../../store';
 import BaseView from '../../../component/BaseView';
+import LinearGradient from 'react-native-linear-gradient';
 
 export const BlueToolsList: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -215,7 +216,7 @@ export const BlueToolsList: ScreenComponent = observer(
       {
         name: '一键打开健康监测开关',
         value: '',
-        image: require('../../../assets/home/blood_ox.png'),
+        image: require('../../../assets/home/style-setting/setting.png'),
         cate: 'device',
         type: 'switch',
         fun: async () => {
@@ -263,14 +264,25 @@ export const BlueToolsList: ScreenComponent = observer(
       });
 
       let subscription = DeviceEventEmitter.addListener('EventType', (param) => {
+        console.log(param, '返回页面');
+        const { name, note, is_set_long, is_light } = param;
         let list: any = [...dataList];
-        if (param?.name) {
-          list[1].value = param?.name;
+        let control_list: any = [...controlList];
+        if (name) {
+          list[1].value = name;
         }
-        if (param?.note) {
-          list[0].value = param?.note;
+        if (note) {
+          list[0].value = note;
+        }
+        if (is_light) {
+          control_list[1].value = is_light;
+        }
+        if (is_set_long) {
+          control_list[0].value = is_set_long;
+          AsyncStorage.setItem(SET_LONG_TIME, is_set_long);
         }
         setDataList(list);
+        setControlList([...control_list]);
         // 刷新界面等
       });
       blueToothStore.sendActiveMessage(passRegSign('0000'));
@@ -295,7 +307,7 @@ export const BlueToolsList: ScreenComponent = observer(
       let isCate = { value: true, cate: dataList[0].cate };
       return (
         <ScrollView style={styles.scrollView}>
-          <Text style={styles.btnText}>设备设置</Text>
+          <Text style={styles.healthStyle}>设备设置</Text>
           {dataList.map((item, index) => {
             if (index !== 0 && isCate.cate !== item.cate) {
               isCate.value = false;
@@ -308,12 +320,10 @@ export const BlueToolsList: ScreenComponent = observer(
           <Text style={styles.healthStyle}>开关设置</Text>
           {controlList.map((item, index) => {
             if (index !== 0 && isCate.cate !== item.cate) {
-              isCate.value = false;
               isCate.cate = item.cate;
             } else if (index !== 0) {
-              isCate.value = true;
             }
-            return <RightSlideTab key={index + Math.random() * 1000} data={item} cate={isCate.value} onPress={item.fun} navigate={item?.navigate} />;
+            return <RightSlideTab key={index + Math.random() * 1000} data={item} cate={item.value} onPress={item.fun} navigate={item?.navigate} />;
           })}
           <Text style={styles.healthStyle}>健康设置</Text>
           {healthList.map((item, index) => {
@@ -325,6 +335,17 @@ export const BlueToolsList: ScreenComponent = observer(
             }
             return <RightSlideTab key={index + Math.random() * 1000} data={item} cate={isCate.value} onPress={item.fun} navigate={item.navigate} />;
           })}
+          <TouchableOpacity style={styles.touchViewRight} onPress={() => {}}>
+            <LinearGradient
+              colors={['#07bec4', '#07bec5']}
+              style={styles.touchStyle}
+              start={{ x: 0.3, y: 0.75 }}
+              end={{ x: 0.9, y: 1.0 }}
+              locations={[0.1, 0.8]}
+            >
+              <Text style={styles.touchText}>推荐使用默认设置</Text>
+            </LinearGradient>
+          </TouchableOpacity>
           <View style={styles.bottomView} />
         </ScrollView>
       );
@@ -343,9 +364,14 @@ export const BlueToolsList: ScreenComponent = observer(
 
 const color1 = '#868686';
 const color2 = '#f3f3f3';
+const color3 = '#ffffff';
+const color4 = '#07bec4';
 export const styles = StyleSheet.create({
   bottomView: { height: 70, width: '100%' },
   btnText: { color: color1, fontSize: 18, paddingHorizontal: 15, paddingVertical: 10 },
-  healthStyle: { color: color1, fontSize: 18, paddingHorizontal: 15, paddingVertical: 10 },
-  scrollView: { backgroundColor: color2, flex: 1 }
+  healthStyle: { color: color4, fontSize: 16, fontWeight: 'bold', paddingHorizontal: 15, paddingVertical: 10 },
+  scrollView: { backgroundColor: color2, flex: 1 },
+  touchStyle: { borderRadius: 8, padding: 15 },
+  touchText: { color: color3, fontSize: 16, textAlign: 'center' },
+  touchViewRight: { marginHorizontal: '10%', marginVertical: 40, width: '80%' }
 });
