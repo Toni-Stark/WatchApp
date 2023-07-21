@@ -381,16 +381,17 @@ export class BlueToothStore {
       // 打开心率报警开关
       await this.sendActiveMessage(settingDevicesAlarm(115, 55, 1));
       // 打开久坐提醒开关
-      await this.sendActiveMessage(settingDevicesLongSit('08', '00', '12', '00', '1e', 1));
+      await this.sendActiveMessage(settingDevicesLongSit('08', '00', '12', '00', '3c', 1));
       // 打开消息通知开关
-      let arr = Array(18).fill(1);
+      let arr = Array(17).fill(2);
+      arr.push(1);
       await this.sendActiveMessage(settingDevicesMessage(arr));
       // 设置中文
       await this.sendActiveMessage(settingDevicesLang(1));
       // 打开天气推送开关
       await this.sendActiveMessage(updateWeather(1));
       // 翻转手腕亮屏设置
-      await this.sendActiveMessage(settingDevicesScreenLight(1, '08', '00', '12', '00', '09'));
+      await this.sendActiveMessage(settingDevicesScreenLight(1, '08', '00', '12', '00', '05'));
     }
   }
   @action

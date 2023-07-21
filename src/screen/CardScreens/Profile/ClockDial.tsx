@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, ScrollView, StyleSheet, Text, TouchableWithoutFeedback } from 'react-native';
 import { tw } from 'react-native-tailwindcss';
 import { observer } from 'mobx-react-lite';
@@ -8,6 +8,8 @@ import { StackBar } from '../../../component/home/StackBar';
 import { ScreenComponent } from '../../index';
 import { useStore } from '../../../store';
 import { settingDevicesStyles } from '../../../common/watch-module';
+import AsyncStorage from '@react-native-community/async-storage';
+import { CLOCK_STYLE } from '../../../common/constants';
 
 export const ClockDial: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -29,11 +31,20 @@ export const ClockDial: ScreenComponent = observer(
       }
     ]);
 
+    useEffect(() => {
+      AsyncStorage.getItem(CLOCK_STYLE).then((res) => {
+        if (res) {
+          setSwitchValue(JSON.parse(res));
+        }
+      });
+    }, []);
+
     const backScreen = () => {
       navigation.goBack();
     };
     const currentAgree = async (val) => {
       setSwitchValue(val);
+      await AsyncStorage.setItem(CLOCK_STYLE, JSON.stringify(val));
       await blueToothStore.sendActiveMessage(settingDevicesStyles(val));
     };
 

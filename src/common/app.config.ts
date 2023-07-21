@@ -1,5 +1,5 @@
 export const appConfig = {
-  VERSION: '1.3.1',
+  VERSION: '1.3.5',
 
   WX_APP_ID: 'wx03e67906834900ec',
   wideScreenDevices: ['rk3399_nextclass'],

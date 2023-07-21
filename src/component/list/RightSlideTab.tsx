@@ -5,32 +5,32 @@ import { useState } from 'react';
 
 interface PropsType {
   data: any;
-  cate: any;
+  cate?: any;
+  value?: string;
+  noBorder?: boolean;
   onPress: (val: any) => void;
   navigate: () => void;
 }
 export const RightSlideTab = (props): JSX.Element => {
-  const { data, cate, onPress, navigate }: PropsType = props;
-  const [isEnabled, setIsEnabled] = useState(cate);
+  const { data, value, cate, onPress, navigate, noBorder }: PropsType = props;
   return (
     <TouchableOpacity style={styles.itemStyle} onPress={navigate}>
       {data.image ? <FastImage style={styles.imageIcon} source={data.image} /> : null}
-      <View style={[styles.itemData, cate ? styles.borderB : styles.borderNull]}>
+      <View style={[styles.itemData, !noBorder ? styles.borderB : styles.borderNull]}>
         <Text style={styles.itemName}>{data.name}</Text>
         {data.type === 'switch' ? (
           <Switch
             trackColor={{ false: '#eceaea', true: '#00D1DE' }}
-            thumbColor={isEnabled ? '#ffffff' : '#ffffff'}
+            thumbColor={cate ? '#ffffff' : '#ffffff'}
             ios_backgroundColor="#3e3e3e"
             onValueChange={() => {
-              setIsEnabled(!isEnabled);
-              onPress(!isEnabled);
+              onPress(!cate);
             }}
-            value={isEnabled}
+            value={cate}
           />
         ) : (
           <View style={styles.textView}>
-            <Text style={styles.textStyle}>{data.value}</Text>
+            <Text style={styles.textStyle}>{value}</Text>
             <FastImage style={styles.rightIcon} source={require('../../assets/home/right-gray.png')} />
           </View>
         )}

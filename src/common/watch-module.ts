@@ -212,6 +212,7 @@ export const settingDevicesStyles = (e: screenType) => {
  * maxWidth: 17
  * */
 export const settingDevicesMessage = (e: Array<number>) => {
+  console.log(e, 'result');
   return {
     value: arrToByte([-83, 1, ...e]),
     serviceUUID: 'f0080001-0451-4000-B000-000000000000',

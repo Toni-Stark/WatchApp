@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, DeviceEventEmitter, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { tw } from 'react-native-tailwindcss';
 import { observer } from 'mobx-react-lite';
@@ -11,9 +11,11 @@ import LinearGradient from 'react-native-linear-gradient';
 import { settingDevicesLongSit } from '../../../common/watch-module';
 import { strToHexEny } from '../../../common/tools';
 import { TimePickerModal } from 'react-native-paper-dates';
+import AsyncStorage from '@react-native-community/async-storage';
+import { SET_TIME } from '../../../common/constants';
 
 let timeArr: any = [];
-for (let i = 1; i <= 60; i++) {
+for (let i = 1; i <= 240; i++) {
   timeArr.push(i);
 }
 export const LongSet: ScreenComponent = observer(
@@ -32,6 +34,14 @@ export const LongSet: ScreenComponent = observer(
       hours: undefined
     });
     const [modalVisible, setModalVisible] = useState(false);
+
+    useEffect(() => {
+      AsyncStorage.getItem(SET_TIME).then((res) => {
+        if (res) {
+          setDateData(JSON.parse(res));
+        }
+      });
+    }, []);
 
     const backScreen = () => {
       navigation.goBack();
@@ -74,6 +84,9 @@ export const LongSet: ScreenComponent = observer(
       setDateData({ ...dateData, value: e });
       setModalVisible(!modalVisible);
     };
+    const onClose = () => {
+      setModalVisible(!modalVisible);
+    };
     const currentClose = async () => {
       await blueToothStore.sendActiveMessage(settingDevicesLongSit('00', '00', '00', '00', '00', 0));
       baseView?.current?.showToast({ text: '关闭成功', delay: 1 });
@@ -89,6 +102,7 @@ export const LongSet: ScreenComponent = observer(
       let v5 = strToHexEny(value);
       await blueToothStore.sendActiveMessage(settingDevicesLongSit(v1, v2, v3, v4, v5, 1));
       baseView?.current?.showToast({ text: '设置成功', delay: 1 });
+      await AsyncStorage.setItem(SET_TIME, JSON.stringify(dateData));
       DeviceEventEmitter.emit('EventType', { is_set_long: true });
       navigation.goBack();
     };
@@ -96,6 +110,9 @@ export const LongSet: ScreenComponent = observer(
       if (settingStore.loading) {
         return <ProfilePlaceholder />;
       }
+      let hour = Math.floor(dateData.value / 60);
+      let min = dateData.value % 60;
+      let value = hour ? hour + '小时' + (min ? min + '分钟' : '') : min + '分钟';
       return (
         <View style={[tw.flex1]}>
           <View style={styles.moduleView}>
@@ -120,7 +137,7 @@ export const LongSet: ScreenComponent = observer(
                 <View style={[styles.labelView]}>
                   <Text style={styles.labelText}>间隔时间</Text>
                   <View style={styles.agree}>
-                    <Text style={styles.input}>{dateData.value}分钟</Text>
+                    <Text style={styles.input}>{value}</Text>
                   </View>
                 </View>
               </TouchableWithoutFeedback>
@@ -174,7 +191,6 @@ export const LongSet: ScreenComponent = observer(
           transparent={true}
           visible={modalVisible}
           onRequestClose={() => {
-            Alert.alert('Modal has been closed.');
             setModalVisible(!modalVisible);
           }}
         >
@@ -190,6 +206,19 @@ export const LongSet: ScreenComponent = observer(
                   ))}
                 </View>
               </ScrollView>
+              <View style={styles.btnView}>
+                <TouchableOpacity style={styles.failView} onPress={onClose}>
+                  <LinearGradient
+                    colors={['rgba(193,193,193,0.73)', 'rgba(186,184,184,0.75)']}
+                    style={styles.failLinear}
+                    start={{ x: 0.3, y: 0.75 }}
+                    end={{ x: 0.9, y: 1.0 }}
+                    locations={[0.1, 0.8]}
+                  >
+                    <Text style={styles.btnText}>取消</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </Modal>
@@ -205,6 +234,7 @@ const color5 = '#ffffff';
 const color6 = '#777777';
 const color7 = 'rgba(0,0,0,0.44)';
 const color8 = '#000000';
+const color9 = '#07bec4';
 
 const styles = StyleSheet.create({
   agree: {
@@ -213,11 +243,29 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingLeft: 15
   },
+  btnText: {
+    color: color5,
+    fontSize: 16
+  },
+  btnView: {
+    flexDirection: 'row',
+    height: 45,
+    width: '100%'
+  },
   centeredView: {
     alignItems: 'center',
     backgroundColor: color7,
     flex: 1,
     justifyContent: 'center'
+  },
+  failLinear: {
+    alignItems: 'center',
+    height: '100%',
+    justifyContent: 'center',
+    width: '100%'
+  },
+  failView: {
+    flex: 1
   },
   firstBorder: {
     borderTopWidth: 1
@@ -225,8 +273,9 @@ const styles = StyleSheet.create({
   input: {
     borderRadius: 12,
     color: color2,
-    fontSize: 30,
+    fontSize: 25,
     fontWeight: 'bold',
+    paddingVertical: 8,
     textAlign: 'right'
   },
   inputLabelView: {},
@@ -246,8 +295,12 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 16,
-    paddingBottom: 15,
-    textAlign: 'center'
+    paddingBottom: 10,
+    textAlign: 'center',
+    color: color8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#dbdbdb',
+    borderStyle: 'solid'
   },
   modalView: {
     backgroundColor: color5,
@@ -256,6 +309,7 @@ const styles = StyleSheet.create({
     height: 400,
     margin: 20,
     overflow: 'hidden',
+    paddingBottom: 0,
     paddingVertical: 15,
     shadowColor: color8,
     shadowOffset: {
@@ -278,6 +332,15 @@ const styles = StyleSheet.create({
     fontSize: 20,
     textAlign: 'center',
     width: '100%'
+  },
+  successLinear: {
+    alignItems: 'center',
+    height: '100%',
+    justifyContent: 'center',
+    width: '100%'
+  },
+  successView: {
+    flex: 1
   },
   touchStyle: {
     alignItems: 'center',

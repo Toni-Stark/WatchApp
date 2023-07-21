@@ -29,21 +29,28 @@ export const WeChatOnePassLogin = observer((props: Props) => {
     setAgree(!agree);
   };
   const currentLogin = async () => {
-    if (agree) {
-      await AsyncStorage.removeItem(NEAR_FUTURE);
-      baseView.current.showLoading({ text: '登录中' });
-      const result: any = await weChatStore.checkWeChatInstall();
-      if (result) {
-        await AsyncStorage.setItem(USER_AGREEMENT, 'Happy every day');
-        const res: any = await weChatStore.userWeChatLogin({ code: result.code });
-        baseView.current.hideLoading();
-        if (res?.success) {
-          return props.navigation.replace('Main');
+    try {
+      if (agree) {
+        await AsyncStorage.removeItem(NEAR_FUTURE);
+        baseView.current.showLoading({ text: '登录中' });
+        const result: any = await weChatStore.checkWeChatInstall();
+        if (result) {
+          await AsyncStorage.setItem(USER_AGREEMENT, 'Happy every day');
+          const res: any = await weChatStore.userWeChatLogin({ code: result.code });
+          baseView.current.hideLoading();
+          if (res?.success) {
+            return props.navigation.replace('Main');
+          }
+          baseView.current.showToast({ text: res.msg, delay: 1.5 });
         }
-        baseView.current.showToast({ text: res.msg, delay: 1.5 });
+      } else {
+        baseView.current.showToast({ text: '请阅读并同意用户协议', delay: 1 });
       }
-    } else {
-      baseView.current.showToast({ text: '请阅读并同意用户协议', delay: 1 });
+    } catch (err) {
+      if (err) {
+        baseView.current.hideLoading();
+        baseView.current.showToast({ text: '请点击确认登录', delay: 1.5 });
+      }
     }
   };
 

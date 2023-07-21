@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, ScrollView, StyleSheet, Text, TouchableWithoutFeedback } from 'react-native';
 import { tw } from 'react-native-tailwindcss';
 import { observer } from 'mobx-react-lite';
@@ -8,6 +8,8 @@ import { StackBar } from '../../../component/home/StackBar';
 import { ScreenComponent } from '../../index';
 import { useStore } from '../../../store';
 import { settingDevicesLang } from '../../../common/watch-module';
+import AsyncStorage from '@react-native-community/async-storage';
+import { LANGUAGE } from '../../../common/constants';
 
 export const LanguageSet: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -16,11 +18,19 @@ export const LanguageSet: ScreenComponent = observer(
     const [switchValue, setSwitchValue] = useState<number>(1);
     const [switchList] = useState<any>(language_list);
 
+    useEffect(() => {
+      AsyncStorage.getItem(LANGUAGE).then((res) => {
+        if (res) {
+          setSwitchValue(JSON.parse(res));
+        }
+      });
+    }, []);
     const backScreen = () => {
       navigation.goBack();
     };
     const currentAgree = async (val) => {
       setSwitchValue(val);
+      await AsyncStorage.setItem(LANGUAGE, JSON.stringify(val));
       await blueToothStore.sendActiveMessage(settingDevicesLang(val));
     };
 

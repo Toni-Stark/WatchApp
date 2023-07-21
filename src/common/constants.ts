@@ -27,3 +27,8 @@ export const TEST_TOKEN = 'TEST_TOKEN';
 export const UPDATE_DEVICE_INFO = 'UPDATE_DEVICE_INFO';
 
 export const CONTROL_LIST = 'CONTROL_LIST';
+export const SET_TIME = 'SET_TIME';
+export const HEART_VALUE = 'HEART_VALUE';
+export const LIGHT_SCREEN = 'LIGHT_SCREEN';
+export const LANGUAGE = 'LANGUAGE';
+export const CLOCK_STYLE = 'CLOCK_STYLE';

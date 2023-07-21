@@ -1,5 +1,5 @@
-import React, { useMemo, useRef, useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { DeviceEventEmitter, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { tw } from 'react-native-tailwindcss';
 import { observer } from 'mobx-react-lite';
 import BaseView from '../../../component/BaseView';
@@ -9,6 +9,8 @@ import { ScreenComponent } from '../../index';
 import { useStore } from '../../../store';
 import LinearGradient from 'react-native-linear-gradient';
 import { settingDevicesAlarm } from '../../../common/watch-module';
+import AsyncStorage from '@react-native-community/async-storage';
+import { HEART_VALUE, SET_TIME } from '../../../common/constants';
 
 export const HeartSetting: ScreenComponent = observer(
   ({ navigation }): JSX.Element => {
@@ -18,6 +20,15 @@ export const HeartSetting: ScreenComponent = observer(
       minValue: '55',
       maxValue: '115'
     });
+
+    useEffect(() => {
+      AsyncStorage.getItem(HEART_VALUE).then((res) => {
+        if (res) {
+          setTimeParams(JSON.parse(res));
+        }
+      });
+    }, []);
+
     const backScreen = () => {
       navigation.goBack();
     };
@@ -40,6 +51,8 @@ export const HeartSetting: ScreenComponent = observer(
     const currentClose = async () => {
       await blueToothStore.sendActiveMessage(settingDevicesAlarm(0, 0, 0));
       baseView?.current?.showToast({ text: '关闭成功', delay: 1 });
+      DeviceEventEmitter.emit('EventType', { heart: false });
+      navigation.goBack();
     };
     const currentSubmit = async () => {
       const { minValue, maxValue } = timeParams;
@@ -53,6 +66,9 @@ export const HeartSetting: ScreenComponent = observer(
       if (Number(maxValue) > Number(minValue)) {
         await blueToothStore.sendActiveMessage(settingDevicesAlarm(maxValue, minValue, 1));
         baseView?.current?.showToast({ text: '设置成功', delay: 1 });
+        await AsyncStorage.setItem(HEART_VALUE, JSON.stringify(timeParams));
+        DeviceEventEmitter.emit('EventType', { heart: true });
+        navigation.goBack();
       }
     };
     const renderContent = useMemo(() => {

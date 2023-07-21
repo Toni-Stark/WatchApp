@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, DeviceEventEmitter, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { tw } from 'react-native-tailwindcss';
 import { observer } from 'mobx-react-lite';
@@ -11,6 +11,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import { strToHexEny } from '../../../common/tools';
 import { TimePickerModal } from 'react-native-paper-dates';
 import { settingDevicesScreenLight } from '../../../common/watch-module';
+import AsyncStorage from '@react-native-community/async-storage';
+import { LIGHT_SCREEN } from '../../../common/constants';
 
 let timeArr: any = [];
 for (let i = 1; i <= 10; i++) {
@@ -23,7 +25,7 @@ export const LightScreen: ScreenComponent = observer(
     const [dateData, setDateData] = useState<any | undefined>({
       start: '08:00',
       end: '18:00',
-      value: '1'
+      value: '5'
     });
     const [visible, setVisible] = useState(false);
     const [status, setStatus] = useState('start');
@@ -32,6 +34,14 @@ export const LightScreen: ScreenComponent = observer(
       hours: undefined
     });
     const [modalVisible, setModalVisible] = useState(false);
+
+    useEffect(() => {
+      AsyncStorage.getItem(LIGHT_SCREEN).then((res) => {
+        if (res) {
+          setDateData(JSON.parse(res));
+        }
+      });
+    }, []);
 
     const backScreen = () => {
       navigation.goBack();
@@ -74,6 +84,9 @@ export const LightScreen: ScreenComponent = observer(
       setDateData({ ...dateData, value: e });
       setModalVisible(!modalVisible);
     };
+    const onClose = () => {
+      setModalVisible(!modalVisible);
+    };
     const currentClose = async () => {
       await blueToothStore.sendActiveMessage(settingDevicesScreenLight('00'));
       baseView?.current?.showToast({ text: '关闭成功', delay: 1 });
@@ -88,6 +101,7 @@ export const LightScreen: ScreenComponent = observer(
       let v4 = strToHexEny(end.slice(3, 5));
       let v5 = strToHexEny(value);
       await blueToothStore.sendActiveMessage(settingDevicesScreenLight(1, v1, v2, v3, v4, v5));
+      await AsyncStorage.setItem(LIGHT_SCREEN, JSON.stringify(dateData));
       baseView?.current?.showToast({ text: '设置成功', delay: 1 });
       DeviceEventEmitter.emit('EventType', { is_light: true });
       navigation.goBack();
@@ -174,7 +188,6 @@ export const LightScreen: ScreenComponent = observer(
           transparent={true}
           visible={modalVisible}
           onRequestClose={() => {
-            Alert.alert('Modal has been closed.');
             setModalVisible(!modalVisible);
           }}
         >
@@ -190,6 +203,19 @@ export const LightScreen: ScreenComponent = observer(
                   ))}
                 </View>
               </ScrollView>
+              <View style={styles.btnView}>
+                <TouchableOpacity style={styles.failView} onPress={onClose}>
+                  <LinearGradient
+                    colors={['rgba(193,193,193,0.73)', 'rgba(186,184,184,0.75)']}
+                    style={styles.failLinear}
+                    start={{ x: 0.3, y: 0.75 }}
+                    end={{ x: 0.9, y: 1.0 }}
+                    locations={[0.1, 0.8]}
+                  >
+                    <Text style={styles.btnText}>取消</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </Modal>
@@ -213,11 +239,29 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingLeft: 15
   },
+  btnText: {
+    color: color5,
+    fontSize: 16
+  },
+  btnView: {
+    flexDirection: 'row',
+    height: 45,
+    width: '100%'
+  },
   centeredView: {
     alignItems: 'center',
     backgroundColor: color7,
     flex: 1,
     justifyContent: 'center'
+  },
+  failLinear: {
+    alignItems: 'center',
+    height: '100%',
+    justifyContent: 'center',
+    width: '100%'
+  },
+  failView: {
+    flex: 1
   },
   firstBorder: {
     borderTopWidth: 1
@@ -257,6 +301,7 @@ const styles = StyleSheet.create({
     margin: 20,
     overflow: 'hidden',
     paddingVertical: 15,
+    paddingBottom: 0,
     shadowColor: color8,
     shadowOffset: {
       width: 0,
